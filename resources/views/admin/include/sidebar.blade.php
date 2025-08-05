@@ -5,7 +5,7 @@
 
         </div>
         <div>
-            <h4 class="logo-text"> چريمبة</h4>
+            <h4 class="logo-text"> يلا ! جَوّي</h4>
         </div>
         <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i>
         </div>
@@ -18,6 +18,30 @@
                 </div>
                 <div class="menu-title">الرئيسية</div>
             </a>
+        </li>
+
+
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+               <i class="bx bx-joystick"></i>
+                    {{-- <i class="bx bx-category"></i> --}}
+
+                </div>
+                <div class="menu-title">انواع اللعبة</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.game.type')}}"><i class='bx bx-radio-circle'></i>عرض الأنواع</a>
+                </li>
+                <li> <a href="{{route('add.game.type')}}"><i class='bx bx-radio-circle'></i>إضافة نوع جديد</a>
+                </li>
+
+
+
+
+
+            </ul>
         </li>
 
 

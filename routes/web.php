@@ -12,6 +12,7 @@ use App\Http\Controllers\PayMentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppVersionController;
@@ -95,6 +96,35 @@ Route::controller(AdminController::class)
 
 
 });
+
+
+
+
+
+Route::controller(GameTypeController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/game/type', 'gameType')->name('all.game.type');
+
+    Route::get('/admin/add/game/type', 'addGameType')->name('add.game.type');
+
+
+    Route::post('/add/game/type' , 'storeGameType')->name('add.game.type.store');
+
+    Route::get('/admin/edit/game/type/{id}', 'editGameType')->name('edit.game.type');
+
+    Route::post('/edit/game/type' , 'editGameTypeStore')->name('edit.game.type.store');
+
+
+    Route::get('/delete/game/type/{id}' , 'deleteGameType')->name('delete.game.type');
+
+    Route::get('/game/type/inactive/{id}', 'gameTypeInactive')->name('inactive.game.type');
+
+
+    Route::get('/game/type/active/{id}', 'gameTypeActive')->name('active.game.type');
+
+
+
+});
+
 
 
 Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'])->group(function () {
