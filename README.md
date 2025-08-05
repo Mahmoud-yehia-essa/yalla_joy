@@ -1,5 +1,5 @@
  <p align="center">
-  <img src="https://talebai.net/logo_chramba.png" width="300" alt="Chraimbanet Logo">
+  <!-- <img src="https://talebai.net/logo_chramba.png" width="300" alt="Chraimbanet Logo"> -->
 </p>
 
 # **Yalla_joy - Admin Content Management System**
