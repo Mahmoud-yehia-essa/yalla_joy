@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GameTypeController;
+use App\Http\Controllers\LandPageController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppVersionController;
@@ -363,5 +364,8 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 
 
 Route::get('/payment', [PayMentController::class, 'showPaymentPage']);
+
+
+Route::get('/soon', [LandPageController::class, 'comingSoon']);
 
 require __DIR__.'/auth.php';
