@@ -15,7 +15,7 @@
 
   <div>
     <h1 class="text-5xl font-extrabold mb-6">🎮 يلا جّوي</h1>
-    <p class="text-2xl font-semibold mb-6">قريباً على App Store و Google Play</p>
+    <p class="text-2xl font-semibold mb-6">قريباً </p>
 
     <div class="flex justify-center gap-6 mt-4 flex-wrap">
       <!-- App Store -->
