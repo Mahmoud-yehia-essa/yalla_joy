@@ -22,7 +22,9 @@ use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     // return view('welcome');
-    return redirect()->route('dashboard');
+        return redirect()->route('coming.soon');
+
+    // return redirect()->route('dashboard');
 });
 
 // Route::get('/dashboard', function () {
@@ -366,6 +368,6 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 Route::get('/payment', [PayMentController::class, 'showPaymentPage']);
 
 
-Route::get('/soon', [LandPageController::class, 'comingSoon']);
+Route::get('/soon', [LandPageController::class, 'comingSoon'])->name('coming.soon');;
 
 require __DIR__.'/auth.php';

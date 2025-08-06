@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(to bottom right, #2400a8, #008cff); /* تدرج مشابه لخلفية الشعار */
+      background: linear-gradient(to bottom right, #0f172a, #1e293b, #111827); /* تدرج أزرق-رمادي غامق */
     }
   </style>
 </head>
