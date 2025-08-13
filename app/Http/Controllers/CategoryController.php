@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\GameType;
 use App\Models\Question;
+use App\Models\MainCategory;
+
 use Illuminate\Http\Request;
+
 use Intervention\Image\Format;
-
 use Intervention\Image\ImageManager;
-
 use Intervention\Image\Facades\Image;
 use Intervention\Image\Drivers\Gd\Driver; // Use GD driver (or use Intervention\Image\Drivers\Imagick\Driver for Imagick)
 
@@ -27,9 +29,25 @@ class CategoryController extends Controller
 
     public function addCategory()
     {
+        $gameType = GameType::latest()->get();
 
-        return view('admin.category.add_category');
+        return view('admin.category.add_category',compact('gameType'));
     }
+
+/// For json ajax getMainCategory
+    public function getMainCategories($game_type_id)
+{
+    $mainCategories = \App\Models\MainCategory::where('game_type_id', $game_type_id)->get();
+
+    return response()->json($mainCategories);
+}
+
+    public function getSubCategories($main_category_id)
+{
+    $subCategories = \App\Models\Category::where('main_category_id', $main_category_id)->get();
+
+    return response()->json($subCategories);
+}
 
     public function storeCategory(Request $request)
     {
@@ -37,20 +55,45 @@ class CategoryController extends Controller
 
 
         $request->validate([
+
+
+                        'main_category_id' => 'required|not_in:non',
+                        'game_type_id' => 'required|not_in:non',
+
             'category_name' => 'required|string|max:255',
+                        'category_name_en' => 'required|string|max:255',
+
             'category_description' => 'nullable|string',
+                        'category_description_en' => 'nullable|string',
+
             'category_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'category_name.required' => '⚠️ الرجاء اضافة اسم الفئة',
             'category_name.string' => '⚠️ الرجاء التأكد من كتابة الفئة بشكل صحيح',
             'category_name.max' => '⚠️ الرجاء التأكد من عدد احرف الفئة لا يتجاوز 255 حرف',
 
+
+             'category_name_en.required' => '⚠️ الرجاء اضافة اسم الفئة بالانجليزية',
+            'category_name_en.string' => '⚠️ الرجاء التأكد من كتابة الفئة بشكل صحيح',
+            'category_name_en.max' => '⚠️ الرجاء التأكد من عدد احرف الفئة لا يتجاوز 255 حرف',
+
+
             'category_description.string' => '⚠️ الرجاء التأكد من كتابة الوصف بشكل صحيح',
+            'category_description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بالانجليزية بشكل صحيح ',
+
 
             'category_photo.required' => '⚠️ الرجاء اضافة صورة للفئة',
             'category_photo.image' => '⚠️ تأكد من اضافة صورة',
             'category_photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
             'category_photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
+                            'game_type_id.required' => '⚠️ الرجاء اختيار نوع اللعبة.',
+        'game_type_id.not_in' => '⚠️ الرجاء اختيار نوع اللعبة.',
+
+
+                             'main_category_id.required' => '⚠️ الرجاء اختيار الفئة الرئيسية.',
+        'main_category_id.not_in' => '⚠️ الرجاء اختيار الفئة الرئيسية.',
+
+
         ]);
 
 
@@ -75,8 +118,17 @@ class CategoryController extends Controller
 
         // Insert category
         Category::create([
+
+             'game_type_id' => $request->game_type_id,
+                          'main_category_id' => $request->main_category_id,
+
+
             'category_name' => $request->category_name,
+                        'category_name_en' => $request->category_name_en,
+
             'category_description' => $request->category_description,
+                        'category_description_en' => $request->category_description_en,
+
             'category_photo' => $save_url ?? null,
             'special' => $request->special,
 
@@ -93,8 +145,18 @@ class CategoryController extends Controller
 
 
     public function editCategort($id){
+
+
         $category = Category::findOrFail($id);
-        return view('admin.category.edit_category',compact('category'));
+        $gameType = GameType::latest()->get();
+
+            $mainCategories = MainCategory::latest()->get();
+
+ $mainCategories = MainCategory::where('game_type_id', $category->game_type_id)
+                                  ->latest()
+                                  ->get();
+
+        return view('admin.category.edit_category',compact('category','gameType','mainCategories'));
     }// End Method
 
 
@@ -107,20 +169,39 @@ class CategoryController extends Controller
 
 
         $request->validate([
+                       'main_category_id' => 'required|not_in:non',
+                        'game_type_id' => 'required|not_in:non',
             'category_name' => 'required|string|max:255',
+                        'category_name_en' => 'required|string|max:255',
+
             'category_description' => 'nullable|string',
+                        'category_description_en' => 'nullable|string',
+
             'category_photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'category_name.required' => '⚠️ الرجاء اضافة اسم الفئة',
             'category_name.string' => '⚠️ الرجاء التأكد من كتابة الفئة بشكل صحيح',
             'category_name.max' => '⚠️ الرجاء التأكد من عدد احرف الفئة لا يتجاوز 255 حرف',
 
+               'category_name_en.required' => '⚠️  الرجاء اضافة اسم الفئة بالانجليزية',
+            'category_name_en.string' => '⚠️ الرجاء التأكد من كتابة الفئة بشكل صحيح',
+            'category_name_en.max' => '⚠️ الرجاء التأكد من عدد احرف الفئة لا يتجاوز 255 حرف',
+
             'category_description.string' => '⚠️ الرجاء التأكد من كتابة الوصف بشكل صحيح',
+            'category_description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بشكل صحيح',
+
 
             'category_photo.required' => '⚠️ الرجاء اضافة صورة للفئة',
             'category_photo.image' => '⚠️ تأكد من اضافة صورة',
             'category_photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
             'category_photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
+                               'game_type_id.required' => '⚠️ الرجاء اختيار نوع اللعبة.',
+        'game_type_id.not_in' => '⚠️ الرجاء اختيار نوع اللعبة.',
+
+
+                             'main_category_id.required' => '⚠️ الرجاء اختيار الفئة الرئيسية.',
+        'main_category_id.not_in' => '⚠️ الرجاء اختيار الفئة الرئيسية.',
+
         ]);
 
 
@@ -146,8 +227,14 @@ class CategoryController extends Controller
            unlink($old_img);
         }
         Category::findOrFail($cate_id)->update([
+
+            'game_type_id' => $request->game_type_id,
+                          'main_category_id' => $request->main_category_id,
             'category_name' => $request->category_name,
-            'category_description' => $request->category_description,
+                        'category_name_en' => $request->category_name_en,
+
+            'category_description_en' => $request->category_description_en,
+
             'category_photo' => $save_url ,
             'special'  => $request->special,
 
@@ -159,7 +246,13 @@ class CategoryController extends Controller
         return redirect()->route('all.category')->with($notification);
         } else {
             Category::findOrFail($cate_id)->update([
+
+                'game_type_id' => $request->game_type_id,
+                          'main_category_id' => $request->main_category_id,
                 'category_name' => $request->category_name,
+                 'category_name_en' => $request->category_name_en,
+
+            'category_description_en' => $request->category_description_en,
                 'category_description' => $request->category_description,
                 'special'  => $request->special,
 

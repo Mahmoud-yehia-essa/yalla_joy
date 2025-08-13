@@ -18,6 +18,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppVersionController;
 use App\Http\Controllers\QuestionAIController;
+use App\Http\Controllers\MainCategoryController;
 use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
@@ -129,6 +130,30 @@ Route::controller(GameTypeController::class)->middleware(['checkUserRole','auth'
 });
 
 
+Route::controller(MainCategoryController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/main/category', 'mainCategory')->name('all.main.category');
+
+    Route::get('/admin/add/main/category', 'addMainCategory')->name('add.main.category');
+
+
+    Route::post('/add/main/category' , 'storeMainCategory')->name('add.main.category.store');
+
+    Route::get('/admin/edit/main/category/{id}', 'editMainCategory')->name('edit.main.category');
+
+    Route::post('/edit/main/category' , 'editMainCategoryStore')->name('edit.main.category.store');
+
+
+    Route::get('/delete/main/category/{id}' , 'deleteMainCategory')->name('delete.main.category');
+
+    Route::get('/main/category/inactive/{id}', 'mainCategoryInactive')->name('inactive.main.category');
+
+
+    Route::get('/main/category/active/{id}', 'mainCategoryActive')->name('active.main.category');
+
+
+
+});
+
 
 Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/admin/category', 'category')->name('all.category');
@@ -149,7 +174,15 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 
 
     Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
+    Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
 
+
+        Route::get('/get-main-categories/{game_type_id}', 'getMainCategories')->name('get.Main.categories');
+
+                Route::get('/get-sub-categories/{main_category_id}', 'getSubCategories')->name('get.sub.categories');
+
+
+// Route::get('/get-main-categories/{game_type_id}', [App\Http\Controllers\CategoryController::class, 'getMainCategories']);
 
 
 });

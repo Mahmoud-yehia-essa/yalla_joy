@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Answer;
 use App\Models\Category;
+use App\Models\GameType;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,10 @@ class QuestionController extends Controller
 
         $category = Category::latest()->get();
 
-        return view('admin.question.add_question',compact('category'));
+        $gameType = GameType::latest()->get();
+
+
+        return view('admin.question.add_question',compact('category','gameType'));
     }
 
     public function editQuestion($id)
@@ -253,6 +257,12 @@ class QuestionController extends Controller
 public function addQuestionStore(Request $request)
 {
     $request->validate([
+
+
+                'game_type_id' => 'required|not_in:non',
+                'main_category_id' => 'required|not_in:non',
+
+
         'qu_title' => 'required|string|max:255',
         'qu_points' => 'required|integer',
         'questions_type' => 'required|string|in:text,image,sound,video',
@@ -289,8 +299,21 @@ public function addQuestionStore(Request $request)
         'answerـfile.file' => 'يرجى رفع ملف صالح للإجابة.',
         'answerـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
 
-        'category_id.required' => 'الرجاء اختيار الفئة.',
-        'category_id.not_in' => 'الرجاء اختيار فئة صالحة.',
+        'category_id.required' => 'الرجاء اختيار الفئة الفرعية.',
+        'category_id.not_in' => 'الرجاء اختيار الفئة الفرعية.',
+
+
+         'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
+        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+
+
+
+         'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
+        'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
+
+
+
+
     ]);
 
     DB::beginTransaction(); // Start transaction
@@ -327,6 +350,11 @@ public function addQuestionStore(Request $request)
         // Create question
         $question = Question::create([
             'qu_title' => $request->qu_title,
+            'game_type_id' => $request->game_type_id,
+
+            'main_category_id' => $request->main_category_id,
+            'category_id' => $request->category_id,
+
             'category_id' => $request->category_id,
             'qu_points' => $request->qu_points,
             'questions_type' => $request->questions_type,

@@ -19,21 +19,59 @@
 
                         <div class="card-body">
 
-                                <!-- Question  category-->
+
+                                                            <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">اختر نوع اللعبة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select  name="game_type_id" class="form-select" aria-label="Default select example">
+                                            <option selected="" value="non">الرجاء إختيار نوع اللعبة</option>
+
+                                            @foreach ($gameType as $item )
+                                            <option value="{{$item->id}}" >{{$item->type_name}}</option>
+
+                                            @endforeach
+
+                                        </select>
+
+                                        @error('game_type_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+
+                                 <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">اختر الفئة الرئيسية</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select  name="main_category_id" class="form-select" aria-label="Default select example">
+                                            <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option>
+
+                                        </select>
+
+                                        @error('main_category_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+
+
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">اختر الفئة</h6>
+                                        <h6 class="mb-0">اختر الفئة الفرعية</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
 
 
                                         <select  name="category_id" class="form-select" aria-label="Default select example">
-                                            <option selected="" value="non">الرجاء إختيار الفئة</option>
+                                            <option selected="" value="non">الرجاء إختيار الفئة الفرعية</option>
 
-                                            @foreach ($category as $item )
-                                            <option value="{{$item->id}}" {{ old('category_id') == $item->id ? 'selected' : '' }}>{{$item->category_name}}</option>
-
-                                            @endforeach
 
                                         </select>
 
@@ -285,5 +323,108 @@
 });
 
 </script>
+
+
+<script>
+
+
+$(document).ready(function(){
+
+    // Reusable function for AJAX loading of options
+    function loadOptions(triggerSelect, targetSelect, urlPrefix, valueField, textField, defaultText) {
+        $(triggerSelect).on('change', function(){
+            var selectedId = $(this).val();
+            var target = $(targetSelect);
+
+            if(selectedId && selectedId !== 'non'){
+                target.prop('disabled', true)
+                      .empty()
+                      .append('<option value="">جاري التحميل...</option>');
+
+                $.ajax({
+                    url: urlPrefix + selectedId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data){
+                        target.empty();
+                        target.append('<option value="non">' + defaultText + '</option>');
+                        $.each(data, function(key, value){
+                            target.append('<option value="'+ value[valueField] +'">'+ value[textField] +'</option>');
+                        });
+                        target.prop('disabled', false);
+                    },
+                    error: function(){
+                        target.empty().append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
+                        target.prop('disabled', false);
+                    }
+                });
+            } else {
+                target.prop('disabled', false)
+                      .empty()
+                      .append('<option value="non">' + defaultText + '</option>');
+            }
+        });
+    }
+
+    // game_type_id → main_category_id
+    loadOptions(
+        'select[name="game_type_id"]',
+        'select[name="main_category_id"]',
+        '/get-main-categories/',
+        'id',
+        'main_category_name',
+        'الرجاء إختيار الفئة الرئيسية'
+    );
+
+    // main_category_id → category_id (subcategories)
+    loadOptions(
+        'select[name="main_category_id"]',
+        'select[name="category_id"]',
+        '/get-sub-categories/',
+        'id',
+        'category_name',
+        'الرجاء إختيار الفئة الفرعية'
+    );
+
+});
+
+// $(document).ready(function(){
+//     $('select[name="game_type_id"]').on('change', function(){
+//         var game_type_id = $(this).val();
+//         var select = $('select[name="main_category_id"]');
+
+//         if(game_type_id && game_type_id !== 'non'){
+//             // Disable and show loading
+//             select.prop('disabled', true)
+//                   .empty()
+//                   .append('<option value="">جاري التحميل...</option>');
+
+//             $.ajax({
+//                 url: '/get-main-categories/' + game_type_id,
+//                 type: 'GET',
+//                 dataType: 'json',
+//                 success: function(data){
+//                     select.empty();
+//                     select.append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
+//                     $.each(data, function(key, value){
+//                         select.append('<option value="'+ value.id +'">'+ value.main_category_name +'</option>');
+//                     });
+//                     // Re-enable after loading
+//                     select.prop('disabled', false);
+//                 },
+//                 error: function(){
+//                     select.empty().append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
+//                     select.prop('disabled', false);
+//                 }
+//             });
+//         } else {
+//             select.prop('disabled', false)
+//                   .empty()
+//                   .append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
+//         }
+//     });
+// });
+</script>
+
 
 @endsection

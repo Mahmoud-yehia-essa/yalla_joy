@@ -5,7 +5,7 @@
 <div class="page-content">
     <!--breadcrumb-->
     <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">اضافة فئة جديدة</div>
+        <div class="breadcrumb-title pe-3">اضافة فئة رئيسية جديدة</div>
     </div>
     <!--end breadcrumb-->
 
@@ -26,11 +26,10 @@
                                 </div>
                             @endif
 
-                            <form method="post" action="{{ route('add.category.store') }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('add.main.category.store') }}" enctype="multipart/form-data">
                                 @csrf
 
-
-
+                                  <!-- Question  category-->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">اختر نوع اللعبة</h6>
@@ -42,7 +41,7 @@
                                             <option selected="" value="non">الرجاء إختيار نوع اللعبة</option>
 
                                             @foreach ($gameType as $item )
-                                            <option value="{{$item->id}}" >{{$item->type_name}}</option>
+                                            <option value="{{$item->id}}" {{ old('game_type_id') == $item->id ? 'selected' : '' }}>{{$item->type_name}}</option>
 
                                             @endforeach
 
@@ -52,46 +51,27 @@
                                     </div>
                                 </div>
 
-
-
-                                 <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <h6 class="mb-0">اختر الفئة الرئيسية</h6>
-                                    </div>
-                                    <div class="col-sm-9 text-secondary">
-
-
-                                        <select  name="main_category_id" class="form-select" aria-label="Default select example">
-                                            <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option>
-
-                                        </select>
-
-                                        @error('main_category_id') <span class="text-danger">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
-
-
                                 <!-- Category Name -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">اسم الفئة</h6>
+                                        <h6 class="mb-0">اسم الفئة الرئيسية</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="category_name" class="form-control" value="{{ old('category_name') }}" />
-                                        @error('category_name')
+                                        <input type="text" name="main_category_name" class="form-control" value="{{ old('main_category_name') }}" />
+                                        @error('main_category_name')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
 
 
-                                    <div class="row mb-3">
+                                   <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">Category Name</h6>
+                                <h6 class="mb-0" >Main Category Name</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="category_name_en" class="form-control" value="{{ old('category_name_en') }}" />
-                                        @error('category_name_en')
+                                        <input type="text" dir="ltr" name="main_category_name_en" class="form-control" value="{{ old('main_category_name_en') }}" />
+                                        @error('main_category_name_en')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -103,27 +83,24 @@
                                         <h6 class="mb-0">الوصف</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="category_description" class="form-control" value="{{ old('category_description') }}" />
-                                        @error('category_description')
+                                        <input type="text" name="main_category_description" class="form-control" value="{{ old('main_category_description') }}" />
+                                        @error('main_category_description')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
 
-
-
-                                <div class="row mb-3">
+                        <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">Description</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="category_description_en" class="form-control" value="{{ old('category_description_en') }}" />
-                                        @error('category_description_en')
+                                        <input type="text" dir="ltr" name="main_category_description_en" class="form-control" value="{{ old('main_category_description_en') }}" />
+                                        @error('main_category_description_en')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
-
 
                                 <!-- Category Photo -->
                                 <div class="row mb-3">
@@ -131,8 +108,8 @@
                                         <h6 class="mb-0">الصورة</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="file" name="category_photo" class="form-control" id="image" />
-                                        @error('category_photo')
+                                        <input type="file" name="main_category_photo" class="form-control" id="image" />
+                                        @error('main_category_photo')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -148,7 +125,7 @@
 
 
                                       <!-- category special-->
-                                      <div class="row mb-3">
+                                      {{-- <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <h6 class="mb-0">هل الفئة مميزة؟</h6>
                                         </div>
@@ -166,13 +143,13 @@
 
                                             @error('category_id') <span class="text-danger">{{ $message }}</span> @enderror
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                 <!-- Submit Button -->
                                 <div class="row">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="submit" class="btn btn-primary px-4" value="اضافة فئة جديدة" />
+                                        <input type="submit" class="btn btn-primary px-4" value="اضافة نوع لعبة " />
                                     </div>
                                 </div>
                             </form>
@@ -196,70 +173,4 @@
         </div>
     </div>
 </div>
-
-{{-- <script>
-$(document).ready(function(){
-    $('select[name="game_type_id"]').on('change', function(){
-        var game_type_id = $(this).val();
-        if(game_type_id && game_type_id !== 'non'){
-            $.ajax({
-                url: '/get-main-categories/' + game_type_id,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data){
-                    var select = $('select[name="main_category_id"]');
-                    select.empty();
-                    select.append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-                    $.each(data, function(key, value){
-                        select.append('<option value="'+ value.id +'">'+ value.main_category_name +'</option>');
-                    });
-                }
-            });
-        } else {
-            $('select[name="main_category_id"]').empty().append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-        }
-    });
-});
-</script> --}}
-
-<script>
-$(document).ready(function(){
-    $('select[name="game_type_id"]').on('change', function(){
-        var game_type_id = $(this).val();
-        var select = $('select[name="main_category_id"]');
-
-        if(game_type_id && game_type_id !== 'non'){
-            // Disable and show loading
-            select.prop('disabled', true)
-                  .empty()
-                  .append('<option value="">جاري التحميل...</option>');
-
-            $.ajax({
-                url: '/get-main-categories/' + game_type_id,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data){
-                    select.empty();
-                    select.append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-                    $.each(data, function(key, value){
-                        select.append('<option value="'+ value.id +'">'+ value.main_category_name +'</option>');
-                    });
-                    // Re-enable after loading
-                    select.prop('disabled', false);
-                },
-                error: function(){
-                    select.empty().append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
-                    select.prop('disabled', false);
-                }
-            });
-        } else {
-            select.prop('disabled', false)
-                  .empty()
-                  .append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-        }
-    });
-});
-</script>
-
-
 @endsection

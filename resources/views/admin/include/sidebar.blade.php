@@ -45,11 +45,36 @@
         </li>
 
 
-        <li>
+
+
+          <li>
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
                 </div>
                 <div class="menu-title">الفئات الرئيسية</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.main.category')}}"><i class='bx bx-radio-circle'></i>عرض الفئات الرئيسية</a>
+                </li>
+                <li> <a href="{{route('add.main.category')}}"><i class='bx bx-radio-circle'></i> إضافة الفئات الرئيسية</a>
+                </li>
+
+
+
+
+
+            </ul>
+        </li>
+
+
+
+
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-category"></i>
+                </div>
+                <div class="menu-title">الفئات الفرعية</div>
             </a>
             <ul>
                 <li> <a href="{{route('all.category')}}"><i class='bx bx-radio-circle'></i>عرض الفئات</a>

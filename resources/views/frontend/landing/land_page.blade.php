@@ -7,31 +7,31 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(to bottom right, #0f172a, #1e293b, #111827); /* تدرج أزرق-رمادي غامق */
+      background: linear-gradient(-45deg, #ffffff, #f8f9fa, #e6ebf0, #f1f3f6);
+      background-size: 300% 300%;
+      animation: gradientBG 10s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
     }
   </style>
 </head>
-<body class="flex items-center justify-center h-screen text-white text-center px-4">
+<body class="flex items-center justify-center h-screen text-gray-800 text-center px-4">
 
   <div>
-    <h1 class="text-5xl font-extrabold mb-6">🎮 يلا جّوي</h1>
-    <p class="text-2xl font-semibold mb-6">قريباً </p>
+    <img src="{{ asset('backend/assets/images/login-images/logo_yalla.png') }}" class="img-fluid zoom-animation" width="400" alt=""/>
 
-    <div class="flex justify-center gap-6 mt-4 flex-wrap">
-      <!-- App Store -->
-      <a href="#">
-        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-             alt="App Store" class="h-14 md:h-16">
-      </a>
-
-      <!-- Google Play -->
-      <a href="#">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-             alt="Google Play" class="h-14 md:h-16">
-      </a>
-    </div>
-
-    <p class="mt-10 text-lg">تابعونا لمزيد من التحديثات  🎉</p>
+    <h1 class="text-5xl font-extrabold mb-6">🎮 يلا جوي</h1>
+    <p class="text-4xl font-semibold mb-6">قريباً</p>
   </div>
 
 </body>

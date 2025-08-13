@@ -37,6 +37,36 @@
 
 
 	</style>
+
+    {{-- <style>
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-90px);
+        }
+    }
+
+    .bounce-animation {
+        animation: bounce 1.5s infinite ease-in-out;
+    }
+</style> --}}
+
+<style>
+    @keyframes zoomInOut {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1); /* Zoom in to 110% */
+        }
+    }
+
+    .zoom-animation {
+        animation: zoomInOut 2s infinite ease-in-out;
+    }
+</style>
 </head>
 
 <body class="">
@@ -50,6 +80,10 @@
 						<div class="card shadow-none bg-transparent shadow-none rounded-0 mb-0">
 							<div class="card-body">
                                  {{-- <img src="{{ asset('backend/assets/images/login-images/logo_chramba.png') }}" class="img-fluid" width="400" alt=""/> --}}
+
+                                 {{-- <img src="{{ asset('backend/assets/images/login-images/logo_chramba.png') }}" class="img-fluid bounce-animation" width="400" alt=""/> --}}
+<img src="{{ asset('backend/assets/images/login-images/logo_yalla.png') }}" class="img-fluid zoom-animation" width="400" alt=""/>
+
 							</div>
 						</div>
 					</div>

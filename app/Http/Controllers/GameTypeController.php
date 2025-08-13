@@ -42,14 +42,21 @@ class GameTypeController extends Controller
 
         $request->validate([
             'game_type_name' => 'required|string|max:255',
+                        'game_type_name_en' => 'required|string|max:255',
+
             'game_type_description' => 'nullable|string',
+                        'game_type_description_en' => 'nullable|string',
+
             'game_type_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'game_type_name.required' => '⚠️ الرجاء اضافة نوع اللعبة',
+                        'game_type_name_en.required' => '⚠️ الرجاء اضافة نوع اللعبة بالانجليزية',
+
             'game_type_name.string' => '⚠️ الرجاء التأكد من كتابة نوع اللعبة بشكل صحيح',
             'game_type_name.max' => '⚠️ الرجاء التأكد من عدد احرف نوع اللعبة لا يتجاوز 255 حرف',
 
             'game_type_description.string' => '⚠️ الرجاء التأكد من كتابة الوصف بشكل صحيح',
+            'game_type_description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بالانجليزية بشكل صحيح',
 
             'game_type_photo.required' => '⚠️ الرجاء اضافة صورة نوع للعبة',
             'game_type_photo.image' => '⚠️ تأكد من اضافة صورة',
@@ -81,7 +88,11 @@ class GameTypeController extends Controller
 
         GameType::create([
             'type_name' => $request->game_type_name,
+                        'type_name_en' => $request->game_type_name_en,
+
             'type_description' => $request->game_type_description,
+                        'type_description_en' => $request->game_type_description_en,
+
             'type_photo' => $save_url ?? null,
             // 'special' => $request->special,
 
@@ -115,14 +126,21 @@ class GameTypeController extends Controller
 
         $request->validate([
             'game_type_name' => 'required|string|max:255',
+                        'game_type_name_en' => 'required|string|max:255',
+
             'game_type_description' => 'nullable|string',
+                        'game_type_description_en' => 'nullable|string',
+
             'game_type_photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'game_type_name.required' => '⚠️ الرجاء اضافة نوع الفئة',
+                        'game_type_name_en.required' => '⚠️ الرجاء اضافة نوع الفئة بالانجليزية',
+
             'game_type_name.string' => '⚠️ الرجاء التأكد من كتابة نوع الفئة بشكل صحيح',
             'game_type_name.max' => '⚠️ الرجاء التأكد من عدد احرف الفئة لا يتجاوز 255 حرف',
 
             'game_type_description.string' => '⚠️ الرجاء التأكد من كتابة الوصف بشكل صحيح',
+            'game_type_description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بالانجليزية بشكل صحيح',
 
             'game_type_photo.required' => '⚠️ الرجاء اضافة صورة لنوع الفئة',
             'game_type_photo.image' => '⚠️ تأكد من اضافة صورة',
@@ -154,7 +172,11 @@ class GameTypeController extends Controller
         }
         GameType::findOrFail($cate_id)->update([
             'type_name' => $request->game_type_name,
+            'type_name_en' => $request->game_type_name_en,
+
             'type_description' => $request->game_type_description,
+            'type_description_en' => $request->game_type_description_en,
+
             'type_photo' => $save_url ,
             // 'special'  => $request->special,
 
@@ -168,6 +190,9 @@ class GameTypeController extends Controller
             GameType::findOrFail($cate_id)->update([
                 'type_name' => $request->game_type_name,
                 'type_description' => $request->game_type_description,
+
+                 'type_name_en' => $request->game_type_name_en,
+                'type_description_en' => $request->game_type_description_en,
                 // 'special'  => $request->special,
 
 
