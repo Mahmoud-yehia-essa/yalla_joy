@@ -46,7 +46,7 @@
         <span class="badge bg-danger">لعبة</span>
 
     @elseif ($item->type == 'positions')
-        <span class="badge bg-primary">منصب أو لقب</span>
+        <span class="badge bg-primary"> لقب</span>
 
     @elseif ($item->type == 'clothe')
         <span class="badge bg-success">ملابس</span>

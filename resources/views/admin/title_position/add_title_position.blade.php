@@ -42,8 +42,8 @@
                                             <option selected="" value="non">الرجاء إختيار نوع العنصر</option>
 
                                             <option value="game" >لعبة</option>
-                                             <option value="positions" >منصب أو لقب</option>
-                                             <option value="clothe" >ملابس</option>
+                                             <option value="positions" > لقب</option>
+                                             {{-- <option value="clothe" >ملابس</option> --}}
                                             <option value="accessorie" >إكسسوار</option>
 
 

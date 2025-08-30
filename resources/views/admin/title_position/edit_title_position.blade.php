@@ -44,8 +44,8 @@
                                             <option selected="" value="non">الرجاء إختيار نوع العنصر</option>
 
                                             <option value="game" {{$titlePosition->type == "game" ? 'selected' : ''}} >لعبة</option>
-                                             <option value="positions" {{$titlePosition->type == "positions" ? 'selected' : ''}} >منصب أو لقب</option>
-                                             <option value="clothe" {{$titlePosition->type == "clothe" ? 'selected' : ''}} > ملابس</option>
+                                             <option value="positions" {{$titlePosition->type == "positions" ? 'selected' : ''}} >لقب</option>
+                                             {{-- <option value="clothe" {{$titlePosition->type == "clothe" ? 'selected' : ''}} > ملابس</option> --}}
                                              <option value="accessorie" {{$titlePosition->type == "accessorie" ? 'selected' : ''}} > إكسسوار</option>
 
                                              {{-- <option value="positions" >منصب أو لقب</option>
