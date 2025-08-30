@@ -1,6 +1,12 @@
 @extends('admin.master_admin')
 @section('admin')
 
+
+<style>
+    .bg-gradient-cosmic {
+    background: linear-gradient(to right, #fbc2eb, #a6c1ee) !important;
+}
+</style>
 <div class="card radius-10 bg-linkedin">
     <div class="card-body">
         <div class="d-flex align-items-center">

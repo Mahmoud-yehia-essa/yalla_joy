@@ -24,7 +24,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
-	<title>  تحكم - تطبيق يلا جوي</title>
+	<title>لوحة تحكم - لعبة يلا!جوي</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
 
     <style>
@@ -59,12 +59,12 @@
             transform: scale(1);
         }
         50% {
-            transform: scale(1.1); /* Zoom in to 110% */
+            transform: scale(1.6); /* Zoom in to 110% */
         }
     }
 
     .zoom-animation {
-        animation: zoomInOut 2s infinite ease-in-out;
+        animation: zoomInOut 6s infinite ease-in-out;
     }
 </style>
 </head>

@@ -15,8 +15,7 @@ use Intervention\Image\Drivers\Gd\Driver; // Use GD driver (or use Intervention\
 
 class GameTypeController extends Controller
 {
-    //
-     //
+
     public function gameType()
     {
         $gameType = GameType::latest()->get();
@@ -78,7 +77,10 @@ class GameTypeController extends Controller
 
             $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
             // Process and save image
-            $imageResized = $imageManager->read($image)->resize(364, 176);
+            // $imageResized = $imageManager->read($image)->resize(364, 176);
+
+                        $imageResized = $imageManager->read($image);
+
             $imageResized->save($path . $name_gen);
 
             $save_url = 'upload/game_type/' . $name_gen;
@@ -161,7 +163,9 @@ class GameTypeController extends Controller
 
         $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
         // Process and save image
-        $imageResized = $imageManager->read($image)->resize(364, 176);
+        // $imageResized = $imageManager->read($image)->resize(364, 176);
+                $imageResized = $imageManager->read($image);
+
         $imageResized->save($path . $name_gen);
 
         $save_url = 'upload/game_type/' . $name_gen;

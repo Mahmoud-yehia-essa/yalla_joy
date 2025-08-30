@@ -40,6 +40,8 @@
 <th>تاريخ التسجيل</th>
 <th>طريقة التسجيل</th>
 
+<th>النقاط</th>
+
 <th> الصورة</th>
 <th>الاجراء</th>
 </tr>
@@ -66,6 +68,9 @@
         <i class="fa-solid fa-question fa-2x" title="Unknown"></i>
     @endif
 </td>
+
+<td>{{ $item->points }}</td>
+
 <td>
     <img
         onclick="showImageModal(this.src)"
@@ -98,6 +103,9 @@
     <th>إسم العائلة</th>
     <th>البريد الإلكتروني</th>
     <th>تاريخ التسجيل</th>
+    <th>طريقة التسجيل</th>
+
+    <th> النقاط</th>
 
     <th> الصورة</th>
     <th>الاجراء</th>

@@ -20,10 +20,6 @@ class CategoryController extends Controller
     public function category()
     {
         $category = Category::latest()->get();
-
-
-
-
         return view('admin.category.all_category',compact('category'));
     }
 
@@ -110,7 +106,10 @@ class CategoryController extends Controller
 
             $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
             // Process and save image
-            $imageResized = $imageManager->read($image)->resize(364, 176);
+            $imageResized = $imageManager->read($image);
+
+                        // $imageResized = $imageManager->read($image)->resize(364, 176);
+
             $imageResized->save($path . $name_gen);
 
             $save_url = 'upload/category/' . $name_gen;
@@ -217,7 +216,10 @@ class CategoryController extends Controller
 
         $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
         // Process and save image
-        $imageResized = $imageManager->read($image)->resize(364, 176);
+        // $imageResized = $imageManager->read($image)->resize(364, 176);
+        $imageResized = $imageManager->read($image);
+
+
         $imageResized->save($path . $name_gen);
 
         $save_url = 'upload/category/' . $name_gen;

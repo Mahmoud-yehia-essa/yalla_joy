@@ -12,19 +12,26 @@
     function drawChart() {
     var data = google.visualization.arrayToDataTable([
         ['Task', 'Hours per Day'],
-        ['الفئات', {{$category->count()}}],
+                [' أنواع اللعب', {{$gameType->count()}}],
+                [' الفئات الرئيسية', {{$mainCategory->count()}}],
+
+        ['الفئات الفرعية', {{$category->count()}}],
+
+                ['عناصر اللعبة', {{$titlePosition->count()}}],
 
         ['المستخدمين المسجلين', {{$users->count()}}],
         ['الأسئلة', {{$questions->count()}}],
         ['الألعاب', {{$games->count()}}],
+                ['الرعاة', {{$sponsor->count()}}],
+
     ]);
 
     var options = {
         title: '',
         //#endregion
 
-       // colors: ['#5636D3', '#67B586', '#3357FF', '#15232A'] // Add your desired colors here
-        colors: ['#67B586', '#5636D3', '#3357FF', '#15232A'] // Add your desired colors here
+
+        colors: ['#1C3E14','#D22FBF','#67B586','#4B0A05', '#5636D3', '#3357FF', '#15232A','#894818'] // Add your desired colors here
 
     };
 
@@ -33,6 +40,123 @@
     chart.draw(data, options);
 }
   </script>
+
+  <style>
+
+    .bg-gradient-magenta {
+    background: linear-gradient(135deg, #FF00CC, #333399);
+    color: white;
+}
+
+
+.bg-gradient-cyan {
+ background: linear-gradient(135deg, #400000, #8B0000);
+    color: white;
+}
+
+.bg-gradient-darkteal {
+    background: linear-gradient(135deg, #0B3D0B, #06470C);
+    color: white;
+}
+
+
+.bg-gradient-darkorange {
+    background: linear-gradient(135deg, #8B4000, #FF7300);
+    color: white;
+}
+  </style>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <a href="{{route('all.game.type')}}">
+        <div class="card radius-10 bg-gradient-darkteal">
+         <div class="card-body">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 text-white">{{$gameType->count()}}</h5>
+                <div class="ms-auto">
+                    <i class='bx bx-user fs-3 text-white'></i>
+
+                </div>
+            </div>
+            <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
+                <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex align-items-center text-white">
+                <p class="mb-0">عدد انواع اللعب</p>
+
+            </div>
+        </div>
+    </a>
+      </div>
+    </div>
+    <div class="col">
+        <a href="{{route('all.main.category')}}">
+
+        <div class="card radius-10  bg-gradient-magenta">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 text-white"> {{$mainCategory->count()}}</h5>
+                <div class="ms-auto">
+                    <i class='bx bx-category fs-3 text-white'></i>
+                </div>
+            </div>
+            <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
+                <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex align-items-center text-white">
+                <p class="mb-0">عدد الفئات الرئيسية</p>
+            </div>
+        </div>
+    </a>
+
+      </div>
+    </div>
+   <div class="col">
+        <a href="{{route('all.category')}}">
+
+        <div class="card radius-10 bg-gradient-ohhappiness">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 text-white"> {{$category->count()}}</h5>
+                <div class="ms-auto">
+                    <i class='bx bx-category fs-3 text-white'></i>
+                </div>
+            </div>
+            <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
+                <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex align-items-center text-white">
+                <p class="mb-0">عدد الفئات الفرعية</p>
+            </div>
+        </div>
+    </a>
+
+    </div>
+    </div>
+    <div class="col">
+        <a href="{{route('all.title.position')}}">
+
+        <div class="card radius-10 bg-gradient-cyan bg-warning">
+         <div class="card-body">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 text-white">{{$titlePosition->count()}}</h5>
+                <div class="ms-auto">
+                    <i class='bx bx-joystick fs-3 text-white'></i>
+                </div>
+            </div>
+            <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
+                <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex align-items-center text-white">
+                <p class="mb-0">عدد عناصر اللعبة</p>
+            </div>
+        </div>
+    </a>
+
+     </div>
+    </div>
+</div><!--end row-->
+
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
     <div class="col">
         <a href="{{route('all.users')}}">
@@ -56,27 +180,37 @@
     </a>
       </div>
     </div>
-    <div class="col">
-        <a href="{{route('all.category')}}">
 
-        <div class="card radius-10 bg-gradient-ohhappiness">
+
+       <div class="col">
+        <a href="{{route('sponsor.all')}}">
+
+        <div class="card radius-10 bg-gradient-darkorange">
         <div class="card-body">
             <div class="d-flex align-items-center">
-                <h5 class="mb-0 text-white"> {{$category->count()}}</h5>
+                <h5 class="mb-0 text-white">{{$sponsor->count()}}</h5>
                 <div class="ms-auto">
-                    <i class='bx bx-category fs-3 text-white'></i>
+                    <i class='bx bx-help-circle fs-3 text-white'></i>
+
                 </div>
             </div>
             <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
                 <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div class="d-flex align-items-center text-white">
-                <p class="mb-0">عدد الفئات الرئيسية</p>
+                <p class="mb-0">عدد الرعاة</p>
             </div>
         </div>
     </a>
 
+
+
+
+
       </div>
+
+
+
     </div>
     <div class="col">
         <a href="{{route('all.question')}}">
@@ -124,6 +258,8 @@
      </div>
     </div>
 </div><!--end row-->
+
+
 
 
 

@@ -21,6 +21,16 @@
                     <input type="hidden" name="old_question_video" value="{{$question->qu_video}}"/>
 
                     <input type="hidden" name="answer_id" value="{{ $question->answers->first()->id}}"/>
+
+
+                {{-- four answer id  --}}
+                <input type="hidden" name="answer_id_one" value="{{ $question->answerQuestionOnlines[0]->id}}"/>
+                <input type="hidden" name="answer_id_two" value="{{ $question->answerQuestionOnlines[1]->id}}"/>
+                <input type="hidden" name="answer_id_three" value="{{ $question->answerQuestionOnlines[2]->id}}"/>
+                <input type="hidden" name="answer_id_four" value="{{ $question->answerQuestionOnlines[3]->id}}"/>
+
+                 {{--end four answer id  --}}
+
                     <input type="hidden" name="old_answer_image" value="{{ $question->answers->first()->answer_image}}"/>
                     <input type="hidden" name="old_answer_sound" value="{{ $question->answers->first()->answer_sound}}"/>
                     <input type="hidden" name="old_answer_video" value="{{ $question->answers->first()->answer_video}}"/>
@@ -28,17 +38,69 @@
                     <div class="card">
                         <div class="card-body">
 
+
+
+                              <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">اختر نوع اللعبة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select  name="game_type_id" class="form-select" aria-label="Default select example">
+                                            <option selected="" value="non">الرجاء إختيار نوع اللعبة</option>
+
+                                            @foreach ($gameType as $item )
+                                            <option value="{{$item->id}}" {{ $question->game_type_id == $item->id ? 'selected' : '' }} >{{$item->type_name}}</option>
+
+                                            @endforeach
+
+                                        </select>
+
+                                        @error('game_type_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+
+
+
+                                 <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">اختر الفئة الرئيسية</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select  name="main_category_id" class="form-select" aria-label="Default select example">
+                                            {{-- <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option> --}}
+                                                                                        <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option>
+
+                                         @foreach ($main_category as $item )
+                                            <option value="{{$item->id}}" {{ $question->main_category_id == $item->id ? 'selected' : '' }} >{{$item->main_category_name}}</option>
+                                            {{-- <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option> --}}
+
+                                            @endforeach
+                                        </select>
+
+                                        @error('main_category_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
                             <!-- Question Category -->
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <h6 class="mb-0">اختر الفئة</h6>
+                                        <h6 class="mb-0">اختر الفئة الفرعية</h6>
                                 </div>
                                 <div class="col-sm-9 text-secondary">
                                     <select  name="category_id" class="form-select" aria-label="Default select example">
-                                        <option selected="" value="non">الرجاء إختيار الفئة</option>
+                                            <option selected="" value="non">الرجاء إختيار الفئة الفرعية</option>
                                         @foreach ($category as $item )
-                                            <option value="{{$item->id}}" {{ old('category_id',$question->category_id) == $item->id ? 'selected' : '' }}>{{$item->category_name}}</option>
-                                        @endforeach
+                                            <option value="{{$item->id}}" {{ $question->category_id == $item->id ? 'selected' : '' }} >{{$item->category_name}}</option>
+                                            {{-- <option selected="" value="non">الرجاء إختيار الفئة الرئيسية</option> --}}
+
+                                            @endforeach
                                     </select>
                                     @error('category_id') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
@@ -55,6 +117,18 @@
                                 </div>
                             </div>
 
+
+
+                                 <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Question</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="qu_title_en" type="text" class="form-control"  value="{{ old('qu_title_en', $question->qu_title_en) }}" />
+                                    @error('qu_title_en') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
                             <!-- Question Points -->
                             <div class="row mb-3">
                                 <div class="col-sm-3">
@@ -65,6 +139,18 @@
                                     @error('qu_points') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
+
+
+                            <!-- نقاط السؤال Online -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">نقاط السؤال OnLine</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input id="qu_points_online" name="qu_points_online" type="text" class="form-control"   value="{{ old('qu_points_online', $question->qu_points_online) }}" />
+        @error('qu_points_online') <span class="text-danger">{{ $message }}</span> @enderror
+    </div>
+</div>
 
 
                                <!-- Question counter -->
@@ -80,6 +166,23 @@
                                     @enderror
                                     <small class="form-text text-muted">
                                         ملاحظة : اذا تم ترك الحقل فارغ سيتم عدم حساب توقيت للسؤال ومعيار الحساب دقائق يعني اذا تم ادخال 1 تعني دقيقة واحدة
+                                    </small>
+                                </div>
+                            </div>
+
+
+
+                              <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">توقيت السؤال OnLine</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="time_counter_online" type="number" class="form-control" min="1" step="1" value="{{ old('time_counter_online', $question->time_counter_online) }}" />
+                                    @error('time_counter_online')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        ملاحظة : اذا تم ترك الحقل فارغ سيتم حساب توقيت للسؤال 10 ثواني ومعيار الحساب ثواني
                                     </small>
                                 </div>
                             </div>
@@ -138,7 +241,12 @@
 
         <!-- Answer Section -->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">اضافة الاجابة </div>
+            <div class="breadcrumb-title pe-3">
+                اضافة الاجابة
+
+                Local
+
+            </div>
         </div>
         <div class="row">
             <div class="col-lg-8">
@@ -155,6 +263,18 @@
                                 <input name="answer_title" type="text" class="form-control" value="{{ old('answer_title', $question->answers->first()->answer_title) }}" />
                                 @error('answer_title') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
+                        </div>
+
+                          <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_en" id="answer_title_en" type="text" class="form-control" value="{{ old('answer_title_en', $question->answers->first()->answer_title_en) }}" />
+                                @error('answer_title_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+
+
                         </div>
 
                         <!-- Answer Type -->
@@ -204,6 +324,128 @@
                         @endif
 
                         <!-- Submit Button -->
+                        {{-- <div class="row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9 text-secondary">
+                                <input type="submit" class="btn btn-primary px-4" value="تعديل السؤال" />
+                            </div>
+                        </div> --}}
+
+                    </div>
+                </div>
+
+
+
+                 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">
+
+                اضافة الاجابات
+
+                OnLine
+
+            </div>
+        </div>
+                  <div class="card">
+                    <div class="card-body">
+
+                        <!-- Answer Title -->
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة1 الصحيحة</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_one" id="answer_title_one" type="text" class="form-control"  value="{{ old('answer_title_one', $question->answerQuestionOnlines[0]->answer_title) }}" />
+                                @error('answer_title_one') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                         <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة2</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_two" type="text" class="form-control"  value="{{ old('answer_title_two', $question->answerQuestionOnlines[1]->answer_title) }}"  />
+                                @error('answer_title_two') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة3</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_three" type="text" class="form-control"  value="{{ old('answer_title_three', $question->answerQuestionOnlines[2]->answer_title) }}" />
+                                @error('answer_title_three') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                     <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة4</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_four" type="text" class="form-control"  value="{{ old('answer_title_four', $question->answerQuestionOnlines[3]->answer_title) }}" />
+                                @error('answer_title_four') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+                        <hr>
+
+                           <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 1 (correct)</h6>
+
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_one_en" id="answer_title_one_en" type="text" class="form-control" value="{{ old('answer_title_one_en', $question->answerQuestionOnlines[0]->answer_title_en) }}" />
+                                @error('answer_title_one_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                         <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 2</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_two_en" type="text" class="form-control" value="{{ old('answer_title_two_en', $question->answerQuestionOnlines[1]->answer_title_en) }}" />
+                                @error('answer_title_two_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 3</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_three_en" type="text" class="form-control" value="{{ old('answer_title_three_en', $question->answerQuestionOnlines[2]->answer_title_en) }}" />
+                                @error('answer_title_three_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                     <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 4</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_four_en" type="text" class="form-control" value="{{ old('answer_title_four_en', $question->answerQuestionOnlines[3]->answer_title_en) }}" />
+                                @error('answer_title_four_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+
+                        <!-- Submit Button -->
                         <div class="row">
                             <div class="col-sm-3"></div>
                             <div class="col-sm-9 text-secondary">
@@ -212,7 +454,15 @@
                         </div>
 
                     </div>
+
+
+
+
+
+
+
                 </div>
+
                 </form>
             </div>
         </div>
@@ -290,5 +540,79 @@
     });
 
 </script>
+
+<script>
+$(document).ready(function(){
+
+    // Helper to reset a select with default text
+    function resetSelect(selectElement, defaultText){
+        $(selectElement).prop('disabled', false)
+                        .empty()
+                        .append('<option value="non">' + defaultText + '</option>');
+    }
+
+    // Reusable function for AJAX loading of options
+    function loadOptions(triggerSelect, targetSelect, urlPrefix, valueField, textField, defaultText) {
+        $(triggerSelect).on('change', function(){
+            var selectedId = $(this).val();
+            var target = $(targetSelect);
+
+            if(selectedId && selectedId !== 'non'){
+                // Show loading
+                target.prop('disabled', true)
+                      .empty()
+                      .append('<option value="">جاري التحميل...</option>');
+
+                $.ajax({
+                    url: urlPrefix + selectedId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data){
+                        target.empty();
+                        target.append('<option value="non">' + defaultText + '</option>');
+                        $.each(data, function(key, value){
+                            target.append('<option value="'+ value[valueField] +'">'+ value[textField] +'</option>');
+                        });
+                        target.prop('disabled', false);
+                    },
+                    error: function(){
+                        resetSelect(target, defaultText);
+                        target.append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
+                    }
+                });
+            } else {
+                resetSelect(target, defaultText);
+            }
+        });
+    }
+
+    // game_type_id → main_category_id
+    loadOptions(
+        'select[name="game_type_id"]',
+        'select[name="main_category_id"]',
+        '/get-main-categories/',
+        'id',
+        'main_category_name',
+        'الرجاء إختيار الفئة الرئيسية'
+    );
+
+    // main_category_id → category_id (subcategories)
+    loadOptions(
+        'select[name="main_category_id"]',
+        'select[name="category_id"]',
+        '/get-sub-categories/',
+        'id',
+        'category_name',
+        'الرجاء إختيار الفئة الفرعية'
+    );
+
+    // 👉 Reset only category_id when game_type changes (NOT main_category)
+    $('select[name="game_type_id"]').on('change', function(){
+        resetSelect('select[name="category_id"]', 'الرجاء إختيار الفئة الفرعية');
+    });
+
+});
+</script>
+
 
 @endsection

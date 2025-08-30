@@ -12,14 +12,18 @@ use App\Http\Controllers\PayMentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GameCoinController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\LandPageController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppVersionController;
 use App\Http\Controllers\QuestionAIController;
+use App\Http\Controllers\GameelEmentController;
 use App\Http\Controllers\MainCategoryController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TitlePositionController;
+use App\Http\Controllers\RewardsSponsorController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -149,6 +153,73 @@ Route::controller(MainCategoryController::class)->middleware(['checkUserRole','a
 
 
     Route::get('/main/category/active/{id}', 'mainCategoryActive')->name('active.main.category');
+
+
+
+});
+
+
+
+
+
+/// Add Main Element
+
+Route::controller(GameelEmentController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/all/game/element', 'allGameElement')->name('all.game.element');
+
+    Route::get('/add/game/element', 'addGameElement')->name('add.game.element');
+
+
+    Route::post('/add/game/element' , 'storeGameElement')->name('add.game.element.store');
+
+    Route::get('/edit/game/element/{id}', 'editGameElement')->name('edit.game.element');
+
+    Route::post('/edit/game/element' , 'editGameElementStore')->name('edit.game.element.store');
+
+
+    Route::get('/delete/game/element/{id}' , 'deleteGameElement')->name('delete.game.element');
+
+    Route::get('/game/element/inactive/{id}', 'gameElementInactive')->name('inactive.game.element');
+
+
+    Route::get('/game/element/active/{id}', 'gameElementActive')->name('active.game.element');
+
+
+
+});
+
+
+
+/// End main Element
+
+
+
+// TitlePositionController
+
+
+
+Route::controller(TitlePositionController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/title/position/all', 'titlePosition')->name('all.title.position');
+
+    Route::get('/title/position/add', 'addTitlePosition')->name('add.title.position');
+
+
+    Route::post('/title/position/add' , 'storeTitlePosition')->name('add.title.position.store');
+
+    Route::get('/title/position/edit/{id}', 'editTitlePosition')->name('edit.title.position');
+
+    Route::post('/title/position/edit' , 'editTitlePositionStore')->name('edit.title.position.store');
+
+
+    Route::get('/title/position/delete/{id}' , 'deleteTitlePosition')->name('delete.title.position');
+
+    Route::get('/title/position/inactive/{id}', 'titlePositionInactive')->name('inactive.title.position');
+
+
+    Route::get('/title/position/active/{id}', 'titlePositionActive')->name('active.title.position');
+
+
+
 
 
 
@@ -347,11 +418,21 @@ Route::middleware(['checkUserRole','auth'])->group(function () {
 
  Route::controller(SponsorController::class)->middleware(['checkUserRole','auth'])->group(function(){
 
-    Route::get('/add/sponsor/home/cate' , 'addSponsorHomeCate')->name('sponsor.add.cate');
+
+        Route::get('/add/sponsor/new' , 'addSponsorNew')->name('sponsor.add.new');
+
+    Route::get('/edit/sponsor/{id}' , 'editSponsor')->name('edit.sponsor');
         Route::get('/add/sponsor/question' , 'addSponsorQuestion')->name('sponsor.add.question');
 
 
         Route::post('/edit/sponsor/home/cate', 'editHomeCateStore')->name('edit.home.cate.store');
+
+        Route::post('/add/sponsor/new', 'addSponsorStore')->name('add.sponsor.new');
+
+        Route::get('/all/sponsor' , 'allSponsor')->name('sponsor.all');
+
+                Route::get('/delete/sponsor/{id}', 'deleteSponsor')->name('delete.sponsor');
+
 
     // Route::post('/search/by/date' , 'SearchByDate')->name('search-by-date');
 
@@ -389,6 +470,59 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 
 
 
+
+
+
+
+
+
+});
+
+
+
+ Route::controller(RewardsSponsorController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+
+
+
+    ///
+
+
+
+         Route::get('/all/rewards/sponsors', 'AllRewardsSponsors')->name('all.rewards.sponsors');
+        Route::get('/add/rewards/sponsors', 'AddRewardsSponsors')->name('add.rewards.sponsors');
+        Route::post('/store/rewards/sponsors', 'StoreRewardsSponsors')->name('store.rewards.sponsors');
+
+        Route::get('/edit/rewards/sponsors/{id}', 'EditRewardsSponsors')->name('edit.rewards.sponsors');
+        Route::post('/update/rewards/sponsors', 'UpdateRewardsSponsors')->name('update.rewards.sponsors');
+        Route::get('/delete/rewards/sponsors/{id}', 'DeleteRewardsSponsors')->name('delete.rewards.sponsors');
+
+        Route::get('/get/all/rewards/users', 'getAllRewardsUsers')->name('get.all.rewards.users');
+        Route::get('/delete/rewards/users/{id}', 'deleteRewardsUsers')->name('delete.rewards.users');
+
+
+
+
+
+});
+
+
+ Route::controller(GameCoinController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+
+
+
+    ///
+
+
+
+        Route::get('/all/game/coin', 'AllGameCoin')->name('all.game.coin');
+        Route::get('/add/game/coin', 'AddGameCoin')->name('add.game.coin');
+        Route::post('/store/game/coin', 'StoreGameCoin')->name('store.game.coin');
+
+        Route::get('/edit/game/coin/{id}', 'EditGameCoin')->name('edit.game.coin');
+        Route::post('/update/game/coin', 'UpdateGameCoin')->name('update.game.coin');
+        Route::get('/delete/game/coin/{id}', 'DeleteGameCoin')->name('delete.game.coin');
 
 
 

@@ -50,7 +50,7 @@ class MainCategoryController extends Controller
             'main_category_description' => 'nullable|string',
                         'main_category_description_en' => 'nullable|string',
 
-            'main_category_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'main_category_photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ], [
             'main_category_name.required' => '⚠️ الرجاء اضافة الفئة الرئيسية',
             'main_category_name_en.required' => '⚠️ الرجاء اضافة الفئة الرئيسية بالانجليزية',
@@ -88,7 +88,10 @@ class MainCategoryController extends Controller
 
             $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
             // Process and save image
-            $imageResized = $imageManager->read($image)->resize(364, 176);
+            // $imageResized = $imageManager->read($image)->resize(364, 176);
+
+                        $imageResized = $imageManager->read($image);
+
             $imageResized->save($path . $name_gen);
 
             $save_url = 'upload/main_category/' . $name_gen;
@@ -236,7 +239,7 @@ class MainCategoryController extends Controller
             'main_category_description' => 'nullable|string',
                         'main_category_description_en' => 'nullable|string',
 
-            'main_category_photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'main_category_photo' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ], [
             'main_category_name.required' => '⚠️ الرجاء اضافة الفئة',
                         'main_category_name_en.required' => '⚠️ الرجاء اضافة الفئة بالانجليزية',
@@ -267,7 +270,9 @@ class MainCategoryController extends Controller
 
         $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
         // Process and save image
-        $imageResized = $imageManager->read($image)->resize(364, 176);
+        // $imageResized = $imageManager->read($image)->resize(364, 176);
+                $imageResized = $imageManager->read($image);
+
         $imageResized->save($path . $name_gen);
 
         $save_url = 'upload/main_category/' . $name_gen;

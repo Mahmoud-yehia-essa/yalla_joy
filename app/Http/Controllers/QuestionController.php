@@ -6,8 +6,10 @@ use App\Models\Answer;
 use App\Models\Category;
 use App\Models\GameType;
 use App\Models\Question;
+use App\Models\MainCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\AnswerQuestionOnline;
 
 
 
@@ -28,10 +30,18 @@ class QuestionController extends Controller
     public function editQuestion($id)
     {
         $question = Question::findOrFail($id);
-        $category = Category::latest()->get();
+        // $category = Category::latest()->get();
+
+                        $gameType = GameType::latest()->get();
+
+        $main_category = MainCategory::where('game_type_id',$question->game_type_id)->get();
+
+                $category = Category::where('main_category_id',$question->main_category_id)->get();
 
 
-        return view('admin.question.edit_question',compact('question','category'));
+// return $main_category;
+
+        return view('admin.question.edit_question',compact('question','category','gameType','main_category'));
     }
 
 
@@ -264,24 +274,60 @@ public function addQuestionStore(Request $request)
 
 
         'qu_title' => 'required|string|max:255',
+                'qu_title_en' => 'required|string|max:255',
+
         'qu_points' => 'required|integer',
+        'qu_points_online' => 'required|integer',
+
         'questions_type' => 'required|string|in:text,image,sound,video',
         'time_counter' => 'nullable|integer',
+         'time_counter_online' => 'nullable|integer',
+
         'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
         'answer_title' => 'required|string|max:255',
+                'answer_title_en' => 'required|string|max:255',
+
         'answer_type' => 'required|string|in:text,image,sound,video',
         'answerـfile' => 'nullable|file|max:30720',
         'category_id' => 'required|not_in:non',
         'time_counter' => 'nullable|integer',
+
+
+
+                'answer_title_one' => 'required|string|max:255',
+                'answer_title_two' => 'required|string|max:255',
+                 'answer_title_three' => 'required|string|max:255',
+                'answer_title_four' => 'required|string|max:255',
+
+
+
+                  'answer_title_one_en' => 'required|string|max:255',
+                'answer_title_two_en' => 'required|string|max:255',
+                 'answer_title_three_en' => 'required|string|max:255',
+                'answer_title_four_en' => 'required|string|max:255',
+
+
+
+
+
 
     ], [
         'qu_title.required' => 'يرجى إدخال عنوان السؤال.',
         'qu_title.string' => 'عنوان السؤال يجب أن يكون نصًا.',
         'qu_title.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
 
+          'qu_title_en.required' => ' يرجى إدخال عنوان السؤال بالانجليزية.',
+        'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
+        'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
+
         'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
         'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
         'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+
+        'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
+        'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
         'questions_type.required' => 'يرجى اختيار نوع السؤال.',
         'questions_type.in' => 'نوع السؤال يجب أن يكون نصي، صورة، صوتي أو فيديو.',
@@ -292,6 +338,11 @@ public function addQuestionStore(Request $request)
         'answer_title.required' => 'يرجى إدخال عنوان الإجابة.',
         'answer_title.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
         'answer_title.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
+
+
+         'answer_title_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+        'answer_title_en.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
+        'answer_title_en.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
 
         'answer_type.required' => 'يرجى اختيار نوع الإجابة.',
         'answer_type.in' => 'نوع الإجابة يجب أن يكون نصي، صورة، صوتي أو فيديو.',
@@ -312,6 +363,18 @@ public function addQuestionStore(Request $request)
         'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
 
 
+
+                 'answer_title_one.required' => 'يرجى إدخال عنوان الإجابة .',
+
+                 'answer_title_two.required' => 'يرجى إدخال عنوان الإجابة .',
+                 'answer_title_three.required' => 'يرجى إدخال عنوان الإجابة .',
+                 'answer_title_four.required' => 'يرجى إدخال عنوان الإجابة .',
+
+
+                'answer_title_one_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_two_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_three_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_four_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
 
 
     ]);
@@ -350,6 +413,9 @@ public function addQuestionStore(Request $request)
         // Create question
         $question = Question::create([
             'qu_title' => $request->qu_title,
+
+                        'qu_title_en' => $request->qu_title_en,
+
             'game_type_id' => $request->game_type_id,
 
             'main_category_id' => $request->main_category_id,
@@ -357,8 +423,12 @@ public function addQuestionStore(Request $request)
 
             'category_id' => $request->category_id,
             'qu_points' => $request->qu_points,
+                        'qu_points_online' => $request->qu_points_online,
+
             'questions_type' => $request->questions_type,
             'time_counter' => $request->time_counter,
+            'time_counter_online' => $request->time_counter_online,
+
             'qu_image' => $questionImage,
             'qu_sound' => $questionSound,
             'qu_video' => $questionVideo,
@@ -390,15 +460,71 @@ public function addQuestionStore(Request $request)
             }
         }
 
-        // Create answer
+        // Create answer for local
         $answer = Answer::create([
             'question_id' => $question->id,
             'answer_title' => $request->answer_title,
+                        'answer_title_en' => $request->answer_title_en,
+
             'answer_type' => $request->answer_type,
             'answer_image' => $answerImage,
             'answer_sound' => $answerSound,
             'answer_video' => $answerVideo,
         ]);
+
+
+       $answersData = [
+    [
+        'ar' => $request->answer_title_one,
+        'en' => $request->answer_title_one_en,
+        'is_correct' => true
+    ],
+    [
+        'ar' => $request->answer_title_two,
+        'en' => $request->answer_title_two_en,
+        'is_correct' => false
+    ],
+    [
+        'ar' => $request->answer_title_three,
+        'en' => $request->answer_title_three_en,
+        'is_correct' => false
+    ],
+    [
+        'ar' => $request->answer_title_four,
+        'en' => $request->answer_title_four_en,
+        'is_correct' => false
+    ],
+];
+
+
+// Loop to create the 4 answers for online questions
+foreach ($answersData as $ans) {
+    AnswerQuestionOnline::create([
+        'question_id'      => $question->id,
+        'answer_title'     => $ans['ar'],
+        'answer_title_en'  => $ans['en'],
+        'is_correct'       => $ans['is_correct'],
+        'answer_type'      => "",
+        'answer_image'     => "",
+        'answer_sound'     => "",
+        'answer_video'     => "",
+    ]);
+}
+
+        //    $answerOnline = AnswerQuestionOnline::create([
+        //     'question_id' => $question->id,
+        //     'answer_title' => "",
+        //     'answer_title_en' => "",
+        //     'is_correct' => 0,
+        //     'answer_type' => $request->answer_type,
+        //     'answer_image' => $answerImage,
+        //     'answer_sound' => $answerSound,
+        //     'answer_video' => $answerVideo,
+        // ]);
+
+
+
+
 
         if (!$answer) {
             throw new \Exception('فشل في إنشاء الإجابة.');
@@ -406,7 +532,7 @@ public function addQuestionStore(Request $request)
 
         DB::commit(); // Commit transaction
         $notification = array(
-            'message' =>  'تمت إضافة السؤال والإجابة بنجاح.',
+            'message' =>  'تمت إضافة السؤال الاجابات بنجاح.',
             'alert-type' => 'success'
         );
 
@@ -436,8 +562,132 @@ public function addQuestionStore(Request $request)
         {
 
 
-             // Validate inputs with custom Arabic messages
+
              $request->validate([
+
+
+                'game_type_id' => 'required|not_in:non',
+                'main_category_id' => 'required|not_in:non',
+
+
+        'qu_title' => 'required|string|max:255',
+                'qu_title_en' => 'required|string|max:255',
+
+        'qu_points' => 'required|integer',
+        'qu_points_online' => 'required|integer',
+
+        'questions_type' => 'required|string|in:text,image,sound,video',
+        'time_counter' => 'nullable|integer',
+         'time_counter_online' => 'nullable|integer',
+
+        'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
+        'answer_title' => 'required|string|max:255',
+                'answer_title_en' => 'required|string|max:255',
+
+        'answer_type' => 'required|string|in:text,image,sound,video',
+        'answerـfile' => 'nullable|file|max:30720',
+        'category_id' => 'required|not_in:non',
+        'time_counter' => 'nullable|integer',
+
+
+
+                'answer_title_one' => 'required|string|max:255',
+                'answer_title_two' => 'required|string|max:255',
+                 'answer_title_three' => 'required|string|max:255',
+                'answer_title_four' => 'required|string|max:255',
+
+
+
+                  'answer_title_one_en' => 'required|string|max:255',
+                'answer_title_two_en' => 'required|string|max:255',
+                 'answer_title_three_en' => 'required|string|max:255',
+                'answer_title_four_en' => 'required|string|max:255',
+
+
+
+
+
+
+    ], [
+        'qu_title.required' => 'يرجى إدخال عنوان السؤال.',
+        'qu_title.string' => 'عنوان السؤال يجب أن يكون نصًا.',
+        'qu_title.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
+
+          'qu_title_en.required' => ' يرجى إدخال عنوان السؤال بالانجليزية.',
+        'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
+        'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
+
+        'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
+        'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+
+        'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
+        'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+        'questions_type.required' => 'يرجى اختيار نوع السؤال.',
+        'questions_type.in' => 'نوع السؤال يجب أن يكون نصي، صورة، صوتي أو فيديو.',
+
+        'questionsـfile.file' => 'يرجى رفع ملف صالح.',
+        'questionsـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
+
+        'answer_title.required' => 'يرجى إدخال عنوان الإجابة.',
+        'answer_title.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
+        'answer_title.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
+
+
+         'answer_title_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+        'answer_title_en.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
+        'answer_title_en.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
+
+        'answer_type.required' => 'يرجى اختيار نوع الإجابة.',
+        'answer_type.in' => 'نوع الإجابة يجب أن يكون نصي، صورة، صوتي أو فيديو.',
+
+        'answerـfile.file' => 'يرجى رفع ملف صالح للإجابة.',
+        'answerـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
+
+        'category_id.required' => 'الرجاء اختيار الفئة الفرعية.',
+        'category_id.not_in' => 'الرجاء اختيار الفئة الفرعية.',
+
+
+         'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
+        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+
+
+
+         'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
+        'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
+
+
+
+                 'answer_title_one.required' => 'يرجى إدخال عنوان الإجابة .',
+
+                 'answer_title_two.required' => 'يرجى إدخال عنوان الإجابة .',
+                 'answer_title_three.required' => 'يرجى إدخال عنوان الإجابة .',
+                 'answer_title_four.required' => 'يرجى إدخال عنوان الإجابة .',
+
+
+                'answer_title_one_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_two_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_three_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+                'answer_title_four_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+
+
+    ]);
+
+
+
+            //  Validate inputs with custom Arabic messages
+
+            /*
+             $request->validate([
+
+
+                  'game_type_id' => 'required|not_in:non',
+                'main_category_id' => 'required|not_in:non',
+
+
                 'qu_title' => 'required|string|max:255',
                 'qu_points' => 'required|integer',
                 'questions_type' => 'required|string|in:text,image,sound,video',
@@ -447,6 +697,7 @@ public function addQuestionStore(Request $request)
                 'answerـfile' => 'nullable|file|max:30720',
                 'category_id' => 'required|not_in:non',
                 'time_counter' => 'nullable|integer',
+
                 // التحقق من اختيار فئة صالحة
 
             ], [
@@ -475,16 +726,38 @@ public function addQuestionStore(Request $request)
 
     'category_id.required' => 'الرجاء اختيار الفئة',
     'category_id.not_in' => 'الرجاء اختيار الفئة',
+
+      'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
+        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+
+
+
+         'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
+        'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
+
     'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
             ]);
-
+*/
 
 
 
             // return "done";
             $question_id = $request->question_id;
             $answer_id = $request->answer_id;
+
+
+
+$answer_id_one = $request->answer_id_one;
+$answer_id_two = $request->answer_id_two;
+$answer_id_three = $request->answer_id_three;
+$answer_id_four = $request->answer_id_four;
+
+
+
+
+
+
 
 
             // if is exsite get old qustion image
@@ -522,12 +795,22 @@ public function addQuestionStore(Request $request)
             $question = Question::findOrFail($question_id);
 
 
-             $question->qu_title = $request->qu_title;
              $question->category_id = $request->category_id;
+
+            $question->game_type_id = $request->game_type_id;
+
+            $question->main_category_id = $request->main_category_id;
+
+
+                         $question->qu_title = $request->qu_title;
+                        $question->qu_title_en = $request->qu_title_en;
 
 
 
              $question->time_counter = $request->time_counter;
+
+             $question->time_counter_online = $request->time_counter_online;
+
 
 
 
@@ -704,6 +987,10 @@ public function addQuestionStore(Request $request)
 
                 $question->qu_points = $request->qu_points;
 
+
+                 $question->qu_points_online = $request->qu_points_online;
+
+
                 $question->questions_type = $request->questions_type;
 
                 $question->save();
@@ -717,7 +1004,33 @@ public function addQuestionStore(Request $request)
 
 
                 $answer->answer_title = $request->answer_title;
+                $answer->answer_title_en = $request->answer_title_en;
 
+
+
+
+
+        $answer_one = AnswerQuestionOnline::findOrFail($answer_id_one);
+        $answer_two = AnswerQuestionOnline::findOrFail($answer_id_two);
+        $answer_three = AnswerQuestionOnline::findOrFail($answer_id_three);
+        $answer_four = AnswerQuestionOnline::findOrFail($answer_id_four);
+
+
+                $answer_one->answer_title = $request->answer_title_one;
+                $answer_two->answer_title = $request->answer_title_two;
+                $answer_three->answer_title = $request->answer_title_three;
+                $answer_four->answer_title = $request->answer_title_four;
+
+
+                $answer_one->answer_title_en = $request->answer_title_one_en;
+                $answer_two->answer_title_en = $request->answer_title_two_en;
+                $answer_three->answer_title_en = $request->answer_title_three_en;
+                $answer_four->answer_title_en = $request->answer_title_four_en;
+
+                    $answer_one->save();
+                    $answer_two->save();
+                    $answer_three->save();
+                    $answer_four->save();
 
 
 

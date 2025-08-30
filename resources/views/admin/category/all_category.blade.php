@@ -34,7 +34,11 @@
                 <thead>
 <tr>
 <th>الرقم</th>
+<th> نوع اللعبة</th>
+<th>  الفئة الرئيسية</th>
+
 <th>إسم الفئة</th>
+
 <th>عدد الأسئلة في الفئة</th>
 
 <th> الصورة</th>
@@ -45,6 +49,9 @@
 @foreach($category as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
+<td>{{ $item->gameType->type_name }} </td>
+<td>{{ $item->mainCategory->main_category_name }} </td>
+
 <td>{{ $item->category_name }} </td>
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
     {{count($item->questions)}}
@@ -89,6 +96,8 @@
 <tfoot>
 <tr>
     <th>الرقم</th>
+    <th> نوع اللعبة</th>
+<th>  الفئة الرئيسية</th>
     <th>إسم الفئة</th>
     <th> الصورة</th>
     <th>الاجراء</th>

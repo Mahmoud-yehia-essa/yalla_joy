@@ -5,7 +5,7 @@
 <div class="page-content">
     <!--breadcrumb-->
     <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">تعديل السعر</div>
+        <div class="breadcrumb-title pe-3">تعديل</div>
     </div>
     <!--end breadcrumb-->
 
@@ -60,7 +60,7 @@
                                     <!-- Price -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">عدد الألعاب</h6>
+                                        <h6 class="mb-0">عدد عملات اللعبة المضافة</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
                                         <input type="number" name="games_number" class="form-control" value="{{ old('games_number',$price->games_number) }}" />

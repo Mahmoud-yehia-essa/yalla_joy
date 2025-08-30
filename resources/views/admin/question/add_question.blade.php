@@ -20,7 +20,7 @@
                         <div class="card-body">
 
 
-                                                            <div class="row mb-3">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">اختر نوع اللعبة</h6>
                                     </div>
@@ -90,16 +90,39 @@
                                 </div>
                             </div>
 
-                            <!-- Question Points -->
-                            <div class="row mb-3">
+
+                                 <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <h6 class="mb-0">نقاط السؤال</h6>
+                                    <h6 class="mb-0">Question</h6>
                                 </div>
                                 <div class="col-sm-9 text-secondary">
-                                    <input name="qu_points" type="text" class="form-control" value="{{ old('qu_points') }}" />
-                                    @error('qu_points') <span class="text-danger">{{ $message }}</span> @enderror
+                                    <input name="qu_title_en" type="text" class="form-control" value="{{ old('qu_title_en') }}" />
+                                    @error('qu_title_en') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
+                            <!-- Question Points -->
+                           <!-- نقاط السؤال -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">نقاط السؤال</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input id="qu_points" name="qu_points" type="text" class="form-control" value="{{ old('qu_points') }}" />
+        @error('qu_points') <span class="text-danger">{{ $message }}</span> @enderror
+    </div>
+</div>
+
+<!-- نقاط السؤال Online -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">نقاط السؤال OnLine</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input id="qu_points_online" name="qu_points_online" type="text" class="form-control" value="{{ old('qu_points_online') }}" />
+        @error('qu_points_online') <span class="text-danger">{{ $message }}</span> @enderror
+    </div>
+</div>
+
 
                             <!-- Question counter -->
 
@@ -114,6 +137,22 @@
                                     @enderror
                                     <small class="form-text text-muted">
                                         ملاحظة : اذا تم ترك الحقل فارغ سيتم عدم حساب توقيت للسؤال ومعيار الحساب دقائق يعني اذا تم ادخال 1 تعني دقيقة واحدة
+                                    </small>
+                                </div>
+                            </div>
+
+
+                                  <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">توقيت السؤال OnLine</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="time_counter_online" type="number" class="form-control" min="1" step="1" value="{{ old('time_counter_online') }}" />
+                                    @error('time_counter_online')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        ملاحظة : اذا تم ترك الحقل فارغ سيتم حساب توقيت للسؤال 10 ثواني ومعيار الحساب ثواني
                                     </small>
                                 </div>
                             </div>
@@ -162,7 +201,13 @@
 
         <!-- Answer Section -->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">اضافة الاجابة </div>
+            <div class="breadcrumb-title pe-3">
+
+                اضافة الاجابة
+
+                Local
+
+            </div>
         </div>
         <div class="row">
             <div class="col-lg-8">
@@ -176,9 +221,21 @@
                                 <h6 class="mb-0">الاجابة</h6>
                             </div>
                             <div class="col-sm-9 text-secondary">
-                                <input name="answer_title" type="text" class="form-control" value="{{ old('answer_title') }}" />
+                                <input id="answer_title" name="answer_title" type="text" class="form-control" value="{{ old('answer_title') }}" />
                                 @error('answer_title') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
+                        </div>
+
+                            <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_en" id="answer_title_en" type="text" class="form-control" value="{{ old('answer_title_en') }}" />
+                                @error('answer_title_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+
+
                         </div>
 
                         <!-- Answer Type -->
@@ -219,6 +276,127 @@
                         </div>
 
                         <!-- Submit Button -->
+                        {{-- <div class="row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9 text-secondary">
+                                <input type="submit" class="btn btn-primary px-4" value="اضافة سؤال جديد" />
+                            </div>
+                        </div> --}}
+
+                    </div>
+                </div>
+
+
+ <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">
+
+                اضافة الاجابات
+
+                OnLine
+
+            </div>
+        </div>
+                  <div class="card">
+                    <div class="card-body">
+
+                        <!-- Answer Title -->
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة1 الصحيحة</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_one" id="answer_title_one" type="text" class="form-control" value="{{ old('answer_title_one') }}" />
+                                @error('answer_title_one') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                         <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة2</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_two" type="text" class="form-control" value="{{ old('answer_title_two') }}" />
+                                @error('answer_title_two') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة3</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_three" type="text" class="form-control" value="{{ old('answer_title_three') }}" />
+                                @error('answer_title_three') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                     <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">الاجابة4</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_four" type="text" class="form-control" value="{{ old('answer_title_four') }}" />
+                                @error('answer_title_four') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+                        <hr>
+
+                           <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 1 (correct)</h6>
+
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_one_en" id="answer_title_one_en" type="text" class="form-control" value="{{ old('answer_title_one_en') }}" />
+                                @error('answer_title_one_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                         <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 2</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_two_en" type="text" class="form-control" value="{{ old('answer_title_two_en') }}" />
+                                @error('answer_title_two_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 3</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_three_en" type="text" class="form-control" value="{{ old('answer_title_three_en') }}" />
+                                @error('answer_title_three_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+                     <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0">Answer 4</h6>
+                            </div>
+                            <div class="col-sm-9 text-secondary">
+                                <input name="answer_title_four_en" type="text" class="form-control" value="{{ old('answer_title_four_en') }}" />
+                                @error('answer_title_four_en') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+
+
+                        <!-- Submit Button -->
                         <div class="row">
                             <div class="col-sm-3"></div>
                             <div class="col-sm-9 text-secondary">
@@ -227,10 +405,27 @@
                         </div>
 
                     </div>
+
+
+
+
+
+
+
                 </div>
+
+
                 </form>
             </div>
         </div>
+
+
+
+
+
+
+
+
     </div>
 </div>
 
@@ -324,7 +519,7 @@
 
 </script>
 
-
+{{--
 <script>
 
 
@@ -388,43 +583,104 @@ $(document).ready(function(){
 
 });
 
-// $(document).ready(function(){
-//     $('select[name="game_type_id"]').on('change', function(){
-//         var game_type_id = $(this).val();
-//         var select = $('select[name="main_category_id"]');
+</script> --}}
 
-//         if(game_type_id && game_type_id !== 'non'){
-//             // Disable and show loading
-//             select.prop('disabled', true)
-//                   .empty()
-//                   .append('<option value="">جاري التحميل...</option>');
 
-//             $.ajax({
-//                 url: '/get-main-categories/' + game_type_id,
-//                 type: 'GET',
-//                 dataType: 'json',
-//                 success: function(data){
-//                     select.empty();
-//                     select.append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-//                     $.each(data, function(key, value){
-//                         select.append('<option value="'+ value.id +'">'+ value.main_category_name +'</option>');
-//                     });
-//                     // Re-enable after loading
-//                     select.prop('disabled', false);
-//                 },
-//                 error: function(){
-//                     select.empty().append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
-//                     select.prop('disabled', false);
-//                 }
-//             });
-//         } else {
-//             select.prop('disabled', false)
-//                   .empty()
-//                   .append('<option value="non">الرجاء إختيار الفئة الرئيسية</option>');
-//         }
-//     });
-// });
+<script>
+$(document).ready(function(){
+
+    // Helper to reset a select with default text
+    function resetSelect(selectElement, defaultText){
+        $(selectElement).prop('disabled', false)
+                        .empty()
+                        .append('<option value="non">' + defaultText + '</option>');
+    }
+
+    // Reusable function for AJAX loading of options
+    function loadOptions(triggerSelect, targetSelect, urlPrefix, valueField, textField, defaultText) {
+        $(triggerSelect).on('change', function(){
+            var selectedId = $(this).val();
+            var target = $(targetSelect);
+
+            if(selectedId && selectedId !== 'non'){
+                // Show loading
+                target.prop('disabled', true)
+                      .empty()
+                      .append('<option value="">جاري التحميل...</option>');
+
+                $.ajax({
+                    url: urlPrefix + selectedId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data){
+                        target.empty();
+                        target.append('<option value="non">' + defaultText + '</option>');
+                        $.each(data, function(key, value){
+                            target.append('<option value="'+ value[valueField] +'">'+ value[textField] +'</option>');
+                        });
+                        target.prop('disabled', false);
+                    },
+                    error: function(){
+                        resetSelect(target, defaultText);
+                        target.append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
+                    }
+                });
+            } else {
+                resetSelect(target, defaultText);
+            }
+        });
+    }
+
+    // game_type_id → main_category_id
+    loadOptions(
+        'select[name="game_type_id"]',
+        'select[name="main_category_id"]',
+        '/get-main-categories/',
+        'id',
+        'main_category_name',
+        'الرجاء إختيار الفئة الرئيسية'
+    );
+
+    // main_category_id → category_id (subcategories)
+    loadOptions(
+        'select[name="main_category_id"]',
+        'select[name="category_id"]',
+        '/get-sub-categories/',
+        'id',
+        'category_name',
+        'الرجاء إختيار الفئة الفرعية'
+    );
+
+    // 👉 Reset only category_id when game_type changes (NOT main_category)
+    $('select[name="game_type_id"]').on('change', function(){
+        resetSelect('select[name="category_id"]', 'الرجاء إختيار الفئة الفرعية');
+    });
+
+});
 </script>
 
 
+<script>
+$(document).ready(function() {
+    $('#qu_points').on('input', function() {
+        $('#qu_points_online').val($(this).val());
+    });
+});
+
+
+
+$(document).ready(function() {
+    $('#answer_title').on('input', function() {
+        $('#answer_title_one').val($(this).val());
+    });
+
+
+ $('#answer_title_en').on('input', function() {
+        $('#answer_title_one_en').val($(this).val());
+    });
+
+
+});
+
+</script>
 @endsection

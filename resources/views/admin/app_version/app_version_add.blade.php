@@ -29,7 +29,7 @@
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
-                        <h6 class="mb-0">اصدار التطبيق الحالي</h6>
+                        <h6 class="mb-0">اصدار اللعبة الحالي</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
                         <input type="text" class="form-control @error('version') is-invalid @enderror"
@@ -42,7 +42,7 @@
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
-                        <h6 class="mb-0">App Store رابط التطبيق على</h6>
+                        <h6 class="mb-0">App Store رابط اللعبة على</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
                         <input type="text" class="form-control @error('ios') is-invalid @enderror"
@@ -55,7 +55,7 @@
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
-                        <h6 class="mb-0">Google Play  رابط التطبيق على</h6>
+                        <h6 class="mb-0">Google Play  رابط اللعبة على</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
                         <input type="text" class="form-control @error('android') is-invalid @enderror"
@@ -83,7 +83,7 @@
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
-                        <h6 class="mb-0">التحديث في التطبيق الزامي ؟</h6>
+                        <h6 class="mb-0">التحديث في اللعبة الزامي ؟</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
 
@@ -108,7 +108,7 @@
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
-                        <h6 class="mb-0">الألعاب في التطبيق ؟</h6>
+                        <h6 class="mb-0">العناصر في اللعبة ؟</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
 

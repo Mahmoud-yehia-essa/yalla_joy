@@ -2453,7 +2453,16 @@ form select.error:focus {
 
 .bg-gradient-cosmic {
     /* background: linear-gradient(to left, #8e2de2, #4a00e0)!important */
-    background: linear-gradient(to left, #69e3c4, #153870) !important;
+    /* background: linear-gradient(to left, #011410, #153870) !important; */
+
+    background: linear-gradient(
+        180deg,
+        #0a1a72 0%,
+        #0e2b9b 40%,
+        #0b1c55 100%
+    ) !important;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .bg-gradient-burning {

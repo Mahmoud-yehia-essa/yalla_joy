@@ -12,9 +12,108 @@ use Intervention\Image\Drivers\Gd\Driver; // Use GD driver (or use Intervention\
 
 class SponsorController extends Controller
 {
-        public function addSponsorHomeCate(){
 
-            $getSponsorHome = Sponsor::findOrFail(1);
+
+
+    public function addSponsorNew(){
+
+        return view('admin.sponsor.sponsor_add_new');
+
+
+    }
+
+    public function allSponsor()
+    {
+
+        $sponsors = Sponsor::latest()->get();
+
+
+        return view('admin.sponsor.all_sponsor',compact('sponsors'));
+    }
+
+
+
+
+
+
+      public function addSponsorStore(Request $request){
+  $request->validate([
+            'title' => 'required|string|max:255',
+                        'title_en' => 'required|string|max:255',
+
+            'des' => 'nullable|string',
+                        'des_en' => 'nullable|string',
+
+
+                        'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+
+        ], [
+               'title.required' => '⚠️ الرجاء اضافة اسم الراعي',
+            'title.string' => '⚠️ الرجاء التأكد من كتابة الراعي بشكل صحيح',
+    'title_en.required' => '⚠️  الرجاء اضافة اسم الراعي بالانجليزية' ,
+            'title_en.string' => '⚠️ الرجاء التأكد من كتابة الراعي بالانجليزية بشكل صحيح',
+
+
+            'photo.required' => '⚠️ الرجاء اضافة صورة ',
+            'photo.image' => '⚠️ تأكد من اضافة صورة',
+            'photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
+            'photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
+        ]);
+
+
+
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
+
+            // Ensure directory exists
+
+                    $path = public_path('upload/sponsor/');
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
+            // Process and save image
+            // $imageResized = $imageManager->read($image)->resize(364, 176);
+
+                    $imageResized = $imageManager->read($image);
+
+            $imageResized->save($path . $name_gen);
+
+            $save_url = 'upload/sponsor/' . $name_gen;
+        }
+
+        // Insert game type
+
+        Sponsor::create([
+            'title' => $request->title,
+                        'title_en' => $request->title_en,
+
+            'des' => $request->des,
+            'des_en' => $request->des_en,
+
+                'link'  => $request->link,
+
+
+            'photo' => $save_url ?? null,
+            // 'special' => $request->special,
+
+        ]);
+
+
+        $notification = array(
+            'message' => 'تم اضافة الراعي ',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->route('sponsor.all')->with($notification);
+
+
+    }
+        public function editSponsor($id){
+
+            $getSponsorHome = Sponsor::findOrFail($id);
 
         return view('admin.sponsor.sponsor_home_cate_add',compact('getSponsorHome'));
     }
@@ -36,10 +135,15 @@ class SponsorController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+                        'title_en' => 'required|string|max:255',
+
             'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'title.required' => '⚠️ الرجاء اضافة اسم الراعي',
             'title.string' => '⚠️ الرجاء التأكد من كتابة الراعي بشكل صحيح',
+
+              'title_en.required' => '⚠️ الرجاء اضافة اسم الراعي بالانجليزية' ,
+            'title_en.string' => '⚠️ الرجاء التأكد من كتابة الراعي بالانجليزية بشكل صحيح',
 
 
             'photo.required' => '⚠️ الرجاء اضافة صورة ',
@@ -74,7 +178,12 @@ class SponsorController extends Controller
         }
         Sponsor::findOrFail($id)->update([
             'title' => $request->title,
+                        'title_en' => $request->title_en,
+
             'des' => $request->des,
+
+                        'des_en' => $request->des_en,
+
             'photo' => $save_url ,
             'link'  => $request->link,
 
@@ -83,13 +192,16 @@ class SponsorController extends Controller
             'message' => 'تم تعديل الراعي',
             'alert-type' => 'success'
         );
-        // return redirect()->route('sponsor.add.cate')->with($notification);
-                return redirect()->back()->with($notification);
+        return redirect()->route('sponsor.all')->with($notification);
 
         } else {
             Sponsor::findOrFail($id)->update([
                'title' => $request->title,
+                                       'title_en' => $request->title_en,
+
             'des' => $request->des,
+                                    'des_en' => $request->des_en,
+
             'link'  => $request->link,
 
 
@@ -98,10 +210,31 @@ class SponsorController extends Controller
             'message' => 'تم تعديل الراعي',
             'alert-type' => 'success'
         );
-        return redirect()->back()->with($notification);
+        return redirect()->route('sponsor.all')->with($notification);
         } // end else
     }// End Method
 
+
+       public function deleteSponsor($id){
+        $sponsor = Sponsor::findOrFail($id);
+        $img = $sponsor->photo;
+
+        // unlink($img );
+
+        if ($sponsor->photo && file_exists(public_path($sponsor->photo))) {
+            unlink(public_path($sponsor->photo));
+        }
+        Sponsor::findOrFail($id)->delete();
+        $notification = array(
+            'message' => 'تم حذف الراعي ',
+            'alert-type' => 'success'
+        );
+       // return redirect()->route('all.category')->with($notification);
+
+        return redirect()->route('sponsor.all')->with($notification);
+
+        // return redirect()->back()->with($notification);
+    }// End Method
 
     /// API
 

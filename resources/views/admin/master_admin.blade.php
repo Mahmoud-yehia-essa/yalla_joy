@@ -45,7 +45,7 @@
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-	<title>لوحة تحكم - تطبيق چريمبة</title>
+	<title>لوحة تحكم - لعبة يلا!جوي</title>
     <style>
 
 		body

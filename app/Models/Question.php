@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Category;
+use App\Models\AnswerQuestionOnline;
 use Illuminate\Database\Eloquent\Model;
 
 class Question extends Model
@@ -15,6 +16,13 @@ class Question extends Model
     public function answers()
     {
         return $this->hasMany(Answer::class, 'question_id');
+    }
+
+
+
+       public function answerQuestionOnlines()
+    {
+        return $this->hasMany(AnswerQuestionOnline::class, 'question_id');
     }
 
     public function category()

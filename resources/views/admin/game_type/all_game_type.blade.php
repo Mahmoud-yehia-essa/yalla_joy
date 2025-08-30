@@ -35,7 +35,7 @@
 <tr>
 <th>الرقم</th>
 <th>نوع اللعبة</th>
-<th>عدد الفئات في النوع</th>
+<th>عدد الفئات الرئيسية في نوع اللعبة</th>
 
 <th> الصورة</th>
 <th>الاجراء</th>
@@ -47,8 +47,8 @@
 <td> {{ $key+1 }} </td>
 <td>{{ $item->type_name }} </td>
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
-    {{-- {{count($item->questions)}} --}}
-    1
+    {{count($item->mainCategories)}}
+
 </span></td>
 
 

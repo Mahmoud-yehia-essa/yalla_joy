@@ -40,7 +40,7 @@
 <th>نوع اللعبة</th>
 
 <th>الفئة الرئيسية</th>
-<th>عدد الفئات الرئيسية</th>
+<th>عدد الفئات الفرعية</th>
 
 <th> الصورة</th>
 <th>الاجراء</th>
@@ -57,8 +57,9 @@
 
 
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
-    {{-- {{count($item->questions)}} --}}
-    1
+    {{count($item->categories)}}
+
+
 </span></td>
 
 

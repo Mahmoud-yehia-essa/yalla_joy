@@ -44,6 +44,20 @@
                     </div>
                 </div>
 
+
+                             <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Title </h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="text" class="form-control @error('title_en') is-invalid @enderror"
+                               name="title_en" value="{{ old('title_en', $getSponsorHome->title_en) }}">
+                        @error('title_en')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-sm-3">
                         <h6 class="mb-0">رابط للراعي</h6>
@@ -65,13 +79,26 @@
                     </div>
                     <div class="col-sm-9 text-secondary">
                         <textarea name="des" class="form-control @error('des') is-invalid @enderror"
-                                  id="input11" placeholder="Description ..." rows="3">{{ old('des', $getSponsorHome->des) }}</textarea>
+                                  id="input11" placeholder="الوصف ..." rows="3">{{ old('des', $getSponsorHome->des) }}</textarea>
                         @error('des')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
 
+
+                 <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Description</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <textarea name="des_en" class="form-control @error('des_en') is-invalid @enderror"
+                                  id="input11" placeholder="Description ..." rows="3">{{ old('des_en', $getSponsorHome->des_en) }}</textarea>
+                        @error('des_en')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
 
 
 
