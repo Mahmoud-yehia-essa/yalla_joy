@@ -13,6 +13,7 @@ use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Facades\Image;
 use Intervention\Image\Drivers\Gd\Driver; // Use GD driver (or use Intervention\Image\Drivers\Imagick\Driver for Imagick)
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -130,6 +131,8 @@ class CategoryController extends Controller
 
             'category_photo' => $save_url ?? null,
             'special' => $request->special,
+                        'user_id' => Auth::user()->id,
+
 
         ]);
 

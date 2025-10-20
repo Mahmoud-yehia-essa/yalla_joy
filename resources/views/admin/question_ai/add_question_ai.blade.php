@@ -5,7 +5,7 @@
 
 <!--breadcrumb-->
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">إنشاء الأسئلة باستخدام AI</div>
+    <div class="breadcrumb-title pe-3">إنشاء الأسئلة باستخدام AI </div>
 </div>
 <!--end breadcrumb-->
 <div class="container">
@@ -31,7 +31,7 @@
                                             <option selected="" value="non">الرجاء إختيار الفئة</option>
 
                                             @foreach ($category as $item )
-                                            <option value="{{$item->id}}" {{ old('category_id') == $item->id ? 'selected' : '' }}>{{$item->category_name}}</option>
+                                            <option value="{{$item->id}}" {{ old('category_id') == $item->id ? 'selected' : '' }}>{{$item->mainCategory->main_category_name}} / {{$item->category_name }} </option>
 
                                             @endforeach
 

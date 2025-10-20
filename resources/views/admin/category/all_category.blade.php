@@ -40,6 +40,9 @@
 <th>إسم الفئة</th>
 
 <th>عدد الأسئلة في الفئة</th>
+<th>عدد مرات  الإستخدام</th>
+
+<th>التاريخ</th>
 
 <th> الصورة</th>
 <th>الاجراء</th>
@@ -57,8 +60,16 @@
     {{count($item->questions)}}
 </span></td>
 
+<td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-danger">
+    {{$item->how_many_use}}
+</span></td>
+<td>
+    {{ $item->created_at
+    ? $item->created_at->format('Y-m-d') . ' (' . $item->created_at->diffForHumans(['parts' => 1]) . ' تقريبًا)'
+    : 'لم يتم التحديد'
+}}
 
-
+</td>
 <td> <img onclick="showImageModal(this.src)" src="{{ asset($item->category_photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
 <td>
@@ -95,12 +106,19 @@
 </tbody>
 <tfoot>
 <tr>
-    <th>الرقم</th>
-    <th> نوع اللعبة</th>
+<th>الرقم</th>
+<th> نوع اللعبة</th>
 <th>  الفئة الرئيسية</th>
-    <th>إسم الفئة</th>
-    <th> الصورة</th>
-    <th>الاجراء</th>
+
+<th>إسم الفئة</th>
+
+<th>عدد الأسئلة في الفئة</th>
+<th>عدد مرات  الإستخدام</th>
+
+<th>التاريخ</th>
+
+<th> الصورة</th>
+<th>الاجراء</th>
 </tr>
 </tfoot>
 </table>

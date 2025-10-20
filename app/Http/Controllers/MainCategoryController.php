@@ -13,6 +13,7 @@ use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Facades\Image;
 use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Auth;
 
 class MainCategoryController extends Controller
 {
@@ -110,6 +111,8 @@ class MainCategoryController extends Controller
                         'main_category_description_en' => $request->main_category_description_en,
 
             'main_category_photo' => $save_url ?? null,
+
+            'user_id' => Auth::user()->id,
             // 'special' => $request->special,
 
         ]);

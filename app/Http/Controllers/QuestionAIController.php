@@ -13,7 +13,10 @@ class QuestionAIController extends Controller
     {
         $category = Category::latest()->get();
 
-        return view('admin.question_ai.add_question_ai',compact('category'));
+        // return view('admin.question_ai.add_question_ai',compact('category'));
+
+                return view('admin.question_ai.ai_soon',compact('category'));
+
     }
 
 

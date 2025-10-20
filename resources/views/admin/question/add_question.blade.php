@@ -15,7 +15,15 @@
                 <form action="{{ route('add.question.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="card">
-
+      @if ($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
 
                         <div class="card-body">
 
@@ -79,6 +87,42 @@
                                     </div>
                                 </div>
 
+
+
+                                  <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">اختر نوع العملة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select  name="game_coin_id" class="form-select" aria-label="Default select example">
+                                            <option selected="" value="non">الرجاء إختيار نوع العملة</option>
+
+                                            @foreach ($gameCoin as $item )
+                                            <option value="{{$item->id}}" >{{$item->name}}</option>
+
+                                            @endforeach
+
+                                        </select>
+
+                                        @error('game_coin_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">عدد العملات من النوع المختار</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input id="coins_number" name="coins_number" type="number" class="form-control" value="{{ old('coins_number') }}" />
+        @error('coins_number') <span class="text-danger">{{ $message }}</span> @enderror
+    </div>
+</div>
+
+
                             <!-- Question Title -->
                             <div class="row mb-3">
                                 <div class="col-sm-3">
@@ -100,9 +144,41 @@
                                     @error('qu_title_en') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
+
+
+
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">تلميح للسؤال</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="qu_hint" type="text" class="form-control" value="{{ old('qu_hint') }}" />
+                                                                  <small>في حالة استخدام وسيلة المساعدة </small>
+
+                                    @error('qu_hint') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">تلميح للسؤال بالانجليزية</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="qu_hint_en" type="text" class="form-control" value="{{ old('qu_hint_en') }}" />
+                                    @error('qu_hint_en') <span class="text-danger">{{ $message }}</span> @enderror
+                                                                     <small>في حالة استخدام وسيلة المساعدة </small>
+
+                                </div>
+                            </div>
+
+
                             <!-- Question Points -->
                            <!-- نقاط السؤال -->
-<div class="row mb-3">
+{{-- <div class="row mb-3">
     <div class="col-sm-3">
         <h6 class="mb-0">نقاط السؤال</h6>
     </div>
@@ -121,7 +197,7 @@
         <input id="qu_points_online" name="qu_points_online" type="text" class="form-control" value="{{ old('qu_points_online') }}" />
         @error('qu_points_online') <span class="text-danger">{{ $message }}</span> @enderror
     </div>
-</div>
+</div> --}}
 
 
                             <!-- Question counter -->
@@ -310,40 +386,71 @@
                             </div>
                         </div>
 
-                         <div class="row mb-3">
-                            <div class="col-sm-3">
-                                <h6 class="mb-0">الاجابة2</h6>
-                            </div>
-                            <div class="col-sm-9 text-secondary">
-                                <input name="answer_title_two" type="text" class="form-control" value="{{ old('answer_title_two') }}" />
-                                @error('answer_title_two') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
 
+                        <!-- Answer 2 Online -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">الاجابة2</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input name="answer_title_two" type="text" class="form-control" value="{{ old('answer_title_two') }}" />
+        @error('answer_title_two') <span class="text-danger">{{ $message }}</span> @enderror
+        <!-- Answer Type -->
+        <div class="mt-2">
+            <label><input type="radio" name="answer_type_two" value="text" checked> نصي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_two" value="image"> صورة</label>
+            <label class="ms-3"><input type="radio" name="answer_type_two" value="sound"> ملف صوتي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_two" value="video"> فيديو</label>
+        </div>
+        <!-- File Upload -->
+        <div class="mt-2" id="answer_two_file_input" style="display: none;">
+            <input name="answer_file_two" type="file" class="form-control" id="answerFileTwo">
+            <div id="answerPreviewTwo" class="mt-2"></div>
+        </div>
+    </div>
+</div>
 
-                        <div class="row mb-3">
-                            <div class="col-sm-3">
-                                <h6 class="mb-0">الاجابة3</h6>
-                            </div>
-                            <div class="col-sm-9 text-secondary">
-                                <input name="answer_title_three" type="text" class="form-control" value="{{ old('answer_title_three') }}" />
-                                @error('answer_title_three') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
+<!-- Answer 3 Online -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">الاجابة3</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input name="answer_title_three" type="text" class="form-control" value="{{ old('answer_title_three') }}" />
+        @error('answer_title_three') <span class="text-danger">{{ $message }}</span> @enderror
+        <div class="mt-2">
+            <label><input type="radio" name="answer_type_three" value="text" checked> نصي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_three" value="image"> صورة</label>
+            <label class="ms-3"><input type="radio" name="answer_type_three" value="sound"> ملف صوتي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_three" value="video"> فيديو</label>
+        </div>
+        <div class="mt-2" id="answer_three_file_input" style="display: none;">
+            <input name="answer_file_three" type="file" class="form-control" id="answerFileThree">
+            <div id="answerPreviewThree" class="mt-2"></div>
+        </div>
+    </div>
+</div>
 
-
-                     <div class="row mb-3">
-                            <div class="col-sm-3">
-                                <h6 class="mb-0">الاجابة4</h6>
-                            </div>
-                            <div class="col-sm-9 text-secondary">
-                                <input name="answer_title_four" type="text" class="form-control" value="{{ old('answer_title_four') }}" />
-                                @error('answer_title_four') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-
-
+<!-- Answer 4 Online -->
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <h6 class="mb-0">الاجابة4</h6>
+    </div>
+    <div class="col-sm-9 text-secondary">
+        <input name="answer_title_four" type="text" class="form-control" value="{{ old('answer_title_four') }}" />
+        @error('answer_title_four') <span class="text-danger">{{ $message }}</span> @enderror
+        <div class="mt-2">
+            <label><input type="radio" name="answer_type_four" value="text" checked> نصي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_four" value="image"> صورة</label>
+            <label class="ms-3"><input type="radio" name="answer_type_four" value="sound"> ملف صوتي</label>
+            <label class="ms-3"><input type="radio" name="answer_type_four" value="video"> فيديو</label>
+        </div>
+        <div class="mt-2" id="answer_four_file_input" style="display: none;">
+            <input name="answer_file_four" type="file" class="form-control" id="answerFileFour">
+            <div id="answerPreviewFour" class="mt-2"></div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -431,52 +538,7 @@
 
 <!-- jQuery to Show/Hide File Inputs -->
 <script type="text/javascript">
-/*
-    $(document).ready(function(){
-        // Initially hide file inputs
-        $('#question_file_input').hide();
-        $('#answer_file_input').hide();
 
-        // Function to show/hide file inputs based on selection
-        function toggleFileInput(typeSelector, fileInputSelector) {
-            $(typeSelector).change(function() {
-                if ($(this).val() == "image" || $(this).val() == "sound") {
-                    $(fileInputSelector).show();
-                } else {
-                    $(fileInputSelector).hide();
-                    $(fileInputSelector).find('input[type="file"]').val(''); // Clear the file input
-                    $(fileInputSelector).find('#questionPreview, #answerPreview').empty(); // Clear the preview
-                }
-            });
-        }
-
-        // Preview function for files
-        function previewFile(inputSelector, previewSelector) {
-            $(inputSelector).change(function() {
-                const file = this.files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (file.type.startsWith('image/')) {
-                        $(previewSelector).html('<img src="' + e.target.result + '" alt="Preview" width="110" class="mt-2">');
-                    } else if (file.type.startsWith('audio/')) {
-                        $(previewSelector).html('<audio controls><source src="' + e.target.result + '" type="audio/mpeg">Your browser does not support the audio tag.</audio>');
-                    }
-                };
-                if (file) {
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-
-        // Apply function to question and answer types
-        toggleFileInput('input[name="questions_type"]', '#question_file_input');
-        toggleFileInput('input[name="answer_type"]', '#answer_file_input');
-
-        // Preview the selected files
-        previewFile('#questionFile', '#questionPreview');
-        previewFile('#answerFile', '#answerPreview');
-    });
-    */
 
     $(document).ready(function(){
     function toggleFileInput(typeSelector, fileInputSelector) {
@@ -517,73 +579,53 @@
     previewFile('#answerFile', '#answerPreview');
 });
 
-</script>
-
-{{--
-<script>
 
 
 $(document).ready(function(){
 
-    // Reusable function for AJAX loading of options
-    function loadOptions(triggerSelect, targetSelect, urlPrefix, valueField, textField, defaultText) {
-        $(triggerSelect).on('change', function(){
-            var selectedId = $(this).val();
-            var target = $(targetSelect);
-
-            if(selectedId && selectedId !== 'non'){
-                target.prop('disabled', true)
-                      .empty()
-                      .append('<option value="">جاري التحميل...</option>');
-
-                $.ajax({
-                    url: urlPrefix + selectedId,
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data){
-                        target.empty();
-                        target.append('<option value="non">' + defaultText + '</option>');
-                        $.each(data, function(key, value){
-                            target.append('<option value="'+ value[valueField] +'">'+ value[textField] +'</option>');
-                        });
-                        target.prop('disabled', false);
-                    },
-                    error: function(){
-                        target.empty().append('<option value="">حدث خطأ، حاول مرة أخرى</option>');
-                        target.prop('disabled', false);
-                    }
-                });
+    function toggleFileInput(radioSelector, fileInputSelector, previewSelector) {
+        $(radioSelector).change(function() {
+            if ($(this).val() == "image" || $(this).val() == "sound" || $(this).val() == "video") {
+                $(fileInputSelector).show();
             } else {
-                target.prop('disabled', false)
-                      .empty()
-                      .append('<option value="non">' + defaultText + '</option>');
+                $(fileInputSelector).hide();
+                $(fileInputSelector).find('input[type="file"]').val('');
+                $(previewSelector).empty();
             }
         });
     }
 
-    // game_type_id → main_category_id
-    loadOptions(
-        'select[name="game_type_id"]',
-        'select[name="main_category_id"]',
-        '/get-main-categories/',
-        'id',
-        'main_category_name',
-        'الرجاء إختيار الفئة الرئيسية'
-    );
+    function previewFile(inputSelector, previewSelector) {
+        $(inputSelector).change(function() {
+            const file = this.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (file.type.startsWith('image/')) {
+                    $(previewSelector).html('<img src="' + e.target.result + '" alt="Preview" width="110" class="mt-2">');
+                } else if (file.type.startsWith('audio/')) {
+                    $(previewSelector).html('<audio controls><source src="' + e.target.result + '" type="audio/mpeg"></audio>');
+                } else if (file.type.startsWith('video/')) {
+                    $(previewSelector).html('<video width="200" controls><source src="' + e.target.result + '" type="video/mp4"></video>');
+                }
+            };
+            if (file) reader.readAsDataURL(file);
+        });
+    }
 
-    // main_category_id → category_id (subcategories)
-    loadOptions(
-        'select[name="main_category_id"]',
-        'select[name="category_id"]',
-        '/get-sub-categories/',
-        'id',
-        'category_name',
-        'الرجاء إختيار الفئة الفرعية'
-    );
+    // Apply to online answers (2,3,4)
+    toggleFileInput('input[name="answer_type_two"]', '#answer_two_file_input', '#answerPreviewTwo');
+    toggleFileInput('input[name="answer_type_three"]', '#answer_three_file_input', '#answerPreviewThree');
+    toggleFileInput('input[name="answer_type_four"]', '#answer_four_file_input', '#answerPreviewFour');
 
+    previewFile('#answerFileTwo', '#answerPreviewTwo');
+    previewFile('#answerFileThree', '#answerPreviewThree');
+    previewFile('#answerFileFour', '#answerPreviewFour');
 });
 
-</script> --}}
+
+</script>
+
+
 
 
 <script>

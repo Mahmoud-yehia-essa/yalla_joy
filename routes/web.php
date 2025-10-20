@@ -3,27 +3,36 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdsController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PayMentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RankingController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GameCoinController;
+use App\Http\Controllers\GameItemController;
 use App\Http\Controllers\GameTypeController;
+use App\Http\Controllers\ItemTypeController;
 use App\Http\Controllers\LandPageController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\UserGameController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppVersionController;
+use App\Http\Controllers\GameBundleController;
+use App\Http\Controllers\GameHelperController;
 use App\Http\Controllers\QuestionAIController;
 use App\Http\Controllers\GameelEmentController;
 use App\Http\Controllers\MainCategoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TitlePositionController;
 use App\Http\Controllers\RewardsSponsorController;
+use App\Http\Controllers\NotificationDashboardController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -97,6 +106,22 @@ Route::controller(AdminController::class)
 
     Route::post('/admin/update/password', 'AdminUpdatePassword')->name('update.password');
 
+
+
+Route::get('/all/admin' , 'AllAdmin')->name('all.admin');
+Route::get('/add/admin' , 'AddAdmin')->name('add.admin');
+Route::post('/admin/add', 'addAdminStore')->name('add.admin.store');
+
+
+  Route::get('/admin/edit/{id}', 'editAdmin')->name('edit.admin');
+
+    Route::post('/admin/edit', 'editAdminStore')->name('edit.admin.store');
+
+
+
+
+
+    Route::get('/admin/delete/{id}', 'deleteAdmin')->name('delete.admin');
 
 
 
@@ -480,6 +505,75 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 
 
 
+
+// Role
+
+
+
+Route::controller(RoleController::class)->middleware(['checkUserRole','auth'])->group(function () {
+
+    Route::get('/all/permission', 'allPermission')->name('all.permission');
+
+ Route::get('/add/permission', 'addPermission')->name('add.permission');
+
+
+         Route::post('/add/permission', 'addPermissiontore')->name('add.permission.store');
+
+
+    // Route::post('/admin/add/question/to/game/ai', 'addQuestionToGameAi')->name('add.question.to.game.ai');
+
+ Route::get('/edit/permission/{id}', 'editPermission')->name('edit.permission');
+
+
+
+    Route::post('/edit/permission' , 'editPermissionStore')->name('edit.permission.store');
+
+
+        Route::get('/delete/permission/{id}', 'deletePermission')->name('delete.permission');
+
+
+
+
+
+        /// Roles
+
+
+            Route::get('/all/roles', 'allRoles')->name('all.roles');
+            Route::get('/add/roles', 'addRoles')->name('add.roles');
+             Route::post('/add/roles', 'addRolesStore')->name('add.roles.store');
+            Route::get('/edit/roles/{id}', 'editRoles')->name('edit.roles');
+    Route::post('/edit/roles' , 'editRoleStore')->name('edit.roles.store');
+
+        Route::get('/delete/roles/{id}', 'deleteRole')->name('delete.roles');
+
+
+
+
+
+        /// Role in permission
+
+ Route::get('/add/roles/permission' , 'AddRolesPermission')->name('add.roles.permission');
+ Route::post('/role/permission/store' , 'RolePermissionStore')->name('role.permission.store');
+
+
+
+ Route::get('/edit/role/permission/{id}',  'EditRolePermission')->name('role.permission.edit');
+Route::post('/update/role/permission/{id}',  'UpdateRolePermission')->name('role.permission.update');
+
+
+
+
+});
+
+
+
+
+// endRole
+
+
+
+
+
  Route::controller(RewardsSponsorController::class)->middleware(['checkUserRole','auth'])->group(function(){
 
 
@@ -507,6 +601,220 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 });
 
 
+
+// Route::controller(GameItemController::class)->middleware(['checkUserRole','auth'])->group(function() {
+//     Route::get('/all/game-item', 'allGameItem')->name('all.game.item');
+//     Route::get('/add/game-item', 'addGameItem')->name('add.game.item');
+//     Route::get('/edit/game-item/{id}', 'editGameItem')->name('edit.game.item');
+
+//     Route::post('/store/game-item', 'storeGameItem')->name('store.game.item');
+//     Route::post('/update/game-item/{id}', 'updateGameItem')->name('update.game.item');
+
+//     Route::get('/delete/game-item/{id}', 'deleteGameItem')->name('delete.game.item');
+// });
+
+
+
+Route::controller(GameItemController::class)
+    ->middleware(['checkUserRole', 'auth'])
+    ->group(function () {
+
+        Route::get('/all/game-item', 'allGameItem')->name('all.game.item');
+        Route::get('/add/game-item', 'addGameItem')->name('add.game.item');
+        Route::get('/edit/game-item/{id}', 'editGameItem')->name('edit.game.item');
+
+        Route::post('/store/game-item', 'storeGameItem')->name('store.game.item');
+        Route::post('/save/game-item', 'saveGameItem')->name('save.game.item');
+
+        // Route::post('/update/game-item', 'updateGameItem')->name('update.game.item');
+
+        Route::post('/update/game-item/{id}', 'updateGameItem')->name('update.game.item');
+
+        Route::get('/delete/game-item/{id}', 'deleteGameItem')->name('delete.game.item');
+
+        Route::get('/game-item/inactive/{id}', 'gameItemInactive')->name('inactive.game.item');
+        Route::get('/game-item/active/{id}', 'gameItemActive')->name('active.game.item');
+    });
+
+
+
+
+//     Route::controller(GameHelperController::class)->middleware(['checkUserRole','auth'])->group(function () {
+
+//     Route::get('/all/game-helper', 'allGameHelper')->name('all.game.helper');
+//     Route::get('/add/game-helper', 'addGameHelper')->name('add.game.helper');
+//     Route::post('/store/game-helper', 'storeGameHelper')->name('store.game.helper');
+//     Route::get('/edit/game-helper/{id}', 'editGameHelper')->name('edit.game.helper');
+//     Route::post('/update/game-helper/{id}', 'updateGameHelper')->name('update.game.helper');
+//     Route::get('/delete/game-helper/{id}', 'deleteGameHelper')->name('delete.game.helper');
+
+//     Route::get('/game-helper/inactive/{id}', 'gameHelperInactive')->name('inactive.game.helper');
+//     Route::get('/game-helper/active/{id}', 'gameHelperActive')->name('active.game.helper');
+// });
+
+
+
+Route::controller(GameHelperController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+    Route::get('/all/game-helper', 'allGameHelper')->name('all.game.helper');
+    Route::get('/add/game-helper', 'addGameHelper')->name('add.game.helper');
+    Route::get('/edit/game-helper/{id}', 'editGameHelper')->name('edit.game.helper');
+
+    Route::post('/store/game-helper', 'storeGameHelper')->name('store.game.helper');
+    Route::post('/update/game-helper', 'updateGameHelper')->name('update.game.helper');
+
+    Route::get('/delete/game-helper/{id}', 'deleteGameHelper')->name('delete.game.helper');
+
+    Route::get('/game-helper/inactive/{id}', 'gameHelperInactive')->name('inactive.game.helper');
+    Route::get('/game-helper/active/{id}', 'gameHelperActive')->name('active.game.helper');
+});
+
+
+
+Route::get('/game-bundle/details/{id}', [GameBundleController::class, 'bundleDetails'])->name('game.bundle.details');
+
+Route::controller(GameBundleController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+    // عرض جميع الحزم
+    Route::get('/all/game-bundle', 'allGameBundle')->name('all.game.bundle');
+
+    // إضافة حزمة جديدة
+    Route::get('/add/game-bundle', 'addGameBundle')->name('add.game.bundle');
+
+    // تعديل حزمة
+    Route::get('/edit/game-bundle/{id}', 'editGameBundle')->name('edit.game.bundle');
+
+    // حفظ حزمة جديدة
+    Route::post('/store/game-bundle', 'storeGameBundle')->name('store.game.bundle');
+
+    // تحديث حزمة
+    Route::post('/update/game-bundle', 'updateGameBundle')->name('update.game.bundle');
+
+    // حذف حزمة
+    Route::get('/delete/game-bundle/{id}', 'deleteGameBundle')->name('delete.game.bundle');
+
+    // تفعيل / إلغاء تفعيل الحزمة
+    Route::get('/game-bundle/inactive/{id}', 'gameBundleInactive')->name('inactive.game.bundle');
+    Route::get('/game-bundle/active/{id}', 'gameBundleActive')->name('active.game.bundle');
+
+// Route::get('/game-bundle/details/{id}', 'bundleDetails')->name('bundle.details');
+
+
+});
+
+
+
+Route::controller(NotificationDashboardController::class)->middleware(['checkUserRole','auth'])->group(function () {
+
+
+
+    Route::get('/notification/read/{id}' , 'setNotificationRead')->name('notification.read');
+
+});
+
+
+Route::controller(UserGameController::class)
+    ->middleware(['checkUserRole','auth'])
+    ->group(function () {
+
+
+
+// عرض نموذج التعديل
+Route::get('/user-game-question/{id}/edit',  'editUserGameQuestion')->name('edit.user.game.question');
+
+// تحديث السؤال
+Route::post('/user-game-question/{id}/update', 'updateUserGameQuestion')->name('update.user.game.question');
+
+
+        // عرض جميع الألعاب
+        Route::get('/all/user-games', 'allUserGames')->name('all.user.games');
+
+        // إضافة لعبة جديدة
+        Route::get('/add/user-game', 'addUserGame')->name('add.user.game');
+        Route::post('/store/user-game', 'storeUserGame')->name('store.user.game');
+
+        // تعديل / تحديث / حذف لعبة
+        Route::get('/edit/user-game/{id}', 'editUserGame')->name('edit.user.game');
+        Route::post('/update/user-game', 'updateUserGame')->name('update.user.game');
+        Route::get('/delete/user-game/{id}', 'deleteUserGame')->name('delete.user.game');
+
+        // حالة اللعبة
+        Route::get('/user-game/publish/{id}', 'publishGame')->name('publish.user.game');
+        Route::get('/user-game/cancel/{id}', 'cancelGame')->name('cancel.user.game');
+        Route::get('/user-game/suspend/{id}', 'suspendGame')->name('suspend.user.game');
+
+        // تفاصيل اللعبة
+        Route::get('/user-game/details/{id}', 'userGameDetails')->name('user.game.details');
+
+        // ✅ عرض الأسئلة الخاصة باللعبة
+        Route::get('/user-game/{id}/questions', 'userGameQuestions')->name('user.game.questions');
+
+        // ✅ إضافة سؤال
+        Route::get('/user-game/{id}/add-question', 'addUserGameQuestion')->name('add.user.game.question');
+        Route::post('/user-game/store-question', 'storeUserGameQuestion')->name('store.user.game.question');
+
+
+
+
+        // ✅ حذف سؤال
+        Route::get('/user-game/delete-question/{id}', 'deleteUserGameQuestion')->name('delete.user.game.question');
+});
+
+
+
+
+Route::controller(ItemTypeController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+    Route::get('/all/item-type', 'allItemType')->name('all.item.type');
+    Route::get('/add/item-type', 'addItemType')->name('add.item.type');
+    Route::get('/edit/item-type/{id}', 'editItemType')->name('edit.item.type');
+
+    Route::post('/store/item-type', 'storeItemType')->name('store.item.type');
+    Route::post('/update/item-type', 'updateItemType')->name('update.item.type');
+
+    Route::get('/delete/item-type/{id}', 'deleteItemType')->name('delete.item.type');
+
+    Route::get('/item-type/inactive/{id}', 'itemTypeInactive')->name('inactive.item.type');
+    Route::get('/item-type/active/{id}', 'itemTypeActive')->name('active.item.type');
+});
+
+Route::controller(RankingController::class)->middleware(['checkUserRole','auth'])->group(function() {
+
+    Route::get('/all/ranking', 'allRanking')->name('all.ranking');
+    Route::get('/add/ranking', 'addRanking')->name('add.ranking');
+    Route::get('/edit/ranking/{id}', 'editRanking')->name('edit.ranking');
+
+    Route::post('/store/ranking', 'storeRanking')->name('store.ranking');
+    Route::post('/update/ranking', 'updateRanking')->name('update.ranking');
+
+    Route::get('/delete/ranking/{id}', 'deleteRanking')->name('delete.ranking');
+
+    // روابط التفعيل والإلغاء
+    Route::get('/ranking/inactive/{id}', 'rankingInactive')->name('inactive.ranking');
+    Route::get('/ranking/active/{id}', 'rankingActive')->name('active.ranking');
+
+
+
+});
+
+
+Route::controller(LevelController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+    Route::get('/all/level', 'allLevel')->name('all.level');
+    Route::get('/add/level', 'addLevel')->name('add.level');
+    Route::get('/edit/level/{id}', 'editLevel')->name('edit.level');
+
+    Route::post('/store/level', 'storeLevel')->name('store.level');
+    Route::post('/save/level', 'saveLevel')->name('save.level'); // NEW like GameCoin
+
+    Route::post('/update/level/{id}', 'updateLevel')->name('update.level');
+    Route::get('/delete/level/{id}', 'deleteLevel')->name('delete.level');
+
+    Route::get('/level/inactive/{id}', 'levelInactive')->name('inactive.level');
+    Route::get('/level/active/{id}', 'levelActive')->name('active.level');
+});
+
+
  Route::controller(GameCoinController::class)->middleware(['checkUserRole','auth'])->group(function(){
 
 
@@ -516,20 +824,44 @@ Route::controller(QuestionAIController::class)->middleware(['checkUserRole','aut
 
 
 
-        Route::get('/all/game/coin', 'AllGameCoin')->name('all.game.coin');
-        Route::get('/add/game/coin', 'AddGameCoin')->name('add.game.coin');
+        Route::get('/all/game/coin', 'allGameCoin')->name('all.game.coin');
+
+                Route::get('/add/game/coin', 'addGameCoin')->name('add.game.coin');
+
+        Route::get('/edit/game/coin/{id}', 'editGameCoin')->name('edit.game.coin');
+
+
         Route::post('/store/game/coin', 'StoreGameCoin')->name('store.game.coin');
+    Route::post('/save/game/coin', 'SaveGameCoin')->name('save.game.coin'); // NEW
 
-        Route::get('/edit/game/coin/{id}', 'EditGameCoin')->name('edit.game.coin');
+        // Route::get('/edit/game/coin/{id}', 'EditGameCoin')->name('edit.game.coin');
         Route::post('/update/game/coin', 'UpdateGameCoin')->name('update.game.coin');
-        Route::get('/delete/game/coin/{id}', 'DeleteGameCoin')->name('delete.game.coin');
+        Route::get('/delete/game/coin/{id}', 'deleteGameCoin')->name('delete.game.coin');
 
 
 
+
+
+    Route::get('/game/coin/inactive/{id}', 'gameCoinInactive')->name('inactive.game.coin');
+
+
+    Route::get('/game/coin/active/{id}', 'gameCoinActive')->name('active.game.coin');
 
 
 
 });
+
+
+
+ Route::prefix('game-guide')->middleware(['auth','checkUserRole'])->group(function () {
+    Route::get('/all', [App\Http\Controllers\GameGuideController::class, 'AllGameGuide'])->name('all.game.guide');
+    Route::get('/add', [App\Http\Controllers\GameGuideController::class, 'AddGameGuide'])->name('add.game.guide');
+    Route::post('/store', [App\Http\Controllers\GameGuideController::class, 'StoreGameGuide'])->name('store.game.guide');
+    Route::get('/edit/{id}', [App\Http\Controllers\GameGuideController::class, 'EditGameGuide'])->name('edit.game.guide');
+    Route::post('/update', [App\Http\Controllers\GameGuideController::class, 'UpdateGameGuide'])->name('update.game.guide');
+    Route::get('/delete/{id}', [App\Http\Controllers\GameGuideController::class, 'DeleteGameGuide'])->name('delete.game.guide');
+});
+
 
 
 Route::get('/payment', [PayMentController::class, 'showPaymentPage']);

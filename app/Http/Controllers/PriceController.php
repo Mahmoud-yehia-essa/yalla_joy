@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\price;
-use Illuminate\Support\Carbon;
+use App\Models\GameCoin;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class PriceController extends Controller
 {
@@ -29,7 +30,9 @@ class PriceController extends Controller
           public function addPrice()
     {
 
-        return view('admin.price.add_price');
+                $gameCoins = GameCoin::all();
+
+        return view('admin.price.add_price',compact('gameCoins'));
     }
 
 
@@ -46,6 +49,7 @@ class PriceController extends Controller
             'games_number' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
+            'game_coin_id'  => 'required|exists:game_coins,id',
 
 
         ], [
@@ -58,6 +62,8 @@ class PriceController extends Controller
 
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
+                        'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
+
         ]);
 
             // Convert colors
@@ -70,9 +76,11 @@ class PriceController extends Controller
 
             'title' => $request->title,
             'price' => $request->price,
+
             'color1' => $color1,
             'color2' => $color2,
             'games_number' => $request->games_number,
+            'game_coin_id' => $request->game_coin_id,
 
 
 
@@ -104,7 +112,10 @@ class PriceController extends Controller
 
     //  $price->price = getPriceAttribute($price->price);
 
-    return view('admin.price.edit_price', compact('price'));
+                    $gameCoins = GameCoin::all();
+
+
+    return view('admin.price.edit_price', compact('price','gameCoins'));
 }
 
  public function editPriceStore(Request $request){
@@ -117,6 +128,7 @@ class PriceController extends Controller
             'color2' => 'required',
                         'games_number' => 'required|numeric',
 
+            'game_coin_id'  => 'required|exists:game_coins,id',
 
 
         ], [
@@ -128,6 +140,8 @@ class PriceController extends Controller
 
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
+                        'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
+
         ]);
 
             // Convert colors
@@ -142,6 +156,7 @@ class PriceController extends Controller
             'color1' => $color1,
             'color2' => $color2,
                               'games_number' => $request->games_number,
+            'game_coin_id' => $request->game_coin_id,
 
 
             'created_at' =>Carbon::now()

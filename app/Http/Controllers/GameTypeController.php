@@ -11,6 +11,7 @@ use Intervention\Image\ImageManager;
 
 use Intervention\Image\Facades\Image;
 use Intervention\Image\Drivers\Gd\Driver; // Use GD driver (or use Intervention\Image\Drivers\Imagick\Driver for Imagick)
+use Illuminate\Support\Facades\Auth;
 
 
 class GameTypeController extends Controller
@@ -38,6 +39,9 @@ class GameTypeController extends Controller
     {
 
 
+// return Auth::user()->id;
+
+
 
         $request->validate([
             'game_type_name' => 'required|string|max:255',
@@ -62,6 +66,8 @@ class GameTypeController extends Controller
             'game_type_photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
             'game_type_photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
         ]);
+
+
 
 
 
@@ -96,6 +102,8 @@ class GameTypeController extends Controller
                         'type_description_en' => $request->game_type_description_en,
 
             'type_photo' => $save_url ?? null,
+
+            'user_id' => Auth::user()->id,
             // 'special' => $request->special,
 
         ]);

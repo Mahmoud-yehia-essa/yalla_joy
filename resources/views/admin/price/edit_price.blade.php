@@ -70,6 +70,21 @@
                                     </div>
                                 </div>
 
+                                 <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0">عملة اللعبة</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="game_coin_id" class="form-select">
+                                            @foreach($gameCoins as $coin)
+                                                <option value="{{ $coin->id }}" {{ $price->game_coin_id == $coin->id ? 'selected' : '' }}>
+                                                    {{ $coin->name }} ({{ $coin->name_en }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('game_coin_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
                                 <!-- Color 1 -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">

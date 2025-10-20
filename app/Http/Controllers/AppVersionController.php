@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppVersion;
+use App\Models\FontFamily;
 use Illuminate\Http\Request;
 
 class AppVersionController extends Controller
@@ -13,7 +14,10 @@ class AppVersionController extends Controller
 
         $appVersion = AppVersion::findOrFail(1);
 
-        return view('admin.app_version.app_version_add',compact('appVersion'));
+                $fontFamilies = FontFamily::latest()->get();
+
+
+        return view('admin.app_version.app_version_add',compact('appVersion','fontFamilies'));
 
 
     }
@@ -47,6 +51,14 @@ class AppVersionController extends Controller
             'des' => $request->des,
             'app_type' => $request->app_type,
             'update_required' => $request->update_required,
+
+
+                        'font_family_id' => $request->font_family_id,
+            'primary_color' => $request->primary_color,
+            'font_color_normal' => $request->font_color_normal,
+
+            'app_name' => $request->app_name,
+
 
 
 

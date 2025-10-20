@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use App\Models\MainCategory;
 use Illuminate\Database\Eloquent\Model;
 
 class GameType extends Model
 {
         protected $guarded = [];
+
+
+
+
 
 
             public function mainCategories()

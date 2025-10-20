@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Answer;
 use App\Models\Category;
+use App\Models\GameCoin;
 use App\Models\GameType;
 use App\Models\Question;
 use App\Models\MainCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\AnswerQuestionOnline;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -24,13 +26,19 @@ class QuestionController extends Controller
         $gameType = GameType::latest()->get();
 
 
-        return view('admin.question.add_question',compact('category','gameType'));
+                $gameCoin = GameCoin::latest()->get();
+
+
+        return view('admin.question.add_question',compact('category','gameType','gameCoin'));
     }
 
     public function editQuestion($id)
     {
         $question = Question::findOrFail($id);
         // $category = Category::latest()->get();
+
+                        $gameCoin = GameCoin::latest()->get();
+
 
                         $gameType = GameType::latest()->get();
 
@@ -41,7 +49,7 @@ class QuestionController extends Controller
 
 // return $main_category;
 
-        return view('admin.question.edit_question',compact('question','category','gameType','main_category'));
+        return view('admin.question.edit_question',compact('question','category','gameType','main_category','gameCoin'));
     }
 
 
@@ -271,13 +279,16 @@ public function addQuestionStore(Request $request)
 
                 'game_type_id' => 'required|not_in:non',
                 'main_category_id' => 'required|not_in:non',
+                'game_coin_id' => 'required|not_in:non',
+
+                        'coins_number' => 'required|integer',
 
 
         'qu_title' => 'required|string|max:255',
                 'qu_title_en' => 'required|string|max:255',
 
-        'qu_points' => 'required|integer',
-        'qu_points_online' => 'required|integer',
+        // 'qu_points' => 'required|integer',
+        // 'qu_points_online' => 'required|integer',
 
         'questions_type' => 'required|string|in:text,image,sound,video',
         'time_counter' => 'nullable|integer',
@@ -320,13 +331,17 @@ public function addQuestionStore(Request $request)
         'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
         'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
 
-        'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
-        'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        // 'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
+        // 'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
         'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
 
-        'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
-        'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'coins_number.required' => 'يرجى إدخال عدد العملات.',
+        'coins_number.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+
+        // 'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
+        // 'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
         'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
         'questions_type.required' => 'يرجى اختيار نوع السؤال.',
@@ -356,6 +371,8 @@ public function addQuestionStore(Request $request)
 
          'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
         'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+         'game_coin_id.required' => 'الرجاء اختيار نوع العملة.',
+         'game_coin_id.not_in' => 'الرجاء اختيار نوع العملة.',
 
 
 
@@ -379,8 +396,8 @@ public function addQuestionStore(Request $request)
 
     ]);
 
-    DB::beginTransaction(); // Start transaction
 
+    DB::beginTransaction(); // Start transaction
     try {
         // Initialize variables for question files
         $questionImage = $questionSound = $questionVideo = null;
@@ -422,8 +439,8 @@ public function addQuestionStore(Request $request)
             'category_id' => $request->category_id,
 
             'category_id' => $request->category_id,
-            'qu_points' => $request->qu_points,
-                        'qu_points_online' => $request->qu_points_online,
+            // 'qu_points' => $request->qu_points,
+            //             'qu_points_online' => $request->qu_points_online,
 
             'questions_type' => $request->questions_type,
             'time_counter' => $request->time_counter,
@@ -432,7 +449,17 @@ public function addQuestionStore(Request $request)
             'qu_image' => $questionImage,
             'qu_sound' => $questionSound,
             'qu_video' => $questionVideo,
+            'coins_number' => $request->coins_number,
+            'game_coin_id' => $request->game_coin_id,
+
+              'qu_hint' => $request->qu_hint,
+            'qu_hint_en' => $request->qu_hint_en,
+            'user_id' => Auth::user()->id,
+
+
+
         ]);
+
 
         if (!$question) {
             throw new \Exception('فشل في إنشاء السؤال.');
@@ -473,26 +500,125 @@ public function addQuestionStore(Request $request)
         ]);
 
 
+
+
+
+
+        /// Answer online 2
+
+         // Initialize variables for answer files
+        $answerImageTwo = $answerSoundTwo = $answerVideoTwo = null;
+
+        if ($request->answer_type_two !== 'text' && $request->hasFile('answer_file_two')) {
+            $answerFileTwo = $request->file('answer_file_two');
+            $extension = strtolower($answerFileTwo->getClientOriginalExtension());
+            $filenameTwo = date('YmdHi') . '_' . uniqid() . '.' . $extension;
+
+            if ($request->answer_type_two == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $answerFileTwo->move(public_path('upload/answers/online/images'), $filenameTwo);
+                $answerImageTwo = $filenameTwo;
+            } elseif ($request->answer_type_two == 'sound' && in_array($extension, ['mp3', 'wav'])) {
+                $answerFileTwo->move(public_path('upload/answers/online/sounds'), $filenameTwo);
+                $answerSoundTwo = $filenameTwo;
+            } elseif ($request->answer_type_two == 'video' && in_array($extension, ['mp4', 'avi', 'mov'])) {
+                $answerFileTwo->move(public_path('upload/answers/online/videos'), $filenameTwo);
+                $answerVideoTwo = $filenameTwo;
+            } else {
+                throw new \Exception('نوع الملف غير صالح لنوع الإجابة المحدد.');
+            }
+        }
+
+
+         /// Answer online 3
+
+         // Initialize variables for answer files
+        $answerImageThree = $answerSoundThree = $answerVideoThree = null;
+
+        if ($request->answer_type_three !== 'text' && $request->hasFile('answer_file_three')) {
+            $answerFileThree = $request->file('answer_file_three');
+            $extension = strtolower($answerFileThree->getClientOriginalExtension());
+            $filenameThree = date('YmdHi') . '_' . uniqid() . '.' . $extension;
+
+            if ($request->answer_type_three == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $answerFileThree->move(public_path('upload/answers/online/images'), $filenameThree);
+                $answerImageThree = $filenameThree;
+            } elseif ($request->answer_type_three == 'sound' && in_array($extension, ['mp3', 'wav'])) {
+                $answerFileThree->move(public_path('upload/answers/online/sounds'), $filenameThree);
+                $answerSoundThree = $filenameThree;
+            } elseif ($request->answer_type_three == 'video' && in_array($extension, ['mp4', 'avi', 'mov'])) {
+                $answerFileThree->move(public_path('upload/answers/online/videos'), $filenameThree);
+                $answerVideoThree = $filenameThree;
+            } else {
+                throw new \Exception('نوع الملف غير صالح لنوع الإجابة المحدد.');
+            }
+        }
+
+
+          /// Answer online 4
+
+         // Initialize variables for answer files
+        $answerImageFour = $answerSoundFour = $answerVideoFour = null;
+
+        if ($request->answer_type_four !== 'text' && $request->hasFile('answer_file_four')) {
+            $answerFileFour = $request->file('answer_file_four');
+            $extension = strtolower($answerFileFour->getClientOriginalExtension());
+            $filenameFour = date('YmdHi') . '_' . uniqid() . '.' . $extension;
+
+            if ($request->answer_type_four == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $answerFileFour->move(public_path('upload/answers/online/images'), $filenameFour);
+                $answerImageFour = $filenameFour;
+            } elseif ($request->answer_type_four == 'sound' && in_array($extension, ['mp3', 'wav'])) {
+                $answerFileFour->move(public_path('upload/answers/online/sounds'), $filenameFour);
+                $answerSoundFour = $filenameFour;
+            } elseif ($request->answer_type_four == 'video' && in_array($extension, ['mp4', 'avi', 'mov'])) {
+                $answerFileFour->move(public_path('upload/answers/online/videos'), $filenameFour);
+                $answerVideoFour = $filenameFour;
+            } else {
+                throw new \Exception('نوع الملف غير صالح لنوع الإجابة المحدد.');
+            }
+        }
+
+
+
        $answersData = [
     [
         'ar' => $request->answer_title_one,
         'en' => $request->answer_title_one_en,
-        'is_correct' => true
+        'is_correct' => true,
+            'answer_type' => $request->answer_type,
+             'answer_image' => $answerImage,
+            'answer_sound' => $answerSound,
+            'answer_video' => $answerVideo,
+
     ],
     [
         'ar' => $request->answer_title_two,
         'en' => $request->answer_title_two_en,
-        'is_correct' => false
+        'is_correct' => false,
+          'answer_type' => $request->answer_type_two,
+             'answer_image' => $answerImageTwo,
+            'answer_sound' => $answerSoundTwo,
+            'answer_video' => $answerVideoTwo,
     ],
     [
+        // Three
         'ar' => $request->answer_title_three,
         'en' => $request->answer_title_three_en,
-        'is_correct' => false
+        'is_correct' => false,
+         'answer_type' => $request->answer_type_three,
+             'answer_image' => $answerImageThree,
+            'answer_sound' => $answerSoundThree,
+            'answer_video' => $answerVideoThree,
     ],
     [
+    // Four
         'ar' => $request->answer_title_four,
         'en' => $request->answer_title_four_en,
-        'is_correct' => false
+        'is_correct' => false,
+        'answer_type' => $request->answer_type_four,
+             'answer_image' => $answerImageFour,
+            'answer_sound' => $answerSoundFour,
+            'answer_video' => $answerVideoFour,
     ],
 ];
 
@@ -504,10 +630,10 @@ foreach ($answersData as $ans) {
         'answer_title'     => $ans['ar'],
         'answer_title_en'  => $ans['en'],
         'is_correct'       => $ans['is_correct'],
-        'answer_type'      => "",
-        'answer_image'     => "",
-        'answer_sound'     => "",
-        'answer_video'     => "",
+        'answer_type'      => $ans['answer_type'],
+        'answer_image'     => $ans['answer_image'],
+        'answer_sound'     => $ans['answer_sound'],
+        'answer_video'     => $ans['answer_video'],
     ]);
 }
 
@@ -558,692 +684,845 @@ foreach ($answersData as $ans) {
 
 
 
-        public function editQuestionStore(Request $request)
-        {
+//         public function editQuestionStore(Request $request)
+//         {
 
 
 
-             $request->validate([
+//              $request->validate([
 
 
-                'game_type_id' => 'required|not_in:non',
-                'main_category_id' => 'required|not_in:non',
+//                 'game_type_id' => 'required|not_in:non',
+//                 'main_category_id' => 'required|not_in:non',
 
+
+//         'qu_title' => 'required|string|max:255',
+//                 'qu_title_en' => 'required|string|max:255',
+
+//         'qu_points' => 'required|integer',
+//         'qu_points_online' => 'required|integer',
+
+//         'questions_type' => 'required|string|in:text,image,sound,video',
+//         'time_counter' => 'nullable|integer',
+//          'time_counter_online' => 'nullable|integer',
+
+//         'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
+//         'answer_title' => 'required|string|max:255',
+//                 'answer_title_en' => 'required|string|max:255',
+
+//         'answer_type' => 'required|string|in:text,image,sound,video',
+//         'answerـfile' => 'nullable|file|max:30720',
+//         'category_id' => 'required|not_in:non',
+//         'time_counter' => 'nullable|integer',
+
+
+
+//                 'answer_title_one' => 'required|string|max:255',
+//                 'answer_title_two' => 'required|string|max:255',
+//                  'answer_title_three' => 'required|string|max:255',
+//                 'answer_title_four' => 'required|string|max:255',
+
+
+
+//                   'answer_title_one_en' => 'required|string|max:255',
+//                 'answer_title_two_en' => 'required|string|max:255',
+//                  'answer_title_three_en' => 'required|string|max:255',
+//                 'answer_title_four_en' => 'required|string|max:255',
+
+
+
+
+
+
+//     ], [
+//         'qu_title.required' => 'يرجى إدخال عنوان السؤال.',
+//         'qu_title.string' => 'عنوان السؤال يجب أن يكون نصًا.',
+//         'qu_title.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
+
+//           'qu_title_en.required' => ' يرجى إدخال عنوان السؤال بالانجليزية.',
+//         'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
+//         'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
+
+//         'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
+//         'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+//         'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+
+//         'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
+//         'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+//         'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+
+//         'questions_type.required' => 'يرجى اختيار نوع السؤال.',
+//         'questions_type.in' => 'نوع السؤال يجب أن يكون نصي، صورة، صوتي أو فيديو.',
+
+//         'questionsـfile.file' => 'يرجى رفع ملف صالح.',
+//         'questionsـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
+
+//         'answer_title.required' => 'يرجى إدخال عنوان الإجابة.',
+//         'answer_title.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
+//         'answer_title.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
+
+
+//          'answer_title_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+//         'answer_title_en.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
+//         'answer_title_en.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
+
+//         'answer_type.required' => 'يرجى اختيار نوع الإجابة.',
+//         'answer_type.in' => 'نوع الإجابة يجب أن يكون نصي، صورة، صوتي أو فيديو.',
+
+//         'answerـfile.file' => 'يرجى رفع ملف صالح للإجابة.',
+//         'answerـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
+
+//         'category_id.required' => 'الرجاء اختيار الفئة الفرعية.',
+//         'category_id.not_in' => 'الرجاء اختيار الفئة الفرعية.',
+
+
+//          'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
+//         'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+
+
+
+//          'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
+//         'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
+
+
+
+//                  'answer_title_one.required' => 'يرجى إدخال عنوان الإجابة .',
+
+//                  'answer_title_two.required' => 'يرجى إدخال عنوان الإجابة .',
+//                  'answer_title_three.required' => 'يرجى إدخال عنوان الإجابة .',
+//                  'answer_title_four.required' => 'يرجى إدخال عنوان الإجابة .',
+
+
+//                 'answer_title_one_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+//                 'answer_title_two_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+//                 'answer_title_three_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+//                 'answer_title_four_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
+
+
+//     ]);
+
+
+
+
+
+
+
+//             // return "done";
+//             $question_id = $request->question_id;
+//             $answer_id = $request->answer_id;
+
+
+
+// $answer_id_one = $request->answer_id_one;
+// $answer_id_two = $request->answer_id_two;
+// $answer_id_three = $request->answer_id_three;
+// $answer_id_four = $request->answer_id_four;
+
+
+
+
+
+
+
+
+//             // if is exsite get old qustion image
+//             $old_question_image = $request->old_question_image;
+
+
+//            // if is exsite get old answer image
+//             $old_answer_image = $request->old_answer_image;
+
+
+
+//                 // if is exsite get old qustion sound
+//                 $old_question_sound = $request->old_question_sound;
+//                 // if is exsite get old answer sound
+//                 $old_answer_sound = $request->old_answer_sound;
+
+
+
+
+
+//                   // if is exsite get old qustion video
+//                 $old_question_video = $request->old_question_video;
+//                 // if is exsite get old answer sound
+//                 $old_answer_video = $request->old_answer_video;
+
+
+
+
+
+
+
+
+
+
+//             $question = Question::findOrFail($question_id);
+
+
+//              $question->category_id = $request->category_id;
+
+//             $question->game_type_id = $request->game_type_id;
+
+//             $question->main_category_id = $request->main_category_id;
+
+
+//                          $question->qu_title = $request->qu_title;
+//                         $question->qu_title_en = $request->qu_title_en;
+
+
+
+//              $question->time_counter = $request->time_counter;
+
+//              $question->time_counter_online = $request->time_counter_online;
+
+
+
+
+//              if($old_question_video == "")
+//              {
+//                  $questionVideo = null;
+
+//              }
+//              else
+//              {
+//                  $questionVideo = $old_question_video;
+
+
+//              }
+
+
+//                 // Initialize variables for files
+
+//                 if($old_question_image == "")
+//                 {
+//                     $questionImage = null;
+
+//                 }
+//                 else
+//                 {
+//                     $questionImage = $old_question_image;
+
+
+//                 }
+
+
+
+//                 if($old_question_sound == "")
+//                 {
+//                     $questionSound = null;
+
+//                 }
+//                 else
+//                 {
+//                     $questionSound = $old_question_sound;
+
+
+//                 }
+
+//                 // Handle file upload for question
+//                 if ($request->questions_type !== 'text' && $request->hasFile('questionsـfile')) {
+
+
+//                     $questionFile = $request->file('questionsـfile');
+//                     $extension = strtolower($questionFile->getClientOriginalExtension());
+//                     $filename = date('YmdHi') . '_' . uniqid() . '.' . $extension;
+
+//                     // Validate file type based on selected question type
+//                     if ($request->questions_type == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+//                         $questionFile->move(public_path('upload/questions/images'), $filename);
+//                         $questionImage = $filename;
+
+
+//                         $path = 'upload/questions/images/'.$old_question_image;
+//                         $pathSound = 'upload/questions/sounds/'.$old_question_sound;
+//                         $pathVideo = 'upload/questions/videos/'.$old_question_video;
+
+
+//                             if (file_exists($path) && $old_question_image != "" ) {
+//                                             unlink($path);
+//                                 }
+
+//                                 if (file_exists($pathSound) && $old_question_sound != "" ) {
+//                                     unlink($pathSound);
+//                         }
+
+//                         if (file_exists($pathVideo) && $old_question_video != "" ) {
+//                             unlink($pathVideo);
+//                 }
+
+
+//                                 $question->qu_image = $questionImage;
+
+
+//                     }
+
+
+//                     else if ($request->questions_type == 'video' && in_array($extension, ['mp4', 'mov'])) {
+//                         $questionFile->move(public_path('upload/questions/videos'), $filename);
+//                         $questionVideo = $filename;
+
+
+//                         $path = 'upload/questions/images/'.$old_question_image;
+//                         $pathSound = 'upload/questions/sounds/'.$old_question_sound;
+//                         $pathVideo = 'upload/questions/videos/'.$old_question_video;
+
+
+//                             if (file_exists($path) && $old_question_image != "" ) {
+//                                             unlink($path);
+//                                 }
+
+//                                 if (file_exists($pathSound) && $old_question_sound != "" ) {
+//                                     unlink($pathSound);
+//                         }
+
+//                         if (file_exists($pathVideo) && $old_question_video != "" ) {
+//                             unlink($pathVideo);
+//                 }
+
+
+//                                 $question->qu_video = $questionVideo;
+
+
+//                     }
+
+//                     else if ($request->questions_type == 'sound' && in_array($extension, ['mp3', 'wav'])) {
+
+
+
+
+//                         $path = 'upload/questions/images/'.$old_question_image;
+//                         $pathSound = 'upload/questions/sounds/'.$old_question_sound;
+//                         $pathVideo = 'upload/questions/videos/'.$old_question_video;
+
+
+//                             if (file_exists($path) && $old_question_image != "" ) {
+//                                             unlink($path);
+//                                 }
+
+//                                 if (file_exists($pathSound) && $old_question_sound != "" ) {
+//                                     unlink($pathSound);
+//                         }
+
+//                         if (file_exists($pathVideo) && $old_question_video != "" ) {
+//                             unlink($pathVideo);
+//                 }
+
+//                         $questionFile->move(public_path('upload/questions/sounds'), $filename);
+//                         $questionSound = $filename;
+
+//                         $question->qu_sound = $questionSound;
+
+//                     } else {
+
+//                         $notification = array(
+//                             'message' => 'نوع الملف غير صالح لنوع السؤال المحدد.',
+//                             'alert-type' => 'error'
+//                         );
+
+
+//                         return back()->with($notification);
+//                     }
+//                 }
+
+//                 if($request->questions_type == 'text')
+//                 {
+
+
+
+//                     $path = 'upload/questions/images/'.$old_question_image;
+//                     $pathSound = 'upload/questions/sounds/'.$old_question_sound;
+//                     $pathVideo = 'upload/questions/videos/'.$old_question_video;
+
+
+//                         if (file_exists($path) && $old_question_image != "" ) {
+//                                         unlink($path);
+//                             }
+
+//                             if (file_exists($pathSound) && $old_question_sound != "" ) {
+//                                 unlink($pathSound);
+//                     }
+//                     if (file_exists($pathVideo) && $old_question_video != "" ) {
+//                         unlink($pathVideo);
+//             }
+
+//                 }
+
+
+
+//                 $question->qu_points = $request->qu_points;
+
+
+//                  $question->qu_points_online = $request->qu_points_online;
+
+
+//                 $question->questions_type = $request->questions_type;
+
+//                 $question->save();
+
+
+
+
+
+//                 //// this for answer
+//                 $answer = Answer::findOrFail($answer_id);
+
+
+//                 $answer->answer_title = $request->answer_title;
+//                 $answer->answer_title_en = $request->answer_title_en;
+
+
+
+
+
+//         $answer_one = AnswerQuestionOnline::findOrFail($answer_id_one);
+//         $answer_two = AnswerQuestionOnline::findOrFail($answer_id_two);
+//         $answer_three = AnswerQuestionOnline::findOrFail($answer_id_three);
+//         $answer_four = AnswerQuestionOnline::findOrFail($answer_id_four);
+
+
+//                 $answer_one->answer_title = $request->answer_title_one;
+//                 $answer_two->answer_title = $request->answer_title_two;
+//                 $answer_three->answer_title = $request->answer_title_three;
+//                 $answer_four->answer_title = $request->answer_title_four;
+
+
+//                 $answer_one->answer_title_en = $request->answer_title_one_en;
+//                 $answer_two->answer_title_en = $request->answer_title_two_en;
+//                 $answer_three->answer_title_en = $request->answer_title_three_en;
+//                 $answer_four->answer_title_en = $request->answer_title_four_en;
+
+//                     $answer_one->save();
+//                     $answer_two->save();
+//                     $answer_three->save();
+//                     $answer_four->save();
+
+
+
+//       // Initialize variables for files
+//       $answerImage = null;
+//       $answerSound = null;
+//       $answerVideo = null;
+
+
+
+//       if($old_answer_video == "")
+//       {
+//           $answerVideo = null;
+
+//       }
+//       else
+//       {
+//           $answerVideo = $old_answer_video;
+
+
+//       }
+
+//       if($old_answer_image == "")
+//       {
+//           $answerImage = null;
+
+//       }
+//       else
+//       {
+//           $answerImage = $old_answer_image;
+
+
+//       }
+
+
+
+//       if($old_answer_sound == "")
+//       {
+//           $answerSound = null;
+
+//       }
+//       else
+//       {
+//           $answerSound = $old_answer_sound;
+
+
+//       }
+
+
+//                 /////
+
+
+//                     // Handle file upload for answer
+//             if ($request->answer_type !== 'text' && $request->hasFile('answerـfile')) {
+//                 $answerFile = $request->file('answerـfile');
+//                 $extension = strtolower($answerFile->getClientOriginalExtension());
+//                 $filename = date('YmdHi') . '_' . uniqid() . '.' . $extension;
+
+//                 // Validate file type based on selected answer type
+//                 if ($request->answer_type == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+//                     $answerFile->move(public_path('upload/answers/images'), $filename);
+//                     $answerImage = $filename;
+
+
+//                     $path = 'upload/answers/images/'.$old_answer_image;
+//                     $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
+//                     $pathVideo = 'upload/answers/videos/'.$old_answer_video;
+
+
+//                         if (file_exists($path) && $old_answer_image != "" ) {
+//                                         unlink($path);
+//                             }
+
+//                             if (file_exists($pathSound) && $old_answer_sound != "" ) {
+//                                 unlink($pathSound);
+//                     }
+//                     if (file_exists($pathVideo) && $old_answer_video != "" ) {
+//                         unlink($pathVideo);
+//                                  }
+
+//                             $answer->answer_image = $answerImage;
+
+
+
+//                 }
+
+//                else if ($request->answer_type == 'video' && in_array($extension, ['mp4', 'mov'])) {
+//                     $answerFile->move(public_path('upload/answers/videos'), $filename);
+//                     $answerVideo = $filename;
+
+
+//                     $path = 'upload/answers/images/'.$old_answer_image;
+//                     $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
+//                     $pathVideo = 'upload/answers/videos/'.$old_answer_video;
+
+
+//                         if (file_exists($path) && $old_answer_image != "" ) {
+//                                         unlink($path);
+//                             }
+
+//                             if (file_exists($pathSound) && $old_answer_sound != "" ) {
+//                                 unlink($pathSound);
+//                     }
+//                     if (file_exists($pathVideo) && $old_answer_video != "" ) {
+//                         unlink($pathVideo);
+//                                  }
+
+//                             $answer->answer_video = $answerVideo;
+
+
+
+//                 }
+
+
+
+//                 else if ($request->answer_type == 'sound' && in_array($extension, ['mp3', 'wav'])) {
+//                     $answerFile->move(public_path('upload/answers/sounds'), $filename);
+//                     $answerSound = $filename;
+
+
+//                     $path = 'upload/answers/images/'.$old_answer_image;
+//                     $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
+//                     $pathVideo = 'upload/answers/videos/'.$old_answer_video;
+
+
+//                         if (file_exists($path) && $old_answer_image != "" ) {
+//                                         unlink($path);
+//                             }
+
+//                             if (file_exists($pathSound) && $old_answer_sound != "" ) {
+//                                 unlink($pathSound);
+//                     }
+//                     if (file_exists($pathVideo) && $old_answer_video != "" ) {
+//                         unlink($pathVideo);
+//                                  }
+
+//                             $answer->answer_sound = $answerSound;
+
+
+
+//                 } else {
+
+//                     $notification = array(
+//                         'message' => 'نوع الملف غير صالح لنوع الإجابة المحدد.',
+//                         'alert-type' => 'error'
+//                     );
+
+
+//                     return back()->with($notification);
+//                 }
+//             }
+
+
+//             if($request->answer_type == 'text')
+//             {
+
+
+
+//                 $path = 'upload/answers/images/'.$old_answer_image;
+//                 $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
+//                 $pathVideo = 'upload/answers/videos/'.$old_answer_video;
+
+
+//                     if (file_exists($path) && $old_answer_image != "" ) {
+//                             unlink($path);
+//                         }
+
+//                         if (file_exists($pathSound) && $old_answer_sound != "" ) {
+//                             unlink($pathSound);
+//                 }   if (file_exists($pathVideo) && $old_answer_video != "" ) {
+//                             unlink($pathVideo);
+//                              }
+
+//             }
+
+
+//                 /////
+
+//                 $answer->answer_type = $request->answer_type;
+
+//                 $answer->save();
+
+
+
+//                 $notification = array(
+//                     'message' => 'تم تعديل السؤال',
+//                     'alert-type' => 'success'
+//                 );
+
+
+//                 return redirect()->route('all.question')->with($notification);;
+
+//                 // return redirect()->back()->with($notification);;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//         }
+
+public function editQuestionStore(Request $request)
+{
+    $request->validate([
+        'question_id' => 'required|exists:questions,id',
+        'answer_id' => 'required|exists:answers,id',
+        'answer_id_one' => 'required|exists:answer_question_onlines,id',
+        'answer_id_two' => 'required|exists:answer_question_onlines,id',
+        'answer_id_three' => 'required|exists:answer_question_onlines,id',
+        'answer_id_four' => 'required|exists:answer_question_onlines,id',
+
+        'game_type_id' => 'required|not_in:non',
+        'main_category_id' => 'required|not_in:non',
+        'category_id' => 'required|not_in:non',
 
         'qu_title' => 'required|string|max:255',
-                'qu_title_en' => 'required|string|max:255',
+        'qu_title_en' => 'required|string|max:255',
 
         'qu_points' => 'required|integer',
         'qu_points_online' => 'required|integer',
 
         'questions_type' => 'required|string|in:text,image,sound,video',
         'time_counter' => 'nullable|integer',
-         'time_counter_online' => 'nullable|integer',
+        'time_counter_online' => 'nullable|integer',
 
         'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
-        'answer_title' => 'required|string|max:255',
-                'answer_title_en' => 'required|string|max:255',
 
+        'answer_title' => 'required|string|max:255',
+        'answer_title_en' => 'required|string|max:255',
         'answer_type' => 'required|string|in:text,image,sound,video',
         'answerـfile' => 'nullable|file|max:30720',
-        'category_id' => 'required|not_in:non',
-        'time_counter' => 'nullable|integer',
 
+        'answer_title_one' => 'required|string|max:255',
+        'answer_title_two' => 'required|string|max:255',
+        'answer_title_three' => 'required|string|max:255',
+        'answer_title_four' => 'required|string|max:255',
 
-
-                'answer_title_one' => 'required|string|max:255',
-                'answer_title_two' => 'required|string|max:255',
-                 'answer_title_three' => 'required|string|max:255',
-                'answer_title_four' => 'required|string|max:255',
-
-
-
-                  'answer_title_one_en' => 'required|string|max:255',
-                'answer_title_two_en' => 'required|string|max:255',
-                 'answer_title_three_en' => 'required|string|max:255',
-                'answer_title_four_en' => 'required|string|max:255',
-
-
-
-
-
-
-    ], [
-        'qu_title.required' => 'يرجى إدخال عنوان السؤال.',
-        'qu_title.string' => 'عنوان السؤال يجب أن يكون نصًا.',
-        'qu_title.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
-
-          'qu_title_en.required' => ' يرجى إدخال عنوان السؤال بالانجليزية.',
-        'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
-        'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
-
-        'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
-        'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
-        'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
-
-
-        'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
-        'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
-        'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
-
-        'questions_type.required' => 'يرجى اختيار نوع السؤال.',
-        'questions_type.in' => 'نوع السؤال يجب أن يكون نصي، صورة، صوتي أو فيديو.',
-
-        'questionsـfile.file' => 'يرجى رفع ملف صالح.',
-        'questionsـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
-
-        'answer_title.required' => 'يرجى إدخال عنوان الإجابة.',
-        'answer_title.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
-        'answer_title.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
-
-
-         'answer_title_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
-        'answer_title_en.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
-        'answer_title_en.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
-
-        'answer_type.required' => 'يرجى اختيار نوع الإجابة.',
-        'answer_type.in' => 'نوع الإجابة يجب أن يكون نصي، صورة، صوتي أو فيديو.',
-
-        'answerـfile.file' => 'يرجى رفع ملف صالح للإجابة.',
-        'answerـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
-
-        'category_id.required' => 'الرجاء اختيار الفئة الفرعية.',
-        'category_id.not_in' => 'الرجاء اختيار الفئة الفرعية.',
-
-
-         'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
-        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
-
-
-
-         'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
-        'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
-
-
-
-                 'answer_title_one.required' => 'يرجى إدخال عنوان الإجابة .',
-
-                 'answer_title_two.required' => 'يرجى إدخال عنوان الإجابة .',
-                 'answer_title_three.required' => 'يرجى إدخال عنوان الإجابة .',
-                 'answer_title_four.required' => 'يرجى إدخال عنوان الإجابة .',
-
-
-                'answer_title_one_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
-                'answer_title_two_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
-                'answer_title_three_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
-                'answer_title_four_en.required' => 'يرجى إدخال عنوان الإجابة بالانجليزية. ',
-
-
+        'answer_title_one_en' => 'required|string|max:255',
+        'answer_title_two_en' => 'required|string|max:255',
+        'answer_title_three_en' => 'required|string|max:255',
+        'answer_title_four_en' => 'required|string|max:255',
     ]);
 
+    DB::beginTransaction();
+    try {
+        $question = Question::findOrFail($request->question_id);
 
+        // حفظ بيانات السؤال
+        $question->update([
+            'qu_title' => $request->qu_title,
+            'qu_title_en' => $request->qu_title_en,
+            'game_type_id' => $request->game_type_id,
+            'main_category_id' => $request->main_category_id,
+            'category_id' => $request->category_id,
+            'qu_points' => $request->qu_points,
+            'qu_points_online' => $request->qu_points_online,
+            'questions_type' => $request->questions_type,
+            'time_counter' => $request->time_counter,
+            'time_counter_online' => $request->time_counter_online,
+               'coins_number' => $request->coins_number,
+            'game_coin_id' => $request->game_coin_id,
 
-            //  Validate inputs with custom Arabic messages
+              'qu_hint' => $request->qu_hint,
+            'qu_hint_en' => $request->qu_hint_en,
+        ]);
 
-            /*
-             $request->validate([
+        // ملفات السؤال
+        $questionImage = $questionSound = $questionVideo = null;
 
+        if ($request->questions_type !== 'text' && $request->hasFile('questionsـfile')) {
+            $questionFile = $request->file('questionsـfile');
+            $ext = strtolower($questionFile->getClientOriginalExtension());
+            $filename = date('YmdHi') . '_' . uniqid() . '.' . $ext;
 
-                  'game_type_id' => 'required|not_in:non',
-                'main_category_id' => 'required|not_in:non',
+            if ($request->questions_type == 'image' && in_array($ext, ['jpg','jpeg','png'])) {
+                $questionFile->move(public_path('upload/questions/images'), $filename);
+                $questionImage = $filename;
+            } elseif ($request->questions_type == 'sound' && in_array($ext, ['mp3','wav'])) {
+                $questionFile->move(public_path('upload/questions/sounds'), $filename);
+                $questionSound = $filename;
+            } elseif ($request->questions_type == 'video' && in_array($ext, ['mp4','avi','mov'])) {
+                $questionFile->move(public_path('upload/questions/videos'), $filename);
+                $questionVideo = $filename;
+            } else {
+                return back()->with(['message'=>'نوع الملف غير صالح لنوع السؤال المحدد.','alert-type'=>'error']);
+            }
 
+            // حذف الملفات القديمة
+            if ($question->qu_image && file_exists(public_path('upload/questions/images/' . $question->qu_image))) unlink(public_path('upload/questions/images/' . $question->qu_image));
+            if ($question->qu_sound && file_exists(public_path('upload/questions/sounds/' . $question->qu_sound))) unlink(public_path('upload/questions/sounds/' . $question->qu_sound));
+            if ($question->qu_video && file_exists(public_path('upload/questions/videos/' . $question->qu_video))) unlink(public_path('upload/questions/videos/' . $question->qu_video));
 
-                'qu_title' => 'required|string|max:255',
-                'qu_points' => 'required|integer',
-                'questions_type' => 'required|string|in:text,image,sound,video',
-                'questionsـfile' => 'nullable|file|max:30720', // 2MB max file size
-                'answer_title' => 'required|string|max:255',
-                'answer_type' => 'required|string|in:text,image,sound,video',
-                'answerـfile' => 'nullable|file|max:30720',
-                'category_id' => 'required|not_in:non',
-                'time_counter' => 'nullable|integer',
-
-                // التحقق من اختيار فئة صالحة
-
-            ], [
-                'qu_title.required' => 'يرجى إدخال عنوان السؤال.',
-                'qu_title.string' => 'عنوان السؤال يجب أن يكون نصًا.',
-                'qu_title.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
-
-                'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
-                'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
-
-                'questions_type.required' => 'يرجى اختيار نوع السؤال.',
-                'questions_type.in' => 'نوع السؤال يجب أن يكون نصي، صورة أو ملف صوتي.',
-
-                'questionsـfile.file' => 'يرجى رفع ملف صالح.',
-                'questionsـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
-
-                'answer_title.required' => 'يرجى إدخال عنوان الإجابة.',
-                'answer_title.string' => 'عنوان الإجابة يجب أن يكون نصًا.',
-                'answer_title.max' => 'عنوان الإجابة يجب أن لا يتجاوز 255 حرفًا.',
-
-                'answer_type.required' => 'يرجى اختيار نوع الإجابة.',
-                'answer_type.in' => 'نوع الإجابة يجب أن يكون نصي، صورة أو ملف صوتي.',
-
-                'answerـfile.file' => 'يرجى رفع ملف صالح للإجابة.',
-                'answerـfile.max' => 'حجم الملف يجب أن لا يتجاوز 30 ميجابايت.',
-
-    'category_id.required' => 'الرجاء اختيار الفئة',
-    'category_id.not_in' => 'الرجاء اختيار الفئة',
-
-      'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
-        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
-
-
-
-         'main_category_id.required' => 'الرجاء اختيار الفئة الرئيسية.',
-        'main_category_id.not_in' => 'الرجاء اختيار الفئة الرئيسية.',
-
-    'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
-
+            $question->update([
+                'qu_image' => $questionImage,
+                'qu_sound' => $questionSound,
+                'qu_video' => $questionVideo,
             ]);
-*/
-
-
-
-            // return "done";
-            $question_id = $request->question_id;
-            $answer_id = $request->answer_id;
-
-
-
-$answer_id_one = $request->answer_id_one;
-$answer_id_two = $request->answer_id_two;
-$answer_id_three = $request->answer_id_three;
-$answer_id_four = $request->answer_id_four;
-
-
-
-
-
-
-
-
-            // if is exsite get old qustion image
-            $old_question_image = $request->old_question_image;
-
-
-           // if is exsite get old answer image
-            $old_answer_image = $request->old_answer_image;
-
-
-
-                // if is exsite get old qustion sound
-                $old_question_sound = $request->old_question_sound;
-                // if is exsite get old answer sound
-                $old_answer_sound = $request->old_answer_sound;
-
-
-
-
-
-                  // if is exsite get old qustion video
-                $old_question_video = $request->old_question_video;
-                // if is exsite get old answer sound
-                $old_answer_video = $request->old_answer_video;
-
-
-
-
-
-
-
-
-
-
-            $question = Question::findOrFail($question_id);
-
-
-             $question->category_id = $request->category_id;
-
-            $question->game_type_id = $request->game_type_id;
-
-            $question->main_category_id = $request->main_category_id;
-
-
-                         $question->qu_title = $request->qu_title;
-                        $question->qu_title_en = $request->qu_title_en;
-
-
-
-             $question->time_counter = $request->time_counter;
-
-             $question->time_counter_online = $request->time_counter_online;
-
-
-
-
-             if($old_question_video == "")
-             {
-                 $questionVideo = null;
-
-             }
-             else
-             {
-                 $questionVideo = $old_question_video;
-
-
-             }
-
-
-                // Initialize variables for files
-
-                if($old_question_image == "")
-                {
-                    $questionImage = null;
-
-                }
-                else
-                {
-                    $questionImage = $old_question_image;
-
-
-                }
-
-
-
-                if($old_question_sound == "")
-                {
-                    $questionSound = null;
-
-                }
-                else
-                {
-                    $questionSound = $old_question_sound;
-
-
-                }
-
-                // Handle file upload for question
-                if ($request->questions_type !== 'text' && $request->hasFile('questionsـfile')) {
-
-
-                    $questionFile = $request->file('questionsـfile');
-                    $extension = strtolower($questionFile->getClientOriginalExtension());
-                    $filename = date('YmdHi') . '_' . uniqid() . '.' . $extension;
-
-                    // Validate file type based on selected question type
-                    if ($request->questions_type == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                        $questionFile->move(public_path('upload/questions/images'), $filename);
-                        $questionImage = $filename;
-
-
-                        $path = 'upload/questions/images/'.$old_question_image;
-                        $pathSound = 'upload/questions/sounds/'.$old_question_sound;
-                        $pathVideo = 'upload/questions/videos/'.$old_question_video;
-
-
-                            if (file_exists($path) && $old_question_image != "" ) {
-                                            unlink($path);
-                                }
-
-                                if (file_exists($pathSound) && $old_question_sound != "" ) {
-                                    unlink($pathSound);
-                        }
-
-                        if (file_exists($pathVideo) && $old_question_video != "" ) {
-                            unlink($pathVideo);
-                }
-
-
-                                $question->qu_image = $questionImage;
-
-
-                    }
-
-
-                    else if ($request->questions_type == 'video' && in_array($extension, ['mp4', 'mov'])) {
-                        $questionFile->move(public_path('upload/questions/videos'), $filename);
-                        $questionVideo = $filename;
-
-
-                        $path = 'upload/questions/images/'.$old_question_image;
-                        $pathSound = 'upload/questions/sounds/'.$old_question_sound;
-                        $pathVideo = 'upload/questions/videos/'.$old_question_video;
-
-
-                            if (file_exists($path) && $old_question_image != "" ) {
-                                            unlink($path);
-                                }
-
-                                if (file_exists($pathSound) && $old_question_sound != "" ) {
-                                    unlink($pathSound);
-                        }
-
-                        if (file_exists($pathVideo) && $old_question_video != "" ) {
-                            unlink($pathVideo);
-                }
-
-
-                                $question->qu_video = $questionVideo;
-
-
-                    }
-
-                    else if ($request->questions_type == 'sound' && in_array($extension, ['mp3', 'wav'])) {
-
-
-
-
-                        $path = 'upload/questions/images/'.$old_question_image;
-                        $pathSound = 'upload/questions/sounds/'.$old_question_sound;
-                        $pathVideo = 'upload/questions/videos/'.$old_question_video;
-
-
-                            if (file_exists($path) && $old_question_image != "" ) {
-                                            unlink($path);
-                                }
-
-                                if (file_exists($pathSound) && $old_question_sound != "" ) {
-                                    unlink($pathSound);
-                        }
-
-                        if (file_exists($pathVideo) && $old_question_video != "" ) {
-                            unlink($pathVideo);
-                }
-
-                        $questionFile->move(public_path('upload/questions/sounds'), $filename);
-                        $questionSound = $filename;
-
-                        $question->qu_sound = $questionSound;
-
-                    } else {
-
-                        $notification = array(
-                            'message' => 'نوع الملف غير صالح لنوع السؤال المحدد.',
-                            'alert-type' => 'error'
-                        );
-
-
-                        return back()->with($notification);
-                    }
-                }
-
-                if($request->questions_type == 'text')
-                {
-
-
-
-                    $path = 'upload/questions/images/'.$old_question_image;
-                    $pathSound = 'upload/questions/sounds/'.$old_question_sound;
-                    $pathVideo = 'upload/questions/videos/'.$old_question_video;
-
-
-                        if (file_exists($path) && $old_question_image != "" ) {
-                                        unlink($path);
-                            }
-
-                            if (file_exists($pathSound) && $old_question_sound != "" ) {
-                                unlink($pathSound);
-                    }
-                    if (file_exists($pathVideo) && $old_question_video != "" ) {
-                        unlink($pathVideo);
-            }
-
-                }
-
-
-
-                $question->qu_points = $request->qu_points;
-
-
-                 $question->qu_points_online = $request->qu_points_online;
-
-
-                $question->questions_type = $request->questions_type;
-
-                $question->save();
-
-
-
-
-
-                //// this for answer
-                $answer = Answer::findOrFail($answer_id);
-
-
-                $answer->answer_title = $request->answer_title;
-                $answer->answer_title_en = $request->answer_title_en;
-
-
-
-
-
-        $answer_one = AnswerQuestionOnline::findOrFail($answer_id_one);
-        $answer_two = AnswerQuestionOnline::findOrFail($answer_id_two);
-        $answer_three = AnswerQuestionOnline::findOrFail($answer_id_three);
-        $answer_four = AnswerQuestionOnline::findOrFail($answer_id_four);
-
-
-                $answer_one->answer_title = $request->answer_title_one;
-                $answer_two->answer_title = $request->answer_title_two;
-                $answer_three->answer_title = $request->answer_title_three;
-                $answer_four->answer_title = $request->answer_title_four;
-
-
-                $answer_one->answer_title_en = $request->answer_title_one_en;
-                $answer_two->answer_title_en = $request->answer_title_two_en;
-                $answer_three->answer_title_en = $request->answer_title_three_en;
-                $answer_four->answer_title_en = $request->answer_title_four_en;
-
-                    $answer_one->save();
-                    $answer_two->save();
-                    $answer_three->save();
-                    $answer_four->save();
-
-
-
-      // Initialize variables for files
-      $answerImage = null;
-      $answerSound = null;
-      $answerVideo = null;
-
-
-
-      if($old_answer_video == "")
-      {
-          $answerVideo = null;
-
-      }
-      else
-      {
-          $answerVideo = $old_answer_video;
-
-
-      }
-
-      if($old_answer_image == "")
-      {
-          $answerImage = null;
-
-      }
-      else
-      {
-          $answerImage = $old_answer_image;
-
-
-      }
-
-
-
-      if($old_answer_sound == "")
-      {
-          $answerSound = null;
-
-      }
-      else
-      {
-          $answerSound = $old_answer_sound;
-
-
-      }
-
-
-                /////
-
-
-                    // Handle file upload for answer
-            if ($request->answer_type !== 'text' && $request->hasFile('answerـfile')) {
-                $answerFile = $request->file('answerـfile');
-                $extension = strtolower($answerFile->getClientOriginalExtension());
-                $filename = date('YmdHi') . '_' . uniqid() . '.' . $extension;
-
-                // Validate file type based on selected answer type
-                if ($request->answer_type == 'image' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                    $answerFile->move(public_path('upload/answers/images'), $filename);
-                    $answerImage = $filename;
-
-
-                    $path = 'upload/answers/images/'.$old_answer_image;
-                    $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
-                    $pathVideo = 'upload/answers/videos/'.$old_answer_video;
-
-
-                        if (file_exists($path) && $old_answer_image != "" ) {
-                                        unlink($path);
-                            }
-
-                            if (file_exists($pathSound) && $old_answer_sound != "" ) {
-                                unlink($pathSound);
-                    }
-                    if (file_exists($pathVideo) && $old_answer_video != "" ) {
-                        unlink($pathVideo);
-                                 }
-
-                            $answer->answer_image = $answerImage;
-
-
-
-                }
-
-               else if ($request->answer_type == 'video' && in_array($extension, ['mp4', 'mov'])) {
-                    $answerFile->move(public_path('upload/answers/videos'), $filename);
-                    $answerVideo = $filename;
-
-
-                    $path = 'upload/answers/images/'.$old_answer_image;
-                    $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
-                    $pathVideo = 'upload/answers/videos/'.$old_answer_video;
-
-
-                        if (file_exists($path) && $old_answer_image != "" ) {
-                                        unlink($path);
-                            }
-
-                            if (file_exists($pathSound) && $old_answer_sound != "" ) {
-                                unlink($pathSound);
-                    }
-                    if (file_exists($pathVideo) && $old_answer_video != "" ) {
-                        unlink($pathVideo);
-                                 }
-
-                            $answer->answer_video = $answerVideo;
-
-
-
-                }
-
-
-
-                else if ($request->answer_type == 'sound' && in_array($extension, ['mp3', 'wav'])) {
-                    $answerFile->move(public_path('upload/answers/sounds'), $filename);
-                    $answerSound = $filename;
-
-
-                    $path = 'upload/answers/images/'.$old_answer_image;
-                    $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
-                    $pathVideo = 'upload/answers/videos/'.$old_answer_video;
-
-
-                        if (file_exists($path) && $old_answer_image != "" ) {
-                                        unlink($path);
-                            }
-
-                            if (file_exists($pathSound) && $old_answer_sound != "" ) {
-                                unlink($pathSound);
-                    }
-                    if (file_exists($pathVideo) && $old_answer_video != "" ) {
-                        unlink($pathVideo);
-                                 }
-
-                            $answer->answer_sound = $answerSound;
-
-
-
-                } else {
-
-                    $notification = array(
-                        'message' => 'نوع الملف غير صالح لنوع الإجابة المحدد.',
-                        'alert-type' => 'error'
-                    );
-
-
-                    return back()->with($notification);
-                }
-            }
-
-
-            if($request->answer_type == 'text')
-            {
-
-
-
-                $path = 'upload/answers/images/'.$old_answer_image;
-                $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
-                $pathVideo = 'upload/answers/videos/'.$old_answer_video;
-
-
-                    if (file_exists($path) && $old_answer_image != "" ) {
-                            unlink($path);
-                        }
-
-                        if (file_exists($pathSound) && $old_answer_sound != "" ) {
-                            unlink($pathSound);
-                }   if (file_exists($pathVideo) && $old_answer_video != "" ) {
-                            unlink($pathVideo);
-                             }
-
-            }
-
-
-                /////
-
-                $answer->answer_type = $request->answer_type;
-
-                $answer->save();
-
-
-
-                $notification = array(
-                    'message' => 'تم تعديل السؤال',
-                    'alert-type' => 'success'
-                );
-
-
-                return redirect()->route('all.question')->with($notification);;
-
-                // return redirect()->back()->with($notification);;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
+        // تعديل الإجابة Local
+        $answer = Answer::findOrFail($request->answer_id);
+        // $answerImage = $answerSound = $answerVideo = null;
+
+
+        $answerImage = $request->old_answer_image;
+        $answerSound = $request->old_answer_sound;
+        $answerVideo = $request->old_answer_video;
+
+
+        if ($request->answer_type !== 'text' && $request->hasFile('answerـfile')) {
+            $answerFile = $request->file('answerـfile');
+            $ext = strtolower($answerFile->getClientOriginalExtension());
+            $filename = date('YmdHi') . '_' . uniqid() . '.' . $ext;
+
+            if ($request->answer_type == 'image' && in_array($ext, ['jpg','jpeg','png'])) {
+                $answerFile->move(public_path('upload/answers/images'), $filename);
+                $answerImage = $filename;
+            } elseif ($request->answer_type == 'sound' && in_array($ext, ['mp3','wav'])) {
+                $answerFile->move(public_path('upload/answers/sounds'), $filename);
+                $answerSound = $filename;
+            } elseif ($request->answer_type == 'video' && in_array($ext, ['mp4','avi','mov'])) {
+                $answerFile->move(public_path('upload/answers/videos'), $filename);
+                $answerVideo = $filename;
+            } else {
+                return back()->with(['message'=>'نوع الملف غير صالح لنوع الإجابة المحدد.','alert-type'=>'error']);
+            }
+
+            // حذف الملفات القديمة
+            if ($answer->answer_image && file_exists(public_path('upload/answers/images/' . $answer->answer_image))) unlink(public_path('upload/answers/images/' . $answer->answer_image));
+            if ($answer->answer_sound && file_exists(public_path('upload/answers/sounds/' . $answer->answer_sound))) unlink(public_path('upload/answers/sounds/' . $answer->answer_sound));
+            if ($answer->answer_video && file_exists(public_path('upload/answers/videos/' . $answer->answer_video))) unlink(public_path('upload/answers/videos/' . $answer->answer_video));
+        }
+
+        $answer->update([
+            'answer_title' => $request->answer_title,
+            'answer_title_en' => $request->answer_title_en,
+            'answer_type' => $request->answer_type,
+            'answer_image' => $answerImage,
+            'answer_sound' => $answerSound,
+            'answer_video' => $answerVideo,
+        ]);
+
+        // تعديل Online Answers
+$onlineAnswers = [
+    ['model' => AnswerQuestionOnline::findOrFail($request->answer_id_one), 'title' => 'answer_title_one', 'title_en' => 'answer_title_one_en', 'file' => 'answer_file_one', 'type' => 'answer_type', 'is_correct' => true],
+    ['model' => AnswerQuestionOnline::findOrFail($request->answer_id_two), 'title' => 'answer_title_two', 'title_en' => 'answer_title_two_en', 'file' => 'answer_file_two', 'type' => 'answer_type_two', 'is_correct' => false],
+    ['model' => AnswerQuestionOnline::findOrFail($request->answer_id_three), 'title' => 'answer_title_three', 'title_en' => 'answer_title_three_en', 'file' => 'answer_file_three', 'type' => 'answer_type_three', 'is_correct' => false],
+    ['model' => AnswerQuestionOnline::findOrFail($request->answer_id_four), 'title' => 'answer_title_four', 'title_en' => 'answer_title_four_en', 'file' => 'answer_file_four', 'type' => 'answer_type_four', 'is_correct' => false],
+];
+
+foreach ($onlineAnswers as $index => $item) {
+    $model = $item['model'];
+    $fileInput = $item['file'];
+    $typeInput = $item['type'];
+
+    // استخدم القيم القديمة من الفورم
+    $answerImage = $request->input('old_answer_image_' . ($index + 1));
+    $answerSound = $request->input('old_answer_sound_' . ($index + 1));
+    $answerVideo = $request->input('old_answer_video_' . ($index + 1));
+
+    // لو تم رفع ملف جديد
+    if ($request->hasFile($fileInput)) {
+        $file = $request->file($fileInput);
+        $ext = strtolower($file->getClientOriginalExtension());
+        $filename = date('YmdHi') . '_' . uniqid() . '.' . $ext;
+
+        if ($request->input($typeInput) == 'image' && in_array($ext, ['jpg','jpeg','png'])) {
+            $file->move(public_path('upload/answers/online/images'), $filename);
+            if ($answerImage && file_exists(public_path('upload/answers/online/images/' . $answerImage))) {
+                unlink(public_path('upload/answers/online/images/' . $answerImage));
+            }
+            $answerImage = $filename;
+
+        } elseif ($request->input($typeInput) == 'sound' && in_array($ext, ['mp3','wav'])) {
+            $file->move(public_path('upload/answers/online/sounds'), $filename);
+            if ($answerSound && file_exists(public_path('upload/answers/online/sounds/' . $answerSound))) {
+                unlink(public_path('upload/answers/online/sounds/' . $answerSound));
+            }
+            $answerSound = $filename;
+
+        } elseif ($request->input($typeInput) == 'video' && in_array($ext, ['mp4','avi','mov'])) {
+            $file->move(public_path('upload/answers/online/videos'), $filename);
+            if ($answerVideo && file_exists(public_path('upload/answers/online/videos/' . $answerVideo))) {
+                unlink(public_path('upload/answers/online/videos/' . $answerVideo));
+            }
+            $answerVideo = $filename;
+
+        } else {
+            return back()->with(['message' => 'نوع الملف غير صالح لنوع الإجابة المحدد.', 'alert-type' => 'error']);
+        }
+    }
+
+    // تحديث السجلات
+    $model->update([
+        'answer_title' => $request->input($item['title']),
+        'answer_title_en' => $request->input($item['title_en']),
+        'answer_type' => $request->input($typeInput),
+        'answer_image' => $answerImage,
+        'answer_sound' => $answerSound,
+        'answer_video' => $answerVideo,
+        'is_correct' => $item['is_correct'],
+    ]);
+}
+
+
+
+        DB::commit();
+        return redirect()->route('all.question')->with(['message' => 'تم تعديل السؤال بنجاح', 'alert-type' => 'success']);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with(['message' => $e->getMessage(), 'alert-type' => 'error']);
+    }
+}
 
 
 

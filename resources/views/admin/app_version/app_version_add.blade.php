@@ -1,6 +1,7 @@
 @extends('admin.master_admin')
 @section('admin')
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Amiri&family=Roboto&display=swap" rel="stylesheet">
 
 <div class="col-lg-16">
     <div class="card">
@@ -26,6 +27,21 @@
 
             <form method="POST" action="{{ route('update.versions.store') }}">
                 @csrf
+
+
+
+                 <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">اسم اللعبة</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="text" class="form-control @error('app_name') is-invalid @enderror"
+                               name="app_name" value="{{ old('app_name', $appVersion->app_name) }}">
+                        @error('ios')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
 
                 <div class="row mb-3">
                     <div class="col-sm-3">
@@ -130,6 +146,57 @@
                     </div>
                 </div>
 
+
+
+
+
+                  <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">نوع الخط</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+
+
+                        <select  id="fontSelect" name="font_family_id" class="form-select" aria-label="Default select example">
+
+
+ <option value="">اختر نوع الخط</option>
+        @foreach($fontFamilies as $font)
+                                                <option value="{{ $font->id }}" {{ old('font_family_id',$appVersion->font_family_id) == $font->id ? 'selected' : '' }} style="font-family: '{{ $font->font_family_name }}';">
+
+
+            {{-- <option value="{{ $font->id }}"   style="font-family: '{{ $font->font_family_name }}';"> --}}
+                {{ $font->font_family_name }}
+            </option>
+        @endforeach
+
+
+                        </select>
+
+                        @error('font_family_id') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+
+
+
+{{-- <!-- عرض المعاينة -->
+<div class="mt-2">
+    <label>معاينة الخط:</label>
+    <p id="fontPreview" style="font-size: 20px;">هذا نص تجريبي للمعاينة</p>
+</div> --}}
+
+
+                  <div class="mb-3">
+            <label class="form-label">لون الخلفية</label>
+            <input type="color" name="primary_color" value="{{ $appVersion->primary_color ?? '#ED7032' }}" class="form-control form-control-color">
+        </div>
+
+                   <div class="mb-3">
+            <label class="form-label">لون النصوص</label>
+            <input type="color" name="font_color_normal" value="{{ $appVersion->font_color_normal ?? '#ED7032' }}" class="form-control form-control-color">
+        </div>
+
                 <div class="row">
                     <div class="col-sm-3"></div>
                     <div class="col-sm-9 text-secondary">
@@ -143,4 +210,18 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('fontSelect');
+    const preview = document.getElementById('fontPreview');
+
+    select.addEventListener('change', function() {
+        const selectedOption = select.options[select.selectedIndex];
+        const fontName = selectedOption.textContent.trim();
+        preview.style.fontFamily = fontName;
+    });
+});
+</script>
+
 @endsection
