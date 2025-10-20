@@ -4,13 +4,13 @@
 <!--breadcrumb-->
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
     <div class="breadcrumb-title pe-3">كل مساعدات اللعبة</div>
-    <div class="ms-auto">
+    {{-- <div class="ms-auto">
         <div class="btn-group">
             <a href="{{ route('add.game.helper') }}">
                 <button type="button" class="btn btn-primary">اضافة مساعدة جديدة</button>
             </a>
         </div>
-    </div>
+    </div> --}}
 </div>
 <!--end breadcrumb-->
 

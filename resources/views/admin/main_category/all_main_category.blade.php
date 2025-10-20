@@ -11,7 +11,7 @@
     </div>
     <div class="ms-auto">
         <div class="btn-group">
-            <a href="{{route('add.category')}}" >
+            <a href="{{route('add.main.category')}}" >
 
 <button type="button" class="btn btn-primary">
 
