@@ -26,7 +26,6 @@
                             <th>البريد الإلكتروني</th>
                             <th>رقم الهاتف</th>
                             <th>الدور</th>
-                            <th>عدد المشاركات</th>
                             <th>الإحصائيات</th>
                             <th>الإجراء</th>
                         </tr>
@@ -48,9 +47,9 @@
                                     </a>
                                 @endforeach
                             </td>
-                            <td style="white-space: normal; word-wrap: break-word; max-width: 450px; font-size: 16px;">
+                            {{-- <td style="white-space: normal; word-wrap: break-word; max-width: 450px; font-size: 16px;">
                                 <!-- يمكنك إضافة إحصائيات أخرى هنا إذا رغبت -->
-                            </td>
+                            </td> --}}
                           <td style="white-space: normal; word-wrap: break-word; max-width: 450px; font-size: 14px;">
     @php $badgeColor = '#6f42c1'; @endphp
 
@@ -102,7 +101,6 @@
                             <th>البريد الإلكتروني</th>
                             <th>رقم الهاتف</th>
                             <th>الدور</th>
-                            <th>عدد المشاركات</th>
                             <th>الإحصائيات</th>
                             <th>الإجراء</th>
                         </tr>
