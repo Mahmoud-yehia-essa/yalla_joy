@@ -34,6 +34,8 @@
                 <thead>
 <tr>
 <th>الرقم</th>
+<th>game_type_id</th>
+
 <th>نوع اللعبة</th>
 <th>عدد الفئات الرئيسية في نوع اللعبة</th>
 
@@ -45,6 +47,8 @@
 @foreach($gameType as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
+<td>{{ $item->id }} </td>
+
 <td>{{ $item->type_name }} </td>
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
     {{count($item->mainCategories)}}
@@ -92,6 +96,8 @@
 
 
     <th>الرقم</th>
+    <th>game_type_id</th>
+
 <th>نوع اللعبة</th>
 <th>عدد الفئات في النوع</th>
 

@@ -147,4 +147,35 @@ public function gameHelperActive($id)
     return redirect()->back()->with('success', '✅ تم إظهار المساعدة');
 }
 
+
+
+
+// API
+ public function getGameHelperApi() {
+
+
+        $gameHelper = GameHelper::where('status', 'active')->latest()->get()->map(function ($item) {
+            $item->game_helper_selected = false;
+            return $item;
+        });
+
+
+
+        if ($gameHelper->isNotEmpty()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'gameHelper retrieval successful',
+                'gameHelper' => $gameHelper,
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid get gameHelper'
+        ], 401);
+    }
+
+
+
+
 }

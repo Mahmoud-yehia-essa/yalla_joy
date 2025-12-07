@@ -264,31 +264,61 @@ class GameTypeController extends Controller
 
     // API
 
-    public function getCategoryApi(Request $request) {
+    // public function getCategoryApi(Request $request) {
+    //     // $category = Category::latest()->get()->map(function ($item) {
+    //     //     $item->category_selected = false;
+    //     //     return $item;
+    //     // });
+
+
+    //     $category = Category::where('status', 'active')->latest()->get()->map(function ($item) {
+    //         $item->category_selected = false;
+    //         return $item;
+    //     });
+
+
+
+    //     if ($category->isNotEmpty()) {
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Category retrieval successful',
+    //             'categories' => $category,
+    //         ], 200);
+    //     }
+
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => 'Invalid get categories'
+    //     ], 401);
+    // }
+
+
+
+     public function getGameTypeApi(Request $request) {
         // $category = Category::latest()->get()->map(function ($item) {
         //     $item->category_selected = false;
         //     return $item;
         // });
 
 
-        $category = Category::where('status', 'active')->latest()->get()->map(function ($item) {
-            $item->category_selected = false;
+        $gameType = GameType::where('status', 'active')->latest()->get()->map(function ($item) {
+            $item->game_type_selected = false;
             return $item;
         });
 
 
 
-        if ($category->isNotEmpty()) {
+        if ($gameType->isNotEmpty()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Category retrieval successful',
-                'categories' => $category,
+                'message' => 'game type retrieval successful',
+                'gameType' => $gameType,
             ], 200);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Invalid get categories'
+            'message' => 'Invalid get game type'
         ], 401);
     }
 

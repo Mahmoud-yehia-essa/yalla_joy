@@ -6,6 +6,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\CouponController;
@@ -667,6 +668,20 @@ Route::controller(GameHelperController::class)->middleware(['checkUserRole','aut
 
     Route::get('/game-helper/inactive/{id}', 'gameHelperInactive')->name('inactive.game.helper');
     Route::get('/game-helper/active/{id}', 'gameHelperActive')->name('active.game.helper');
+});
+
+
+
+
+Route::controller(ExcelController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+Route::get('/excel', 'index')->name('excel.index');
+Route::post('/excel/import',  'import')->name('excel.import');
+
+
+Route::post('/excel/approved',  'approved')->name('excel.approved');
+
+
 });
 
 

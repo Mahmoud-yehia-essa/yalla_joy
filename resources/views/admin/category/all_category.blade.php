@@ -52,10 +52,10 @@
 @foreach($category as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
-<td>{{ $item->gameType->type_name }} </td>
-<td>{{ $item->mainCategory->main_category_name }} </td>
+<td>{{ $item->gameType->type_name }} - {{$item->gameType->id}} </td>
+<td>{{ $item->mainCategory->main_category_name }} - {{ $item->mainCategory->id }} </td>
 
-<td>{{ $item->category_name }} </td>
+<td>{{ $item->category_name }} -  {{ $item->id }}</td>
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
     {{count($item->questions)}}
 </span></td>

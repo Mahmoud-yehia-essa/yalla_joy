@@ -331,17 +331,17 @@ public function addQuestionStore(Request $request)
         'qu_title_en.string' => 'عنوان السؤال يجب أن يكون نصًا.',
         'qu_title_en.max' => 'عنوان السؤال يجب أن لا يتجاوز 255 حرفًا.',
 
-        // 'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
-        // 'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'qu_points.required' => 'يرجى إدخال نقاط السؤال.',
+        'qu_points.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
         'time_counter.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
 
-        'coins_number.required' => 'يرجى إدخال عدد العملات.',
-        'coins_number.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
+        // 'coins_number.required' => 'يرجى إدخال عدد العملات.',
+        // 'coins_number.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
 
-        // 'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
-        // 'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
+        'qu_points_online.required' => 'يرجى إدخال نقاط سؤال OnLine.',
+        'qu_points_online.integer' => 'نقاط السؤال يجب أن تكون عددًا صحيحًا.',
         'time_counter_online.integer' => 'الرجاء التأكد ان القيمة عدد صحيح',
 
         'questions_type.required' => 'يرجى اختيار نوع السؤال.',
@@ -369,10 +369,10 @@ public function addQuestionStore(Request $request)
         'category_id.not_in' => 'الرجاء اختيار الفئة الفرعية.',
 
 
-         'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
-        'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
-         'game_coin_id.required' => 'الرجاء اختيار نوع العملة.',
-         'game_coin_id.not_in' => 'الرجاء اختيار نوع العملة.',
+        //  'game_type_id.required' => 'الرجاء اختيار نوع اللعبة.',
+        // 'game_type_id.not_in' => 'الرجاء اختيار نوع اللعبة.',
+        //  'game_coin_id.required' => 'الرجاء اختيار نوع العملة.',
+        //  'game_coin_id.not_in' => 'الرجاء اختيار نوع العملة.',
 
 
 
@@ -439,8 +439,8 @@ public function addQuestionStore(Request $request)
             'category_id' => $request->category_id,
 
             'category_id' => $request->category_id,
-            // 'qu_points' => $request->qu_points,
-            //             'qu_points_online' => $request->qu_points_online,
+            'qu_points' => $request->qu_points,
+                        'qu_points_online' => $request->qu_points_online,
 
             'questions_type' => $request->questions_type,
             'time_counter' => $request->time_counter,
@@ -449,8 +449,8 @@ public function addQuestionStore(Request $request)
             'qu_image' => $questionImage,
             'qu_sound' => $questionSound,
             'qu_video' => $questionVideo,
-            'coins_number' => $request->coins_number,
-            'game_coin_id' => $request->game_coin_id,
+            // 'coins_number' => $request->coins_number,
+            // 'game_coin_id' => $request->game_coin_id,
 
               'qu_hint' => $request->qu_hint,
             'qu_hint_en' => $request->qu_hint_en,
@@ -675,7 +675,8 @@ foreach ($answersData as $ans) {
 
         public function allQuestion()
         {
-            $questions = Question::latest()->get();
+            // $questions = Question::latest()->get();
+    $questions = Question::orderBy('id', 'asc')->get();
 
 
             return view('admin.question.all_question',compact('questions'));

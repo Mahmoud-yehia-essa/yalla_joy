@@ -321,9 +321,13 @@ class CategoryController extends Controller
         //     $item->category_selected = false;
         //     return $item;
         // });
+$game_type_id = $request->game_type_id;
+
+$main_category_id = $request->main_category_id;
 
 
-        $category = Category::where('status', 'active')->latest()->get()->map(function ($item) {
+
+        $category = Category::where('game_type_id',$game_type_id)->where('main_category_id',$main_category_id)->where('status', 'active')->latest()->get()->map(function ($item) {
             $item->category_selected = false;
             return $item;
         });
@@ -343,6 +347,10 @@ class CategoryController extends Controller
             'message' => 'Invalid get categories'
         ], 401);
     }
+
+
+
+
 
 
 }

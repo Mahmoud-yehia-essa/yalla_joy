@@ -178,7 +178,7 @@
 
                             <!-- Question Points -->
                            <!-- نقاط السؤال -->
-{{-- <div class="row mb-3">
+<div class="row mb-3">
     <div class="col-sm-3">
         <h6 class="mb-0">نقاط السؤال</h6>
     </div>
@@ -197,7 +197,7 @@
         <input id="qu_points_online" name="qu_points_online" type="text" class="form-control" value="{{ old('qu_points_online') }}" />
         @error('qu_points_online') <span class="text-danger">{{ $message }}</span> @enderror
     </div>
-</div> --}}
+</div>
 
 
                             <!-- Question counter -->

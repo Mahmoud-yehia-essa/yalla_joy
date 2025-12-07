@@ -37,6 +37,9 @@
 <tr>
 <th>الرقم</th>
 
+<th>main_category_id</th>
+
+
 <th>نوع اللعبة</th>
 
 <th>الفئة الرئيسية</th>
@@ -50,6 +53,7 @@
 @foreach($mainCategory as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
+<td>{{ $item->id }} </td>
 
 <td>{{ $item->gameType->type_name }} </td>
 
@@ -103,6 +107,9 @@
 
 
     <th>الرقم</th>
+
+    <th>main_category_id</th>
+
     <th>نوع اللعبة</th>
 
 <th>الفئة الرئيسية</th>

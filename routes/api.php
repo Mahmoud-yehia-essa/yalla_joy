@@ -8,8 +8,11 @@ use App\Http\Controllers\PriceController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AppVersionController;
+use App\Http\Controllers\GameHelperController;
+use App\Http\Controllers\MainCategoryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -23,7 +26,26 @@ Route::post('/login',[UserController::class,'loginApi']);
 
 Route::post('/register',[UserController::class,'registerApi']);
 
-Route::get('/categories',[CategoryController::class,'getCategoryApi']);
+
+
+
+
+Route::get('/game/type',[GameTypeController::class,'getGameTypeApi']);
+
+
+
+Route::post('/main/category',[MainCategoryController::class,'getMainCategoryApi']);
+
+
+
+
+Route::post('/categories',[CategoryController::class,'getCategoryApi']);
+
+
+Route::get('/game/helper',[GameHelperController::class,'getGameHelperApi']);
+
+
+
 Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 
 // Route::get('/categories',[CategoryController::class,'getCategoryApi'])->middleware('auth:sanctum');

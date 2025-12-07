@@ -138,7 +138,7 @@
                             </div>
 
 
-                                <div class="row mb-3">
+                                {{-- <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">اختر نوع العملة</h6>
                                     </div>
@@ -171,7 +171,7 @@
         <input id="coins_number" name="coins_number" type="number" class="form-control" value="{{ old('coins_number',$question->coins_number) }}" />
         @error('coins_number') <span class="text-danger">{{ $message }}</span> @enderror
     </div>
-</div>
+</div> --}}
 
 
                             <!-- Question Title -->
@@ -229,7 +229,7 @@
 
 
                             <!-- Question Points -->
-                            {{-- <div class="row mb-3">
+                            <div class="row mb-3">
                                 <div class="col-sm-3">
                                     <h6 class="mb-0">نقاط السؤال</h6>
                                 </div>
@@ -237,11 +237,11 @@
                                     <input name="qu_points" type="text" class="form-control" value="{{ old('qu_points', $question->qu_points) }}" />
                                     @error('qu_points') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
-                            </div> --}}
+                            </div>
 
 
                             <!-- نقاط السؤال Online -->
-{{-- <div class="row mb-3">
+ <div class="row mb-3">
     <div class="col-sm-3">
         <h6 class="mb-0">نقاط السؤال OnLine</h6>
     </div>
@@ -249,7 +249,7 @@
         <input id="qu_points_online" name="qu_points_online" type="text" class="form-control"   value="{{ old('qu_points_online', $question->qu_points_online) }}" />
         @error('qu_points_online') <span class="text-danger">{{ $message }}</span> @enderror
     </div>
-</div> --}}
+</div>
 
 
                                <!-- Question counter -->

@@ -197,6 +197,10 @@
                 @endif
 
 
+                <li> <a href="{{route('excel.index')}}"><i class='bx bx-radio-circle'></i>اضافة الأسئلة من خلال
+                    Excel</a>
+                </li>
+
 
             </ul>
         </li>
