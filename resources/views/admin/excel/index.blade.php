@@ -35,7 +35,7 @@ table thead th {
     {{-- رفع ملف ZIP --}}
     <div class="mb-3">
         <label class="form-label">ملف ZIP (يحتوي على صور / صوتيات / فيديوهات)</label>
-        <input type="file" name="zip_file" class="form-control" required>
+        <input type="file" name="zip_file" class="form-control">
     </div>
 
     <div class="card">
