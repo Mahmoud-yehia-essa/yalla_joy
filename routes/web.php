@@ -274,6 +274,13 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
     Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
 
 
+        Route::get('/admin/filter/category', 'fillterCategory')->name('filter.category');
+    Route::post('/search/filter' , 'fillterCategorySearch')->name('filter.category.search');
+
+
+
+
+
         Route::get('/get-main-categories/{game_type_id}', 'getMainCategories')->name('get.Main.categories');
 
                 Route::get('/get-sub-categories/{main_category_id}', 'getSubCategories')->name('get.sub.categories');
@@ -377,6 +384,13 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
 
     Route::get('/question/delete/{id}', 'deleteQuestion')->name('delete.question');
+
+
+      Route::get('/admin/filter/question', 'fillterQuestion')->name('filter.question');
+    Route::post('/search/filter/question' , 'fillterQuestionSearch')->name('filter.question.search');
+
+
+
 
 
 

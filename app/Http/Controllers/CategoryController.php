@@ -18,6 +18,63 @@ use Illuminate\Support\Facades\Auth;
 class CategoryController extends Controller
 {
     //
+
+
+
+
+    public function fillterCategorySearch(Request $request)
+    {
+
+
+ $query = Category::query();
+
+    // فلترة game_type_id
+    if ($request->game_type_id !== "non") {
+        $query->where('game_type_id', $request->game_type_id);
+    }
+
+    // فلترة main_category_id
+    if ($request->main_category_id !== "non") {
+        $query->where('main_category_id', $request->main_category_id);
+    }
+
+    // فلترة category_id (id)
+    if ($request->category_id !== "non") {
+        $query->where('id', $request->category_id);
+    }
+
+    // البحث بالكتابة
+    // if ($request->search && $request->search !== "") {
+    //     $query->where(function($q) use ($request) {
+    //         $q->where('category_name', 'LIKE', "%{$request->search}%")
+    //           ->orWhere('category_name_en', 'LIKE', "%{$request->search}%")
+    //           ->orWhere('category_description', 'LIKE', "%{$request->search}%");
+    //     });
+    // }
+
+    $category = $query->get();
+
+            return view('admin.category.all_category_filter',compact('category'));
+
+
+    // return $results;
+
+    }
+
+       public function fillterCategory()
+    {
+
+        $category = Category::latest()->get();
+
+        $gameType = GameType::latest()->get();
+
+
+
+
+        return view('admin.category.filter_category',compact('category','gameType'));
+    }
+
+
     public function category()
     {
         $category = Category::latest()->get();

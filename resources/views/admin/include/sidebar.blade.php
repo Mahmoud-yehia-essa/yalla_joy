@@ -105,6 +105,9 @@
             </a>
             <ul>
 
+
+
+
             @if(Auth::user()->can('عرض الفئات الفرعية'))
 
                 <li> <a href="{{route('all.category')}}"><i class='bx bx-radio-circle'></i>عرض الفئات</a>
@@ -121,6 +124,8 @@
 				@endif
 
 
+  <li> <a href="{{route('filter.category')}}"><i class='bx bx-radio-circle'></i>البحث المتقدم</a>
+                </li>
 
             </ul>
         </li>
@@ -200,6 +205,14 @@
                 <li> <a href="{{route('excel.index')}}"><i class='bx bx-radio-circle'></i>اضافة الأسئلة من خلال
                     Excel</a>
                 </li>
+
+
+                <li> <a href="{{route('filter.question')}}"><i class='bx bx-radio-circle'></i>   البحث المتقدم
+                    </a>
+                </li>
+
+
+
 
 
             </ul>

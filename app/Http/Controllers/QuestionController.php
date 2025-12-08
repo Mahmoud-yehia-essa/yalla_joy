@@ -18,6 +18,101 @@ use Illuminate\Support\Facades\Auth;
 class QuestionController extends Controller
 {
 
+
+
+    public function fillterQuestionSearch(Request $request)
+{
+    $query = Question::query();
+
+    // فلترة game_type_id
+    if ($request->game_type_id !== "non") {
+        $query->where('game_type_id', $request->game_type_id);
+    }
+
+    // فلترة main_category_id
+    if ($request->main_category_id !== "non") {
+        $query->where('main_category_id', $request->main_category_id);
+    }
+
+    // فلترة category_id (id)
+    if ($request->category_id !== "non") {
+        $query->where('id', $request->category_id);
+    }
+
+    // فلترة الفصل الدراسي term
+    if ($request->term !== "non") {
+        $query->where('term', $request->term);
+    }
+
+        // 🔥 فلترة بالسنة (created_at)
+    if ($request->year !== "non") {
+        $query->whereYear('created_at', $request->year);
+    }
+
+    // البحث بالعنوان
+    if ($request->search && $request->search !== "") {
+        $query->where(function($q) use ($request) {
+            $q->where('qu_title', 'LIKE', "%{$request->search}%")
+              ->orWhere('qu_title_en', 'LIKE', "%{$request->search}%");
+        });
+    }
+
+    $questions = $query->get();
+
+    return view('admin.question.all_question_filter', compact('questions'));
+}
+
+
+
+//      public function fillterQuestionSearch(Request $request)
+//     {
+
+
+//  $query = Question::query();
+
+//     // فلترة game_type_id
+//     if ($request->game_type_id !== "non") {
+//         $query->where('game_type_id', $request->game_type_id);
+//     }
+
+//     // فلترة main_category_id
+//     if ($request->main_category_id !== "non") {
+//         $query->where('main_category_id', $request->main_category_id);
+//     }
+
+//     // فلترة category_id (id)
+//     if ($request->category_id !== "non") {
+//         $query->where('id', $request->category_id);
+//     }
+
+//     if ($request->search && $request->search !== "") {
+//         $query->where(function($q) use ($request) {
+//             $q->where('qu_title', 'LIKE', "%{$request->search}%")
+//               ->orWhere('qu_title_en', 'LIKE', "%{$request->search}%");
+//         });
+//     }
+
+//     $questions = $query->get();
+
+//             return view('admin.question.all_question_filter',compact('questions'));
+
+
+//     // return $results;
+
+//     }
+
+       public function fillterQuestion()
+    {
+
+        $category = Category::latest()->get();
+
+        $gameType = GameType::latest()->get();
+
+
+
+
+        return view('admin.question.filter_question',compact('category','gameType'));
+    }
     public function addQuestion()
     {
 

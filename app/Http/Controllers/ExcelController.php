@@ -338,6 +338,8 @@ public function approved(Request $request)
             'qu_video' => $row['qu_video'],
             'qu_hint' => $row['qu_hint'],
             'qu_hint_en' => $row['qu_hint_en'],
+            'term' => $row['term'],
+
             'user_id' => Auth::user()->id,
         ]);
 
