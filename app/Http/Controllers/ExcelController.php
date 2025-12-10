@@ -369,7 +369,7 @@ public function approved(Request $request)
             'question_id' => $question->id,
             'answer_title' => $row['answer_title'],
             'answer_title_en' => $row['answer_title_en'],
-            'answer_type' => $answer_type_three,
+            'answer_type' => $answer_type,
             'answer_image' => $row['answer_image'],
             'answer_sound' => $row['answer_sound'],
             'answer_video' => $row['answer_video'],
