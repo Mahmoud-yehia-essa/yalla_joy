@@ -45,7 +45,7 @@
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-	<title>لوحة تحكم - لعبة يلا!جوي</title>
+	<title>لوحة تحكم - لعبة فيك تحدي</title>
     <style>
 
 		body

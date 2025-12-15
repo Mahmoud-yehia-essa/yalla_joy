@@ -5,7 +5,7 @@
 
         </div>
         <div>
-            <h4 class="logo-text"> يلا ! جَوّي</h4>
+            <h4 class="logo-text">فيك تحدي</h4>
         </div>
         <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i>
         </div>

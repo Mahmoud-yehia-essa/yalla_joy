@@ -1,6 +1,6 @@
 <footer class="page-footer">
     <p class="mb-0">
-        يلاجاوي © 2025 جميع الحقوق محفوظة |
+        فيك تحدي © 2025 جميع الحقوق محفوظة |
         <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#whatsNewModal">
             نظام إدارة المحتوى النسخة 2.0
         </a>

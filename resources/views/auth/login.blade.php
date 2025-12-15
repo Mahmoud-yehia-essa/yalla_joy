@@ -24,7 +24,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
-	<title>لوحة تحكم - لعبة يلا!جوي</title>
+	<title>لوحة تحكم - لعبة فيك تحدي</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
 
     <style>
@@ -53,7 +53,7 @@
     }
 </style> --}}
 
-<style>
+{{-- <style>
     @keyframes zoomInOut {
         0%, 100% {
             transform: scale(1);
@@ -66,7 +66,7 @@
     .zoom-animation {
         animation: zoomInOut 6s infinite ease-in-out;
     }
-</style>
+</style> --}}
 </head>
 
 <body class="">
@@ -96,7 +96,7 @@
 										{{-- <img src="{{ asset('backend/assets/images/logo-icon.png') }}" width="100" alt=""> --}}
 									</div>
 									<div class="text-center mb-4">
-										<h5 class="">لوحة تحكم - لعبة يلا جوي</h5>
+										<h5 class="">لوحة تحكم - لعبة فيك تحدي</h5>
 										<p class="mb-0">الرجاء تسجيل الدخول</p>
 									</div>
 									<div class="form-body">

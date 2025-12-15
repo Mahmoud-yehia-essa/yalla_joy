@@ -28,9 +28,9 @@
 <body class="flex items-center justify-center h-screen text-gray-800 text-center px-4">
 
   <div>
-    <img src="{{ asset('backend/assets/images/login-images/logo_yalla.png') }}" class="img-fluid zoom-animation" width="400" alt=""/>
-
-    <h1 class="text-5xl font-extrabold mb-6">🎮 يلا جوي</h1>
+    <img src="{{ asset('backend/assets/images/login-images/logo_tahadi.png') }}" class="img-fluid zoom-animation" width="400" alt=""/>
+<br>
+    <h1 class="text-5xl font-extrabold mb-6">🎮 فيك تحدي</h1>
     <p class="text-4xl font-semibold mb-6">قريباً</p>
   </div>
 
