@@ -36,8 +36,8 @@ class RankingController extends Controller
         $request->validate([
             'name'          => 'required|string|max:255',
             'name_en'       => 'required|string|max:255',
-            'level_id'      => 'required|exists:levels,id',
-            'photo'         => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            // 'level_id'      => 'required|exists:levels,id',
+            // 'photo'         => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $save_url = null;
@@ -59,7 +59,7 @@ class RankingController extends Controller
             'name_en' => $request->name_en,
             'description' => $request->description,
             'description_en' => $request->description_en,
-            'level_id' => $request->level_id,
+            // 'level_id' => $request->level_id,
             'photo' => $save_url,
         ]);
 
@@ -81,7 +81,7 @@ class RankingController extends Controller
             'id' => 'required|exists:rankings,id',
             'name' => 'required|string|max:255',
             'name_en' => 'required|string|max:255',
-            'level_id' => 'required|exists:levels,id',
+            // 'level_id' => 'required|exists:levels,id',
             'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -107,7 +107,7 @@ class RankingController extends Controller
             'name_en' => $request->name_en,
             'description' => $request->description,
             'description_en' => $request->description_en,
-            'level_id' => $request->level_id,
+            // 'level_id' => $request->level_id,
             'photo' => $save_url,
         ]);
 

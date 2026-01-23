@@ -57,14 +57,49 @@
                                     </div>
                                 </div>
 
+
+
+
+                                         <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">او عدد النقاط المطلوبة من اللعب اوف لاين</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" step="0.0001" name="points_number_offline" id="points_number_offline" class="form-control" value="{{ old('points_number_offline',$price->points_number_offline) }}" />
+                                        @error('points_number_offline')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+
+
+
+
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">او عدد النقاط المطلوبة من اللعب اون لاين</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" step="0.0001" name="points_number_online" id="points_number_online" class="form-control" value="{{ old('points_number_online',$price->points_number_online) }}" />
+                                        @error('points_number_online')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+
+
+
                                     <!-- Price -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">عدد عملات اللعبة المضافة</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="number" name="games_number" class="form-control" value="{{ old('games_number',$price->games_number) }}" />
-                                        @error('games_number')
+                                        <input type="number" name="coins_number" class="form-control" value="{{ old('coins_number',$price->coins_number) }}" />
+                                        @error('coins_number')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>

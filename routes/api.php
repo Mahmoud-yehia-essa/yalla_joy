@@ -4,15 +4,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\UserCoinController;
 use App\Http\Controllers\AppVersionController;
 use App\Http\Controllers\GameHelperController;
+use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\MainCategoryController;
+use App\Http\Controllers\GameOfflinePriceController;
+
+
+
+Route::post('/auth/social-login', [SocialLoginController::class, 'login']);
+
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -21,12 +31,15 @@ Route::get('/user', function (Request $request) {
 
 
 
-Route::post('/login',[UserController::class,'loginApi']);
+// Route::post('/login',[UserController::class,'loginApi']);
 
 
-Route::post('/register',[UserController::class,'registerApi']);
+// Route::post('/register',[UserController::class,'registerApi']);
+
+    Route::post('/login/email',[UserController::class,'loginApi']);
 
 
+Route::post('/register/email',[UserController::class,'registerApi']);
 
 
 
@@ -111,6 +124,35 @@ Route::post('/get/coupon',[CouponController::class,'getCouponByNameApi']);
 
 
 Route::get('/get/sponsor',[SponsorController::class,'getSponsor']);
+
+
+Route::post('/get/levels',[LevelController::class,'getLevelByPoints']);
+Route::post('user/coins-summary', [UserCoinController::class, 'getUserCoinsSummary']);
+
+Route::post('user/coins-details', [UserCoinController::class, 'getUserCoinDetails']);
+
+
+Route::post('update/user/online-points', [UserController::class, 'updateOnlineUserPoints']);
+
+
+
+Route::post('update/coins-numbers', [UserCoinController::class, 'updateCoinsNumbers']);
+
+
+
+
+
+
+
+
+Route::get('get/game-offline-price',[GameOfflinePriceController::class,'getAllGameOfflinePrice']);
+
+
+
+
+
+// Route::get('/get/levels',[LevelController::class,'getLevel']);
+
 
 
 

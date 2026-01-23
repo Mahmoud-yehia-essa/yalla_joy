@@ -22,8 +22,16 @@
                         <th>الرقم</th>
                         <th>الاسم</th>
                         <th>الوصف</th>
-                        <th>العملة المرتبطة</th>
-                        <th>عدد العملات</th>
+
+                     <th>عدد نقاط الاون لاين المطلوبة للوصول الى المستوى</th>
+
+                <th>نهاية عدد نقاط الاون لاين للوصول بعدها للمستوى التالي</th>
+
+
+                                                <th>الرتبة</th>
+
+                        {{-- <th>العملة المرتبطة</th>
+                        <th>عدد العملات</th> --}}
                         <th>الإجراء</th>
                     </tr>
                 </thead>
@@ -33,8 +41,13 @@
                         <td>{{ $key+1 }}</td>
                         <td>{{ $item->name }}</td>
                         <td>{{ Str::limit($item->description, 50) }}</td>
-                        <td>{{ $item->gameCoin?->name }}</td>
-                        <td>{{ $item->coins_number }}</td>
+                        {{-- <td>{{ $item->gameCoin?->name }}</td>
+                        <td>{{ $item->coins_number }}</td> --}}
+                            <td>{{ $item->online_points_fixed_start }}</td>
+                                                        <td>{{ $item->online_points_fixed_end }}</td>
+
+                            <td>{{ $item->ranking->name ?? ""}}</td>
+
                         <td>
                             <a href="{{ route('edit.level', $item->id) }}" class="btn btn-info">تعديل</a>
                             <a href="{{ route('delete.level', $item->id) }}" class="btn btn-danger" id="delete">حذف</a>
@@ -44,11 +57,19 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th>الرقم</th>
+                         <th>الرقم</th>
                         <th>الاسم</th>
                         <th>الوصف</th>
-                        <th>العملة المرتبطة</th>
-                        <th>عدد العملات</th>
+
+                     <th>عدد نقاط الاون لاين المطلوبة للوصول الى المستوى</th>
+
+                                     <th>نهاية عدد نقاط الاون لاين للوصول بعدها للمستوى التالي</th>
+
+                                                <th>الرتبة</th>
+
+
+                        {{-- <th>العملة المرتبطة</th>
+                        <th>عدد العملات</th> --}}
                         <th>الإجراء</th>
                     </tr>
                 </tfoot>

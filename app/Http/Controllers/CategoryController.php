@@ -373,37 +373,72 @@ class CategoryController extends Controller
 
     // API
 
-    public function getCategoryApi(Request $request) {
-        // $category = Category::latest()->get()->map(function ($item) {
-        //     $item->category_selected = false;
-        //     return $item;
-        // });
-$game_type_id = $request->game_type_id;
+//     public function getCategoryApi(Request $request) {
 
-$main_category_id = $request->main_category_id;
+// $game_type_id = $request->game_type_id;
+
+// $main_category_id = $request->main_category_id;
 
 
 
-        $category = Category::where('game_type_id',$game_type_id)->where('main_category_id',$main_category_id)->where('status', 'active')->latest()->get()->map(function ($item) {
+//         $category = Category::where('game_type_id',$game_type_id)->where('main_category_id',$main_category_id)->where('status', 'active')->latest()->get()->map(function ($item) {
+//             $item->category_selected = false;
+//             return $item;
+//         });
+
+
+
+//         if ($category->isNotEmpty()) {
+//             return response()->json([
+//                 'success' => true,
+//                 'message' => 'Category retrieval successful',
+//                 'categories' => $category,
+//             ], 200);
+//         }
+
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Invalid get categories'
+//         ], 401);
+//     }
+
+
+    public function getCategoryApi(Request $request)
+{
+    $game_type_id = $request->game_type_id;
+    $main_category_id = $request->main_category_id;
+
+    $category = Category::where('game_type_id', $game_type_id)
+        ->where('main_category_id', $main_category_id)
+        ->where('status', 'active')
+        ->whereHas('questions', function ($q) {
+            // لو حابب تضيف شروط على الأسئلة مستقبلاً
+        }, '>=', 6) // 👈 عدد الأسئلة لا يقل عن 6
+        ->latest()
+        ->get()
+        ->map(function ($item) {
             $item->category_selected = false;
             return $item;
         });
 
-
-
-        if ($category->isNotEmpty()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Category retrieval successful',
-                'categories' => $category,
-            ], 200);
-        }
-
+    if ($category->isNotEmpty()) {
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid get categories'
-        ], 401);
+            'success' => true,
+            'message' => 'Category retrieval successful',
+            'categories' => $category,
+        ], 200);
     }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid get categories'
+    ], 401);
+}
+
+
+
+
+
 
 
 

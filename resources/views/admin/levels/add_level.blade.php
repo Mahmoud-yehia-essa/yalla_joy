@@ -67,7 +67,45 @@
                                     </div>
                                 </div>
 
-                                <!-- Coins Number -->
+
+                                  <!-- Coins Number -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0"> بداية عدد نقاط الاون لاين المطلوبة للوصل الى المستوى</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" name="online_points_fixed_start" class="form-control" value="{{ old('online_points_fixed_start') }}" />
+                                        @error('online_points_fixed_start') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+                                  <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0">  نهاية عدد نقاط الاون لاين للوصول بعدها للمستوى التالي</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" name="online_points_fixed_end" class="form-control" value="{{ old('online_points_fixed_end') }}" />
+                                        @error('online_points_fixed_end') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+
+
+                                  <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0">اختر الرتبة</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+
+
+                                        <select name="ranking_id" class="form-select">
+                                                                                     <option value="">-- اختر الرتبة --</option>
+
+                                            @foreach($rankings as $ranking)
+                                                <option value="{{ $ranking->id }}">{{ $ranking->name }}</option>
+                                            @endforeach
+                                        </select>
+                                         @error('ranking_id') <span class="text-danger">{{ $message }}</span> @enderror
+
+                                    </div>
+                                </div>
+
+                                {{-- <!-- Coins Number -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3"><h6 class="mb-0">عدد العملات</h6></div>
                                     <div class="col-sm-9 text-secondary">
@@ -90,7 +128,7 @@
                                         </select>
                                         @error('game_coin_id') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
-                                </div>
+                                </div> --}}
 
                                 <!-- Submit -->
                                 <div class="row">

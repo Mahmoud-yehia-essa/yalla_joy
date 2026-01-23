@@ -410,6 +410,36 @@
 
 
 
+
+                 <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><ion-icon name="cash-outline"></ion-icon>
+
+
+                </i>
+                </div>
+                <div class="menu-title">ادارة قيمة الألعاب الاوف لاين بالنسبة للعملات</div>
+            </a>
+            <ul>
+
+
+                <li> <a href="{{ route('all.game.offline.price') }}"><i class="bx bx-right-arrow-alt"></i>جميع الألعاب وقيمتها بالعملات</a>
+                </li>
+
+
+
+                <li> <a href="{{ route('add.game.offline.price') }}"><i class="bx bx-right-arrow-alt"></i>إضافة قيمة لعبة جديد</a>
+                </li>
+
+
+
+            </ul>
+        </li>
+
+
+
+
+
               @if(Auth::user()->can('عرض الكوبونات') || Auth::user()->can('إضافة الكوبونات'))
 
             <li>
@@ -1009,6 +1039,46 @@
             </ul>
         </li>
          @endif
+
+
+
+
+
+
+
+
+
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+
+<ion-icon name="cash-outline"></ion-icon>
+                </div>
+
+                <div class="menu-title">ادارة العملات مع النقاط</div>
+            </a>
+            <ul>
+
+
+       <li> <a href="{{route('add.game.coin')}}"><i class='bx bx-radio-circle'></i>اضافة نظام نقاط جديدة</a>
+                </li>
+
+
+
+
+                  <li> <a href="{{route('all.point.coin')}}"><i class='bx bx-radio-circle'></i>عرض النقاط مع العملات</a>
+                </li>
+
+
+
+
+
+
+
+
+            </ul>
+        </li>
 
 
 

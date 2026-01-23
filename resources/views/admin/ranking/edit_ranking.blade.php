@@ -59,7 +59,7 @@
                                 </div>
 
                                 <!-- Level -->
-                                <div class="row mb-3">
+                                {{-- <div class="row mb-3">
                                     <div class="col-sm-3"><h6 class="mb-0">المستوى</h6></div>
                                     <div class="col-sm-9 text-secondary">
                                         <select name="level_id" class="form-select">
@@ -70,7 +70,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                </div>
+                                </div> --}}
 
                                 <!-- Photo -->
                                 <div class="row mb-3">

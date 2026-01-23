@@ -32,7 +32,9 @@ use App\Http\Controllers\GameelEmentController;
 use App\Http\Controllers\MainCategoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TitlePositionController;
+use App\Http\Controllers\PointWithCointController;
 use App\Http\Controllers\RewardsSponsorController;
+use App\Http\Controllers\GameOfflinePriceController;
 use App\Http\Controllers\NotificationDashboardController;
 
 Route::get('/', function () {
@@ -449,6 +451,32 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
 
 
+
+
+
+ Route::controller(GameOfflinePriceController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+
+
+
+    ///
+
+         Route::get('/all/game/offline/price', 'allGameOfflinePrice')->name('all.game.offline.price');
+        Route::get('/add//game/offline/price', 'addGameOfflinePrice')->name('add.game.offline.price');
+        Route::post('/add//game/offline/price', 'addGameOfflinePriceStore')->name('add.game.offline.price.store');
+
+                Route::get('/delete/game/offline/price/{id}', 'deleteGameOfflinePrice')->name('delete.game.offline.price');
+        Route::get('/edit/game/offline/price/{id}', 'editGameOfflinePrice')->name('edit.game.offline.price');
+
+
+
+        Route::post('/edit/game/offline/price', 'editGameOfflinePriceStore')->name('edit.game.offline.price.store');
+
+
+});
+
+
+
 Route::middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -651,6 +679,32 @@ Route::controller(GameItemController::class)
         Route::get('/game-item/active/{id}', 'gameItemActive')->name('active.game.item');
     });
 
+
+
+
+    Route::controller(PointWithCointController::class)
+    ->middleware(['checkUserRole', 'auth'])
+    ->group(function () {
+
+        Route::get('/all/point-coin', 'allPointCoin')->name('all.point.coin');
+        Route::get('/add/point-coin', 'addPointCoin')->name('add.point.coin');
+
+
+        // باستخدام PointCoin كمل نفس فكرة ولكن
+        Route::get('/edit/point-coin/{id}', 'editPointCoin')->name('edit.point.coin');
+
+        Route::post('/store/point-coin', 'storePointCoin')->name('store.point.coin');
+        Route::post('/save/point-coin', 'savePointCoin')->name('save.point.coin');
+
+        // Route::post('/update/game-item', 'updateGameItem')->name('update.game.item');
+
+        Route::post('/update/point-coin/{id}', 'updatePointCoin')->name('update.point.coin');
+
+        Route::get('/delete/point-coin/{id}', 'deletePointCoin')->name('delete.point.coin');
+
+        Route::get('/point-coin/inactive/{id}', 'pointCoinInactive')->name('inactive.point.coin');
+        Route::get('/point-coin/active/{id}', 'pointCoinActive')->name('active.point.coin');
+    });
 
 
 

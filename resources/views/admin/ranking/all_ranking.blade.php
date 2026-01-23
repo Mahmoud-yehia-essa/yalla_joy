@@ -24,7 +24,7 @@
                         <th>الرقم</th>
                         <th>الرتبة</th>
                         <th>الاسم بالانجليزية</th>
-                        <th>المستوى</th>
+                        {{-- <th>المستوى</th> --}}
                         <th>الصورة</th>
                         <th>الإجراءات</th>
                     </tr>
@@ -35,7 +35,7 @@
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $ranking->name }}</td>
                             <td>{{ $ranking->name_en }}</td>
-                            <td>{{ $ranking->level->name ?? '---' }}</td>
+                            {{-- <td>{{ $ranking->level->name ?? '---' }}</td> --}}
                                                            <td> <img onclick="showImageModal(this.src)" src="{{ asset($ranking->photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
                             <td>
@@ -60,7 +60,7 @@
                         <th>الرقم</th>
                         <th>الرتبة</th>
                         <th>الاسم بالانجليزية</th>
-                        <th>المستوى</th>
+                        {{-- <th>المستوى</th> --}}
                         <th>الصورة</th>
                         <th>الإجراءات</th>
                     </tr>

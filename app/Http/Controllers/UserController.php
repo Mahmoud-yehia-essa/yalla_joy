@@ -627,6 +627,11 @@ $request->validate($rules, [
     }
 
 
+
+
+
+
+
  public function deleteUserApi(Request $request){
 
     $id = $request->delet_user_id;
@@ -655,6 +660,41 @@ $request->validate($rules, [
 
         // return redirect()->back()->with($notification);
     }// End Method
+
+
+   public function updateOnlineUserPoints(Request $request)
+    {
+                    $user_id = $request->user_id;
+
+            $newPoints = $request->new_points;
+
+                    $user = User::findOrFail($user_id);
+
+
+  $user->online_points = $newPoints;
+
+        // $user->address = $request->address;
+        $user->save();
+
+
+
+
+
+        $token = "Non";
+
+        return response()->json([
+            'success' => true,
+            'message' => 'updated user successful',
+            'user' => $user, // Return all user data
+            'token' => $token
+        ], 200);
+
+
+
+
+    }
+
+
 
 
 }

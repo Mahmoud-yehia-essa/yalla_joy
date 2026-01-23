@@ -36,6 +36,10 @@
 <th>الرقم</th>
 <th>الوصف</th>
 <th>السعر</th>
+
+<th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>
+<th>عدد النقاط المطلوبة من اللعب اون لاين  </th>
+
 <th>عدد عملات اللعبة المضافة</th>
 
 
@@ -48,7 +52,10 @@
 <td> {{ $key+1 }} </td>
 <td>{{ $item->title }} </td>
 <td>{{ $item->price }} دك</td>
-<td>{{ $item->games_number }} </td>
+<td>{{ $item->points_number_offline }}</td>
+<td>{{ $item->points_number_online }} </td>
+
+<td>{{ $item->coins_number }} </td>
 
 
 
@@ -73,9 +80,15 @@
 </tbody>
 <tfoot>
 <tr>
-  <th>الرقم</th>
+ <th>الرقم</th>
 <th>الوصف</th>
 <th>السعر</th>
+
+<th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>
+<th>عدد النقاط المطلوبة من اللعب اون لاين  </th>
+
+<th>عدد عملات اللعبة المضافة</th>
+
 
 <th>الاجراء</th>
 </tr>

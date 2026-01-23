@@ -19,8 +19,9 @@ class PriceController extends Controller
 
        public function allPrice()
     {
-        $price = price::latest()->get();
+        // $price = price::latest()->get();
 
+$price = Price::latest('id')->get();
 
 
 
@@ -46,7 +47,10 @@ class PriceController extends Controller
           $request->validate([
             'title' => 'required',
             'price' => 'required|numeric',
-            'games_number' => 'required|numeric',
+            //             'points_number_offline' => 'required|numeric',
+            // 'points_number_online' => 'required|numeric',
+
+            'coins_number' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
             'game_coin_id'  => 'required|exists:game_coins,id',
@@ -57,8 +61,14 @@ class PriceController extends Controller
             'price.required' => 'الرجاء اضافة السعر',
                         'price.numeric' => 'الرجاء اضافة السعر رقما',
 
-                          'games_number.required' => 'الرجاء اضافة عدد الألعاب',
-                        'games_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
+                          'coins_number.required' => 'الرجاء اضافة عدد الألعاب',
+                        'coins_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
+
+
+
+                        //                         'points_number_offline.numeric' => 'الرجاء اضافة عدد النقاط رقما',
+                        // 'points_number_online.numeric' => 'الرجاء اضافة عدد النقاط رقما',
+
 
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
@@ -79,9 +89,11 @@ class PriceController extends Controller
 
             'color1' => $color1,
             'color2' => $color2,
-            'games_number' => $request->games_number,
+            'coins_number' => $request->coins_number,
             'game_coin_id' => $request->game_coin_id,
 
+            'points_number_online' => $request->points_number_online,
+            'points_number_offline' => $request->points_number_offline,
 
 
             'created_at' =>Carbon::now()
@@ -126,7 +138,7 @@ class PriceController extends Controller
             'price' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
-                        'games_number' => 'required|numeric',
+                        'coins_number' => 'required|numeric',
 
             'game_coin_id'  => 'required|exists:game_coins,id',
 
@@ -135,8 +147,8 @@ class PriceController extends Controller
             'title.required' => 'الرجاء اضافة الوصف',
             'price.required' => 'الرجاء اضافة السعر',
                         'price.numeric' => 'الرجاء اضافة السعر رقما',
-                              'games_number.required' => 'الرجاء اضافة عدد الألعاب',
-                        'games_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
+                              'coins_number.required' => 'الرجاء اضافة عدد الألعاب',
+                        'coins_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
 
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
@@ -155,8 +167,12 @@ class PriceController extends Controller
             'price' => $request->price,
             'color1' => $color1,
             'color2' => $color2,
-                              'games_number' => $request->games_number,
+                              'coins_number' => $request->coins_number,
             'game_coin_id' => $request->game_coin_id,
+
+
+               'points_number_online' => $request->points_number_online,
+            'points_number_offline' => $request->points_number_offline,
 
 
             'created_at' =>Carbon::now()
@@ -217,24 +233,66 @@ class PriceController extends Controller
 
 
 
-  public function getAllPrice(Request $request) {
+//   public function getAllPrice(Request $request) {
 
 
 
 
-    $price = Price::latest()->get()->map(function ($item) {
-    $item->price_after_coupon = "0";
-    return $item;
-});
+//     $price = Price::latest()->get()->map(function ($item) {
+//     $item->price_after_coupon = "0";
+//     return $item;
+// });
 
-return response()->json($price);
-
-    //     $price = Price::latest()->get();
-    // return response()->json($price);
+// return response()->json($price);
 
 
 
-    }
+
+
+//     }
+
+
+
+// public function getAllPrice(Request $request)
+// {
+//     $price = Price::with('gameCoin')->latest()->get()->map(function ($item) {
+
+//         $item->price_after_coupon = "0";
+
+//         // إضافة اسم العملة (مثلاً)
+//         $item->game_coin_name = $item->gameCoin?->name;
+
+//         $item->game_coin_photo = $item->gameCoin?->photo;
+
+
+//         // أو أي حقل تاني
+
+//         return $item;
+//     });
+
+//     return response()->json($price);
+// }
+
+
+
+public function getAllPrice(Request $request)
+{
+    $price = Price::with('gameCoin')->latest('id')->get()->map(function ($item) {
+
+        $item->price_after_coupon = "0";
+        $item->game_coin_name = $item->gameCoin?->name;
+        $item->game_coin_photo = $item->gameCoin?->photo;
+
+        // حذف العلاقة من الـ JSON
+        unset($item->gameCoin);
+        unset($item->game_coin); // للـ safety
+
+        return $item;
+    });
+
+    return response()->json($price);
+}
+
 
 
 }
