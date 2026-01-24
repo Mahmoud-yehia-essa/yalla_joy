@@ -332,15 +332,12 @@ class MainCategoryController extends Controller
     /// API
 
   public function getMainCategoryApi(Request $request) {
-        // $category = Category::latest()->get()->map(function ($item) {
-        //     $item->category_selected = false;
-        //     return $item;
-        // });
+
 
 $game_type_id = $request->game_type_id;
 
 
-        $gameType = MainCategory::where('game_type_id',$game_type_id)->where('status', 'active')->latest()->get()->map(function ($item) {
+        $gameType = MainCategory::where('game_type_id',$game_type_id)->where('status', 'active')->get()->map(function ($item) {
             $item->main_category_selected = false;
             return $item;
         });
