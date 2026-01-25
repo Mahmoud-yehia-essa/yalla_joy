@@ -1838,13 +1838,28 @@ public function getQuestionApi($id)
 
 
 
-        public function getQuestionAnswerApi($id)
+        // public function getQuestionAnswerApi($id)
+        // {
+
+        //     $answer = Answer::where('question_id', $id)->get()->first();
+
+        // return response()->json($answer);
+        // }
+
+
+
+         public function getQuestionAnswerApi(Request $request)
         {
+
+
+        $id = $request->id;
 
             $answer = Answer::where('question_id', $id)->get()->first();
 
         return response()->json($answer);
         }
+
+
 
 
 

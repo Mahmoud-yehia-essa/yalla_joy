@@ -67,7 +67,12 @@ Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 
 
-Route::get('/answer/{id}',[QuestionController::class,'getQuestionAnswerApi']);
+
+
+//old get Answer
+// Route::get('/answer/{id}',[QuestionController::class,'getQuestionAnswerApi']);
+// new get ansewer
+Route::post('/answer',[QuestionController::class,'getQuestionAnswerApi']);
 
 
 // After getting api key
