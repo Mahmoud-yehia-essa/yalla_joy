@@ -1,41 +1,42 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdsController;
-use App\Http\Controllers\GameController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ExcelController;
-use App\Http\Controllers\LevelController;
-use App\Http\Controllers\PriceController;
-use App\Http\Controllers\CouponController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\PayMentController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RankingController;
-use App\Http\Controllers\SponsorController;
+use App\Http\Controllers\AdsController;
+use App\Http\Controllers\AppVersionController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExcelController;
+use App\Http\Controllers\GameBundleController;
 use App\Http\Controllers\GameCoinController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameelEmentController;
+use App\Http\Controllers\GameHelperController;
 use App\Http\Controllers\GameItemController;
+use App\Http\Controllers\GameOfflinePriceController;
 use App\Http\Controllers\GameTypeController;
 use App\Http\Controllers\ItemTypeController;
 use App\Http\Controllers\LandPageController;
-use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\UserGameController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AppVersionController;
-use App\Http\Controllers\GameBundleController;
-use App\Http\Controllers\GameHelperController;
-use App\Http\Controllers\QuestionAIController;
-use App\Http\Controllers\GameelEmentController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\MainCategoryController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\TitlePositionController;
-use App\Http\Controllers\PointWithCointController;
-use App\Http\Controllers\RewardsSponsorController;
-use App\Http\Controllers\GameOfflinePriceController;
 use App\Http\Controllers\NotificationDashboardController;
+use App\Http\Controllers\OnlineGameController;
+use App\Http\Controllers\PayMentController;
+use App\Http\Controllers\PointWithCointController;
+use App\Http\Controllers\PriceController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuestionAIController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RewardsSponsorController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SponsorController;
+use App\Http\Controllers\TitlePositionController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserGameController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -951,5 +952,10 @@ Route::get('/payment', [PayMentController::class, 'showPaymentPage']);
 
 
 Route::get('/soon', [LandPageController::class, 'comingSoon'])->name('coming.soon');;
+
+
+
+Route::get('/use/joined/by/session/{gameSessionName}', [OnlineGameController::class, 'getOnlineGameInfo'])->name('Online.game.info');;
+
 
 require __DIR__.'/auth.php';

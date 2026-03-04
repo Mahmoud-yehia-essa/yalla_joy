@@ -1861,6 +1861,408 @@ public function getQuestionApi($id)
 
 
 
+        //   public function getQuestionAnswerOnlineApi(Request $request)
+        // {
+        // $id = $request->id;
+
+        //     $answer = AnswerQuestionOnline::where('question_id', $id)->get();
+
+        // return response()->json($answer);
+        // }
+
+
+        public function getQuestionAnswerOnlineApi(Request $request)
+{
+    $id = $request->id;
+
+    // جلب الإجابات بترتيب ثابت (مثلاً حسب id)
+    $answers = AnswerQuestionOnline::where('question_id', $id)
+        ->orderBy('id')
+        ->get();
+
+    // لو في إجابات
+    if ($answers->isNotEmpty()) {
+        // أول إجابة هي الصحيحة
+        $answers->first()->is_correct = 1;
+
+        // باقي الإجابات خطأ
+        $answers->skip(1)->each(function ($answer) {
+            $answer->is_correct = 0;
+        });
+    }
+
+    // ترتيب عشوائي قبل الإرجاع
+    $answers = $answers->shuffle()->values();
+
+    return response()->json($answers);
+}
+
+
+
+
+
+// public function createGameSessionQuestions(Request $request)
+// {
+
+// // return "ss";
+//     $sessionId = $request->input('session_id');
+//         $categoryId = $request->input('category_id');
+
+
+//     if (!$sessionId) {
+//         return response()->json(['error' => 'session_id is required'], 422);
+//     }
+
+//     // هل الأسئلة محفوظة مسبقًا لهذه الجلسة؟
+//     $existingQuestions = \DB::table('game_session_questions')
+//         ->where('session_id', $sessionId)
+//         ->orderBy('order')
+//         ->pluck('question_id');
+
+//     if ($existingQuestions->isNotEmpty()) {
+//         // جلب نفس الأسئلة
+//         $questions = Question::whereIn('id', $existingQuestions)
+//             ->get()
+//             ->sortBy(function ($q) use ($existingQuestions) {
+//                 return $existingQuestions->search($q->id);
+//             })
+//             ->values();
+//     } else {
+//         // توليد أسئلة جديدة لأول مرة
+//         $questions_200 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 200)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions_400 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 400)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions_600 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 600)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions = $questions_200
+//             ->merge($questions_400)
+//             ->merge($questions_600)
+//             ->values();
+
+//         // حفظ الأسئلة للجلسة
+//         foreach ($questions as $index => $question) {
+//             \DB::table('game_session_questions')->insert([
+//                 'session_id' => $sessionId,
+//                 'question_id' => $question->id,
+//                 'order' => $index,
+//                 'created_at' => now(),
+//                 'updated_at' => now(),
+//             ]);
+//         }
+//     }
+
+//     // إضافة القيم الافتراضية
+//     $questions = $questions->map(function ($question) {
+//         $question->is_user_answer = false;
+//         $question->who_answer = 0;
+//         return $question;
+//     });
+
+//     return response()->json($questions);
+// }
+
+
+
+
+
+
+// public function createGameSessionQuestions(Request $request)
+// {
+//     // $sessionId = $request->input('session_id');
+
+//         $sessionId = $request->input('session_id');
+//         $categoryId = $request->input('category_id');
+
+//     if (!$sessionId) {
+//         return response()->json(['error' => 'session_id is required'], 422);
+//     }
+
+//     // 1️⃣ هل هذه الفئة لها أسئلة محفوظة في نفس الجلسة؟
+//     $questionIds = DB::table('game_session_question_onlines')
+//         ->where('session_id', $sessionId)
+//         ->where('category_id', $categoryId)
+//         ->orderBy('question_order')
+//         ->pluck('question_id');
+
+//     if ($questionIds->isNotEmpty()) {
+
+//         // 2️⃣ جلب نفس الأسئلة بنفس الترتيب
+//         $questions = Question::whereIn('id', $questionIds)
+//             ->get()
+//             ->sortBy(fn ($q) => $questionIds->search($q->id))
+//             ->values();
+
+//     } else {
+
+//         // 3️⃣ إنشاء أسئلة جديدة لهذا التصنيف فقط
+//         $questions_200 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 200)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions_400 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 400)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions_600 = Question::where('category_id', $categoryId)
+//             ->where('qu_points', 600)
+//             ->inRandomOrder()
+//             ->take(2)
+//             ->get();
+
+//         $questions = $questions_200
+//             ->merge($questions_400)
+//             ->merge($questions_600)
+//             ->values();
+
+//         // 4️⃣ حفظها للجلسة + التصنيف
+//         foreach ($questions as $index => $question) {
+//             DB::table('game_session_question_onlines')->insert([
+//                 'session_id'     => $sessionId,
+//                 'category_id'    => $categoryId,
+//                 'question_id'    => $question->id,
+//                 'question_order' => $index,
+//                 'created_at'     => now(),
+//                 'updated_at'     => now(),
+//             ]);
+//         }
+//     }
+
+//     // 5️⃣ قيم افتراضية
+//     $questions = $questions->map(function ($question) {
+//         $question->is_user_answer = false;
+//         $question->who_answer = 0;
+//         return $question;
+//     });
+
+//     return response()->json($questions);
+// }
+
+
+
+public function createGameSessionQuestions(Request $request)
+{
+    // $sessionId = $request->input('session_id');
+
+        $sessionId = $request->input('session_id');
+        $categoryId = $request->input('category_id');
+
+    if (!$sessionId) {
+        return response()->json(['error' => 'session_id is required'], 422);
+    }
+
+    // 1️⃣ هل هذه الفئة لها أسئلة محفوظة في نفس الجلسة؟
+    $questionIds = DB::table('game_session_question_onlines')
+        ->where('session_id', $sessionId)
+        ->where('category_id', $categoryId)
+        ->orderBy('question_order')
+        ->pluck('question_id');
+
+    if ($questionIds->isNotEmpty()) {
+
+        // 2️⃣ جلب نفس الأسئلة بنفس الترتيب
+        $questions = Question::whereIn('id', $questionIds)
+            ->get()
+            ->sortBy(fn ($q) => $questionIds->search($q->id))
+            ->values();
+
+    } else {
+
+        // 3️⃣ إنشاء أسئلة جديدة لهذا التصنيف فقط
+        $questions_200 = Question::where('category_id', $categoryId)
+            ->where('qu_points', 200)
+            ->inRandomOrder()
+            ->take(1)
+            ->get();
+
+        $questions_400 = Question::where('category_id', $categoryId)
+            ->where('qu_points', 400)
+            ->inRandomOrder()
+            ->take(1)
+            ->get();
+
+        $questions_600 = Question::where('category_id', $categoryId)
+            ->where('qu_points', 600)
+            ->inRandomOrder()
+            ->take(1)
+            ->get();
+
+        $questions = $questions_200
+            ->merge($questions_400)
+            ->merge($questions_600)
+            ->values();
+
+        // 4️⃣ حفظها للجلسة + التصنيف
+        foreach ($questions as $index => $question) {
+            DB::table('game_session_question_onlines')->insert([
+                'session_id'     => $sessionId,
+                'category_id'    => $categoryId,
+                'question_id'    => $question->id,
+                'question_order' => $index,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+    }
+
+    // 5️⃣ قيم افتراضية
+    $questions = $questions->map(function ($question) {
+        $question->is_user_answer = false;
+        $question->who_answer = 0;
+        return $question;
+    });
+
+    return response()->json($questions);
+}
+
+
+
+
+
+
+// public function getGameSessionQuestions(Request $request)
+// {
+//     $sessionId = $request->input('session_id');
+
+//     if (!$sessionId) {
+//         return response()->json(['error' => 'session_id is required'], 422);
+//     }
+
+//     // 1️⃣ جلب كل question_ids الخاصة بالجلسة مرتبة
+//     $questionIds = DB::table('game_session_question_onlines')
+//         ->where('session_id', $sessionId)
+//         ->orderBy('category_id')
+//         ->orderBy('question_order')
+//         ->pluck('question_id');
+
+//     if ($questionIds->isEmpty()) {
+//         return response()->json([]);
+//     }
+
+//     // 2️⃣ جلب الأسئلة بنفس الترتيب
+//     $questions = Question::whereIn('id', $questionIds)
+//         ->get()
+//         ->sortBy(fn ($q) => $questionIds->search($q->id))
+//         ->values();
+
+//     // 3️⃣ إضافة القيم الافتراضية
+//     $questions = $questions->map(function ($question) {
+//         $question->is_user_answer = false;
+//         $question->who_answer = 0;
+//         return $question;
+//     });
+
+//     return response()->json($questions);
+// }
+
+public function getGameSessionQuestions(Request $request)
+{
+    $sessionId = $request->input('session_id');
+
+    if (!$sessionId) {
+        return response()->json([
+            'status' => false,
+            'message' => 'session_id is required',
+            'data' => null
+        ], 422);
+    }
+
+    $questions = DB::table('game_session_question_onlines as gsq')
+        ->join('questions as q', 'gsq.question_id', '=', 'q.id')
+        ->join('categories as c', 'gsq.category_id', '=', 'c.id')
+        ->where('gsq.session_id', $sessionId)
+        ->orderBy('gsq.category_id')
+        ->orderBy('gsq.question_order')
+        ->select(
+            'q.*',
+            'gsq.category_id',
+            'gsq.question_order',
+            'c.category_name',
+            'c.category_name_en',
+            'c.category_photo'
+        )
+        ->get();
+
+    if ($questions->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'No questions found for this session',
+            'data' => []
+        ]);
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Game session questions fetched successfully',
+        'data' => $questions
+    ]);
+}
+
+public function getQuestionOnlineApi(Request $request )
+{
+
+$id =  $request->id;
+    // Fetch 2 random questions for each qu_points category
+    $questions_200 = Question::where('category_id', $id)
+        ->where('qu_points', 200)
+        ->inRandomOrder()
+        ->take(2)
+        ->get();
+
+    $questions_400 = Question::where('category_id', $id)
+        ->where('qu_points', 400)
+        ->inRandomOrder()
+        ->take(2)
+        ->get();
+
+    $questions_600 = Question::where('category_id', $id)
+        ->where('qu_points', 600)
+        ->inRandomOrder()
+        ->take(2)
+        ->get();
+
+    // Merge in the required order: 200, 200, 400, 400, 600, 600
+    $qu = $questions_200->merge($questions_400)->merge($questions_600);
+
+    // If less than 6 questions, fill missing ones from other available questions
+    // if ($qu->count() < 6) {
+    //     $extra_questions = Question::where('category_id', $id)
+    //         ->whereNotIn('id', $qu->pluck('id')) // Exclude already selected
+    //         ->inRandomOrder()
+    //         ->take(6 - $qu->count())
+    //         ->get();
+
+    //     $qu = $qu->merge($extra_questions);
+    // }
+
+    // Map and return in the correct order
+    $qu = $qu->map(function ($question) {
+        $question->is_user_answer = false;
+        $question->who_answer = 0;
+        return $question;
+    });
+
+    return response()->json($qu->values()); // Ensure proper indexing
+}
+
+
+
 
 
 }

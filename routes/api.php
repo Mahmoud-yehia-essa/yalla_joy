@@ -1,22 +1,23 @@
 <?php
 
+use App\Http\Controllers\AppVersionController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameHelperController;
+use App\Http\Controllers\GameOfflinePriceController;
+use App\Http\Controllers\GameTypeController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\MainCategoryController;
+use App\Http\Controllers\OnlineGameController;
+use App\Http\Controllers\PriceController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\SponsorController;
+use App\Http\Controllers\UserCoinController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\GameController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\LevelController;
-use App\Http\Controllers\PriceController;
-use App\Http\Controllers\CouponController;
-use App\Http\Controllers\SponsorController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\GameTypeController;
-use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\UserCoinController;
-use App\Http\Controllers\AppVersionController;
-use App\Http\Controllers\GameHelperController;
-use App\Http\Controllers\SocialLoginController;
-use App\Http\Controllers\MainCategoryController;
-use App\Http\Controllers\GameOfflinePriceController;
 
 
 
@@ -65,6 +66,7 @@ Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 
 
 Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
+Route::post('/game/session/questions',[QuestionController::class,'createGameSessionQuestions']);
 
 
 
@@ -73,7 +75,9 @@ Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 // Route::get('/answer/{id}',[QuestionController::class,'getQuestionAnswerApi']);
 // new get ansewer
 Route::post('/answer',[QuestionController::class,'getQuestionAnswerApi']);
+Route::post('/answer/online',[QuestionController::class,'getQuestionAnswerOnlineApi']);
 
+// Route::get('/answer/online/{id}',[QuestionController::class,'getQuestionAnswerOnlineApi']);
 
 // After getting api key
 
@@ -153,6 +157,33 @@ Route::post('update/coins-numbers', [UserCoinController::class, 'updateCoinsNumb
 Route::get('get/game-offline-price',[GameOfflinePriceController::class,'getAllGameOfflinePrice']);
 
 
+
+
+
+
+
+
+
+
+Route::post('add/online/game/info',[OnlineGameController::class,'addGameOnlineInfo']);
+
+Route::post('add/online/game/category',[OnlineGameController::class,'addOnlineGameCategory']);
+
+Route::post('add/online/game/users',[OnlineGameController::class,'addOnlineGameUsers']);
+
+
+Route::post('get/online/game/info',[OnlineGameController::class,'getGameOnlineInfoApi']);
+Route::post('get/online/game/category',[OnlineGameController::class,'getCategoryApiByOnlineGameInfoId']);
+
+
+Route::post('get/question/online',[QuestionController::class,'getQuestionOnlineApi']);
+
+Route::post('get/game/session/question/online',[QuestionController::class,'getGameSessionQuestions']);
+
+
+
+Route::post('add/online/game/points',[OnlineGameController::class,'addPoints']);
+Route::post('top/online/users/points',[OnlineGameController::class,'topUsersByOnlinePoints']);
 
 
 
