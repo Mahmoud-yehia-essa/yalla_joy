@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Intervention\Image;
 
+use Error;
+use Intervention\Image\Exceptions\NotSupportedException;
+
 enum MediaType: string
 {
     case IMAGE_JPEG = 'image/jpeg';
@@ -36,9 +39,55 @@ enum MediaType: string
     case IMAGE_HEIF = 'image/heif';
 
     /**
-     * Return the matching format for the current media (MIME) type
+     * Create media type from given identifier
      *
-     * @return Format
+     * @param string|Format|MediaType|FileExtension $identifier
+     * @throws NotSupportedException
+     */
+    public static function create(string|self|Format|FileExtension $identifier): self
+    {
+        if ($identifier instanceof self) {
+            return $identifier;
+        }
+
+        if ($identifier instanceof Format) {
+            return $identifier->mediaType();
+        }
+
+        if ($identifier instanceof FileExtension) {
+            return $identifier->mediaType();
+        }
+
+        try {
+            $type = self::from(strtolower($identifier));
+        } catch (Error) {
+            try {
+                $type = FileExtension::from(strtolower($identifier))->mediaType();
+            } catch (Error) {
+                throw new NotSupportedException('Unable to create media type from "' . $identifier . '".');
+            }
+        }
+
+        return $type;
+    }
+
+    /**
+     * Try to create media type from given identifier and return null on failure
+     *
+     * @param string|Format|MediaType|FileExtension $identifier
+     * @return MediaType|null
+     */
+    public static function tryCreate(string|self|Format|FileExtension $identifier): ?self
+    {
+        try {
+            return self::create($identifier);
+        } catch (NotSupportedException) {
+            return null;
+        }
+    }
+
+    /**
+     * Return the matching format for the current media (MIME) type
      */
     public function format(): Format
     {
@@ -86,8 +135,6 @@ enum MediaType: string
 
     /**
      * Return the first file extension for the current media type
-     *
-     * @return FileExtension
      */
     public function fileExtension(): FileExtension
     {

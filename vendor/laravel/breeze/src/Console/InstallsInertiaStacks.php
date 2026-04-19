@@ -24,7 +24,7 @@ trait InstallsInertiaStacks
             return [
                 '@inertiajs/vue3' => '^2.0.0',
                 '@tailwindcss/forms' => '^0.5.3',
-                '@vitejs/plugin-vue' => '^5.0.0',
+                '@vitejs/plugin-vue' => '^6.0.0',
                 'autoprefixer' => '^10.4.12',
                 'postcss' => '^8.4.31',
                 'tailwindcss' => '^3.2.1',
@@ -181,7 +181,7 @@ trait InstallsInertiaStacks
             $this->runCommands(['pnpm install', 'pnpm run build']);
         } elseif (file_exists(base_path('yarn.lock'))) {
             $this->runCommands(['yarn install', 'yarn run build']);
-        } elseif (file_exists(base_path('bun.lockb'))) {
+        } elseif (file_exists(base_path('bun.lock')) || file_exists(base_path('bun.lockb'))) {
             $this->runCommands(['bun install', 'bun run build']);
         } else {
             $this->runCommands(['npm install', 'npm run build']);
@@ -401,7 +401,7 @@ trait InstallsInertiaStacks
             $this->runCommands(['pnpm install', 'pnpm run build']);
         } elseif (file_exists(base_path('yarn.lock'))) {
             $this->runCommands(['yarn install', 'yarn run build']);
-        } elseif (file_exists(base_path('bun.lockb'))) {
+        } elseif (file_exists(base_path('bun.lockb')) || file_exists(base_path('bun.lock'))) {
             $this->runCommands(['bun install', 'bun run build']);
         } elseif (file_exists(base_path('deno.lock'))) {
             $this->runCommands(['deno install', 'deno task build']);

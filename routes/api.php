@@ -42,6 +42,9 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/register/email',[UserController::class,'registerApi']);
 
+Route::post('/validate/register',[UserController::class,'validateRegisterApi']);
+
+
 
 
 Route::get('/game/type',[GameTypeController::class,'getGameTypeApi']);
@@ -184,6 +187,11 @@ Route::post('get/game/session/question/online',[QuestionController::class,'getGa
 
 Route::post('add/online/game/points',[OnlineGameController::class,'addPoints']);
 Route::post('top/online/users/points',[OnlineGameController::class,'topUsersByOnlinePoints']);
+
+
+ Route::post('social/login',[UserController::class,'socialLoginApi']);
+
+
 
 
 

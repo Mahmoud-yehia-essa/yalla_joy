@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
 
+use Kreait\Laravel\Firebase\Facades\Firebase;
+use Illuminate\Support\Str;
+
 
 class UserController extends Controller
 {
@@ -334,6 +337,8 @@ $request->validate($rules, [
     }
 
 
+
+    /*
     public function registerApi(Request $request) {
         // Check if email already exists
         if (User::where('email', $request->email)->exists()) {
@@ -369,9 +374,262 @@ $request->validate($rules, [
 
         return response()->json([
             'success' => false,
-            'message' => 'Registration failed'
+            'message' => 'فشل التسجيل'
         ], 500);
     }
+        */
+
+    /*
+
+    public function registerApi(Request $request) {
+
+
+        // 1. التحقق من البريد الإلكتروني (فقط إذا تم إرساله لتجنب مشاكل Apple التي قد تخفي الإيميل أحياناً)
+        if ($request->filled('email')) {
+            if (User::where('email', $request->email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email already exists'
+                ], 409); // 409 Conflict status code
+            }
+        }
+
+        $passwordToSave = '';
+
+        // 2. التحقق الأمني لتسجيل الدخول الاجتماعي (Google & Apple)
+        if ($request->filled('provider') && $request->filled('firebase_token')) {
+            try {
+                $auth = Firebase::auth();
+                $verifiedIdToken = $auth->verifyIdToken($request->firebase_token);
+                $uid = $verifiedIdToken->claims()->get('sub');
+
+                $firebaseEmail = $auth->getUser($uid)->email;
+
+                // مطابقة إيميل فايربيز مع الإيميل المرسل من التطبيق لضمان الأمان
+                if (!$request->filled('email') || strtolower($firebaseEmail) !== strtolower($request->email)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'بيانات البريد غير متطابقة، تم رفض الطلب أمنياً.'
+                    ], 403);
+                }
+
+                // تعيين كلمة مرور عشوائية قوية للمسجلين عبر جوجل وآبل
+                // $passwordToSave = Hash::make(\Illuminate\Support\Str::random(24));
+                            $passwordToSave = Hash::make($request->password);
+
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'توكن فايربيز غير صالح أو منتهي الصلاحية'
+                ], 401);
+            }
+        } else {
+            // 3. التسجيل العادي (الاحتفاظ بالمنطق الأصلي)
+            $passwordToSave = Hash::make($request->password);
+        }
+
+        // 4. إنشاء المستخدم
+        try {
+            $userCreated = User::create([
+                'fname' => $request->fname,
+                'lname' => $request->lname,
+                'email' => $request->filled('email') ? $request->email : null,
+                'phone' => $request->phone,
+                'password' => $passwordToSave,
+                'photo' => $request->photo,
+                'is_game_free' => 'paid',
+
+                // يمكنك إزالة هذين السطرين إذا لم تكن هذه الحقول موجودة في جدول Users في قاعدة البيانات
+                'provider' => $request->filled('provider') ? $request->provider : null,
+                'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
+            ]);
+
+            if ($userCreated) {
+                $token = $userCreated->createToken('ourapptoken')->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Registration successful',
+                    'user' => $userCreated,
+                    'token' => $token
+                ], 201);
+            }
+        } catch (\Exception $e) {
+            // إضافة Try Catch هنا مهمة جداً لاصطياد أي خطأ في قاعدة البيانات بدلاً من تعطل التطبيق
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'فشل التسجيل'
+        ], 500);
+    }
+        */
+
+
+
+
+public function validateRegisterApi(Request $request)
+{
+    // 1. التحقق من اسم المستخدم
+    if (!$request->filled('user_name')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'اسم المستخدم مطلوب'
+        ], 200);
+    }
+
+    $userName = strtolower(trim($request->user_name));
+    if (User::where('user_name', $userName)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'اسم المستخدم موجود بالفعل'
+        ], 200);
+    }
+
+    // 2. التحقق من البريد الإلكتروني
+    if ($request->filled('email')) {
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'البريد الإلكتروني موجود بالفعل'
+            ], 200);
+        }
+    }
+
+    // 3. التحقق من رقم الهاتف
+    if ($request->filled('phone')) {
+        if (User::where('phone', $request->phone)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'رقم الهاتف موجود بالفعل'
+            ], 200);
+        }
+    }
+
+    // إذا وصلنا هنا، يعني البيانات سليمة تماماً
+    return response()->json([
+        'success' => true,
+        'message' => 'البيانات سليمة ومتاحة للتسجيل'
+    ], 200);
+}
+
+
+    public function registerApi(Request $request)
+{
+    // 1. التحقق من اسم المستخدم (إجباري + غير مكرر)
+    if (!$request->filled('user_name')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'اسم المستخدم مطلوب'
+        ], 200);
+    }
+
+    $userName = strtolower(trim($request->user_name));
+
+    if (User::where('user_name', $userName)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'اسم المستخدم موجود بالفعل'
+        ], 200);
+    }
+
+    // 2. التحقق من البريد الإلكتروني (لو موجود)
+    if ($request->filled('email')) {
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'البريد الإلكتروني موجود بالفعل'
+            ], 200);
+        }
+    }
+
+    // 3. التحقق من رقم الهاتف (لو موجود)
+    if ($request->filled('phone')) {
+        if (User::where('phone', $request->phone)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'رقم الهاتف موجود بالفعل'
+            ], 200);
+        }
+    }
+
+    $passwordToSave = '';
+
+    // 4. التحقق الأمني لتسجيل الدخول الاجتماعي
+    if ($request->filled('provider') && $request->filled('firebase_token')) {
+        try {
+            $auth = Firebase::auth();
+            $verifiedIdToken = $auth->verifyIdToken($request->firebase_token);
+            $uid = $verifiedIdToken->claims()->get('sub');
+
+            $firebaseEmail = $auth->getUser($uid)->email;
+
+            if (!$request->filled('email') || strtolower($firebaseEmail) !== strtolower($request->email)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'بيانات البريد غير متطابقة، تم رفض الطلب أمنياً.'
+                ], 200);
+            }
+
+            // كلمة مرور للمستخدمين عبر Google/Apple
+            $passwordToSave = Hash::make($request->password);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'توكن فايربيز غير صالح أو منتهي الصلاحية'
+            ], 200);
+        }
+    } else {
+        // 5. التسجيل العادي
+        $passwordToSave = Hash::make($request->password);
+    }
+
+    // 6. إنشاء المستخدم
+    try {
+        $userCreated = User::create([
+            'fname' => $request->fname,
+            'lname' => $request->lname,
+            'user_name' => $userName, // ✅ بعد الـ normalize
+            'email' => $request->filled('email') ? $request->email : null,
+            'phone' => $request->phone,
+            'password' => $passwordToSave,
+            'photo' => $request->photo,
+            'is_game_free' => 'paid',
+            'provider' => $request->filled('provider') ? $request->provider : null,
+            'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
+        ]);
+
+        if ($userCreated) {
+            $token = $userCreated->createToken('ourapptoken')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم التسجيل بنجاح',
+                'user' => $userCreated,
+                'token' => $token
+            ], 200);
+        }
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'فشل التسجيل',
+            'error' => $e->getMessage()
+        ], 200);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'فشل التسجيل'
+    ], 200);
+}
 
 
     public function uploadUpadteImageApi(Request $request,$user_id)
@@ -476,6 +734,64 @@ $request->validate($rules, [
 
 
     }
+
+
+
+        public function socialLoginApi(Request $request) {
+    // 1. التحقق من وصول التوكن من فلاتر
+    $request->validate([
+        'firebase_token' => 'required|string',
+        'provider' => 'nullable|string'
+    ]);
+
+    try {
+        // 2. فحص التوكن عبر Firebase
+        $auth = Firebase::auth();
+        $verifiedIdToken = $auth->verifyIdToken($request->firebase_token);
+
+        $uid = $verifiedIdToken->claims()->get('sub');
+        $userRecord = $auth->getUser($uid);
+        $email = $userRecord->email;
+
+        // 3. البحث عن المستخدم في قاعدة البيانات
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            // 🟢 الحالة الأولى: المستخدم مسجل مسبقاً (تم الدخول بنجاح)
+            $token = $user->createToken('ourapptoken')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'is_new_user' => false,
+                'message' => 'Login successful',
+                'user' => $user,
+                'token' => $token
+            ], 200);
+
+        } else {
+            // 🟡 الحالة الثانية: المستخدم جديد (نحتاج رقم الهاتف من فلاتر)
+            return response()->json([
+                'success' => true,
+                'is_new_user' => true,
+                'message' => 'Needs phone number to complete registration',
+                'google_data' => [
+                    'name' => $userRecord->displayName,
+                    'email' => $email,
+                    'avatar' => $userRecord->photoUrl ?? null
+                ]
+            ], 200);
+        }
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid or expired Firebase token',
+            'error_details' => $e->getMessage() // 👈 أضفنا هذا السطر لكشف الخطأ
+        ], 401);
+    }
+}
+
+
 
     public function getUserByEmail($email)
     {

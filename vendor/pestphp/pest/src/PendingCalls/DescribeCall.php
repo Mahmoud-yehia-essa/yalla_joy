@@ -72,13 +72,13 @@ final class DescribeCall
     {
         $filename = Backtrace::file();
 
-        if (! $this->currentBeforeEachCall instanceof \Pest\PendingCalls\BeforeEachCall) {
+        if (! $this->currentBeforeEachCall instanceof BeforeEachCall) {
             $this->currentBeforeEachCall = new BeforeEachCall(TestSuite::getInstance(), $filename);
 
             $this->currentBeforeEachCall->describing[] = $this->description;
         }
 
-        $this->currentBeforeEachCall->{$name}(...$arguments); // @phpstan-ignore-line
+        $this->currentBeforeEachCall->{$name}(...$arguments);
 
         return $this;
     }
