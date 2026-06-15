@@ -102,26 +102,35 @@
                                 </div>
 
 
-                                      <!-- category special-->
-                                      {{-- <div class="row mb-3">
+                                    <!-- category is_kids -->
+                                    <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <h6 class="mb-0">هل الفئة مميزة؟</h6>
+                                            <h6 class="mb-0">هل هذا النوع خاص بالأطفال؟</h6>
                                         </div>
                                         <div class="col-sm-9 text-secondary">
-
-
-                                            <select  name="special" class="form-select" aria-label="Default select example">
-
-                                                <option value="inactive" >لا</option>
-
-                                                <option value="active" >نعم</option>
-
-
-                                            </select>
-
-                                            @error('category_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                            <div class="form-check form-switch">
+                                                <input type="hidden" name="is_kids" value="0">
+                                                <input class="form-check-input" type="checkbox" name="is_kids" value="1" id="isKidsSwitch" style="transform: scale(1.5); margin-right: 10px;">
+                                                <label class="form-check-label" for="isKidsSwitch" style="margin-right: 10px;">نعم / لا</label>
+                                            </div>
+                                            @error('is_kids') <span class="text-danger">{{ $message }}</span> @enderror
                                         </div>
-                                    </div> --}}
+                                    </div>
+
+                                    <!-- category is_term -->
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <h6 class="mb-0">هل يوجد ترم اخر ؟</h6>
+                                        </div>
+                                        <div class="col-sm-9 text-secondary">
+                                            <div class="form-check form-switch">
+                                                <input type="hidden" name="is_term" value="0">
+                                                <input class="form-check-input" type="checkbox" name="is_term" value="1" id="isTermSwitch" style="transform: scale(1.5); margin-right: 10px;">
+                                                <label class="form-check-label" for="isTermSwitch" style="margin-right: 10px;">نعم / لا</label>
+                                            </div>
+                                            @error('is_term') <span class="text-danger">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
 
                                 <!-- Submit Button -->
                                 <div class="row">

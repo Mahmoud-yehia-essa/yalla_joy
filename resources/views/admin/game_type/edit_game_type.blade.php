@@ -115,6 +115,36 @@
 
 
 
+                                <!-- category is_kids -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">هل هذا النوع خاص بالأطفال؟</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="is_kids" value="0">
+                                            <input class="form-check-input" type="checkbox" name="is_kids" value="1" id="isKidsSwitch" {{ old('is_kids', $gameType->is_kids) == 1 ? 'checked' : '' }} style="transform: scale(1.5); margin-right: 10px;">
+                                            <label class="form-check-label" for="isKidsSwitch" style="margin-right: 10px;">نعم / لا</label>
+                                        </div>
+                                        @error('is_kids') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- category is_term -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">هل يوجد ترم اخر ؟</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="is_term" value="0">
+                                            <input class="form-check-input" type="checkbox" name="is_term" value="1" id="isTermSwitch" {{ old('is_term', $gameType->is_term) == 1 ? 'checked' : '' }} style="transform: scale(1.5); margin-right: 10px;">
+                                            <label class="form-check-label" for="isTermSwitch" style="margin-right: 10px;">نعم / لا</label>
+                                        </div>
+                                        @error('is_term') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Submit Button -->
                                 <div class="row">
                                     <div class="col-sm-3"></div>

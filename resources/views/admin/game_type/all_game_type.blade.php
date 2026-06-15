@@ -79,12 +79,16 @@
 <a href="{{route('edit.game.type',$item->id)}}" class="btn btn-info">تعديل</a>
 <a href="{{ route('delete.game.type',$item->id) }}" class="btn btn-danger" id="delete" >حذف</a>
 
-{{-- @if($item->special == 'active')
-
-<img  title="مميز" style="width: 30px; height:30px;" src="{{asset('backend/assets/images/logo-icon.png')}}" >
-
-
-@endif --}}
+@if($item->is_kids == 1)
+<span class="badge bg-success" title="للأطفال">
+    <i class="fa-solid fa-child"></i> للأطفال
+</span>
+@endif
+@if($item->is_term == 1)
+<span class="badge bg-info" title="يوجد ترم اخر">
+    <i class="fa-solid fa-plus"></i> ترم اخر
+</span>
+@endif
 </td>
 </tr>
 @endforeach

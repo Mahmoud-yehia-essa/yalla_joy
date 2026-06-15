@@ -56,9 +56,11 @@
 <td>{{ $item->mainCategory->main_category_name }} - {{ $item->mainCategory->id }} </td>
 
 <td>{{ $item->category_name }} -  {{ $item->id }}</td>
-<td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
-    {{count($item->questions)}}
-</span></td>
+<td style="width: 50px; font-size: 1.1rem;">
+    <a href="{{ route('all.question', ['category_id' => $item->id]) }}" class="badge bg-info text-dark" style="font-size: 14px;">
+        {{count($item->questions)}}
+    </a>
+</td>
 
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-danger">
     {{$item->how_many_use}}

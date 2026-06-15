@@ -45,7 +45,7 @@
 <th>الفئة الرئيسية</th>
 <th>عدد الفئات الفرعية</th>
 
-<th> الصورة</th>
+{{-- <th> الصورة</th> --}}
 <th>الاجراء</th>
 </tr>
 </thead>
@@ -68,7 +68,7 @@
 
 
 
-<td> <img onclick="showImageModal(this.src)" src="{{ asset($item->main_category_photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
+{{-- <td> <img onclick="showImageModal(this.src)" src="{{ asset($item->main_category_photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td> --}}
 
 <td>
 
@@ -115,7 +115,7 @@
 <th>الفئة الرئيسية</th>
 <th>عدد الفئات في النوع</th>
 
-<th> الصورة</th>
+{{-- <th> الصورة</th> --}}
 <th>الاجراء</th>
 </tr>
 </tfoot>

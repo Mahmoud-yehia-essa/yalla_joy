@@ -51,7 +51,7 @@ class MainCategoryController extends Controller
             'main_category_description' => 'nullable|string',
                         'main_category_description_en' => 'nullable|string',
 
-            'main_category_photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'main_category_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ], [
             'main_category_name.required' => '⚠️ الرجاء اضافة الفئة الرئيسية',
             'main_category_name_en.required' => '⚠️ الرجاء اضافة الفئة الرئيسية بالانجليزية',

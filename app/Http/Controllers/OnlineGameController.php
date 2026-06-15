@@ -15,21 +15,37 @@ class OnlineGameController extends Controller
 //api
     public function addGameOnlineInfo(Request $request)
     {
+        // Search for an existing waiting search game
+        $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
+            ->where('game_online_type', 'search')
+            ->first();
 
+        if ($existingGame) {
+            // Update the existing game to 'matched'
+            $existingGame->update([
+                'game_online_state' => 'matched'
+            ]);
 
+            return response()->json([
+                'onlineGameInfo_id' => $existingGame->id,
+                'game_session_name' => $existingGame->game_session_name
+            ], 200);
+        }
 
-
-        $onlineGameInfoId =  OnlineGameInfo::create([
+        // If no waiting search game is found, create a new one
+        $onlineGameInfo = OnlineGameInfo::create([
             'created_user_id' => $request->created_user_id,
-            'online_game_name'=>$request->online_game_name,
+            'online_game_name' => $request->online_game_name,
             'users_count' => $request->users_count,
-            'game_session_name' => $request->game_session_name,]);
+            'game_session_name' => $request->game_session_name,
+            'game_online_type' => $request->game_online_type,
+            'game_online_state' => $request->game_online_state,
+        ]);
 
-            $onlineGameInfoId = $onlineGameInfoId->id;
-
-            // Get questionsRegisterId
-            return response()->json(['onlineGameInfo_id' => $onlineGameInfoId], 200);
-
+        return response()->json([
+            'onlineGameInfo_id' => $onlineGameInfo->id,
+            'game_session_name' => $onlineGameInfo->game_session_name
+        ], 200);
     }
 
 
@@ -256,7 +272,145 @@ public function topUsersByOnlinePoints(Request $request)
         'data' => $users
     ]);
 }
+    public function addOnlineWin(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
+        $user = User::findOrFail($request->user_id);
 
+        // إضافة فوز جديد
+        $user->increment('online_game_wins');
+        $wins = $user->online_game_wins;
+
+        // جلب الرتب مع العلاقات
+        $rankings = \App\Models\RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])->orderBy('rank_order', 'asc')->get();
+
+        $currentRank = null;
+        $previousRank = null;
+        $baselineWins = 0;
+
+        foreach ($rankings as $rank) {
+            if ($wins < $rank->total_wins_to_next_rank) {
+                $currentRank = $rank;
+                break;
+            }
+            $previousRank = $rank;
+            $baselineWins = $rank->total_wins_to_next_rank;
+        }
+
+        if (!$currentRank) {
+            $currentRank = $rankings->last();
+        }
+
+        $winsInCurrentRank = $wins - $baselineWins;
+
+        $responseMessage = 'Online win added successfully';
+        $rewardsReceived = [];
+        $currentLevelNum = 1;
+        $upgradeType = 'none';
+
+        // تحقق من الترقية لرتبة جديدة أو مستوى جديد
+        if ($winsInCurrentRank == 0 && $baselineWins > 0) {
+            // ترقية رتبة: أتم الرتبة السابقة للتو ووصل للرتبة الحالية
+            $currentLevelNum = 1;
+            $upgradeType = 'rank_upgrade';
+            
+            if ($previousRank) {
+                // مكافأة إتمام المستوى الأخير في الرتبة السابقة
+                if ($previousRank->level_reward_amount > 0 && $previousRank->level_reward_coin_id) {
+                    $rewardsReceived[] = [
+                        'reward_type' => 'level_upgrade',
+                        'amount' => $previousRank->level_reward_amount,
+                        'coin_info' => $previousRank->levelRewardCoin
+                    ];
+                    
+                    \App\Models\UserCoin::create([
+                        'user_id' => $user->id,
+                        'game_coin_id' => $previousRank->level_reward_coin_id,
+                        'coins_number' => $previousRank->level_reward_amount,
+                        'type' => 'add'
+                    ]);
+                }
+            }
+
+            // مكافأة الوصول للرتبة الجديدة
+            if ($currentRank->rank_reward_amount > 0 && $currentRank->rank_reward_coin_id) {
+                $rewardsReceived[] = [
+                    'reward_type' => 'rank_upgrade',
+                    'amount' => $currentRank->rank_reward_amount,
+                    'coin_info' => $currentRank->rankRewardCoin
+                ];
+                
+                \App\Models\UserCoin::create([
+                    'user_id' => $user->id,
+                    'game_coin_id' => $currentRank->rank_reward_coin_id,
+                    'coins_number' => $currentRank->rank_reward_amount,
+                    'type' => 'add'
+                ]);
+            }
+            
+            $responseMessage = 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $currentRank->rank_name;
+            
+        } else {
+            // في نفس الرتبة
+            $winsToNextLevel = max(1, $currentRank->wins_to_next_level);
+            $currentLevelNum = floor($winsInCurrentRank / $winsToNextLevel) + 1;
+
+            if ($winsInCurrentRank > 0 && ($winsInCurrentRank % $winsToNextLevel) == 0) {
+                // ترقية مستوى داخل الرتبة
+                $upgradeType = 'level_upgrade';
+
+                if ($currentRank->level_reward_amount > 0 && $currentRank->level_reward_coin_id) {
+                    $rewardsReceived[] = [
+                        'reward_type' => 'level_upgrade',
+                        'amount' => $currentRank->level_reward_amount,
+                        'coin_info' => $currentRank->levelRewardCoin
+                    ];
+                    
+                    \App\Models\UserCoin::create([
+                        'user_id' => $user->id,
+                        'game_coin_id' => $currentRank->level_reward_coin_id,
+                        'coins_number' => $currentRank->level_reward_amount,
+                        'type' => 'add'
+                    ]);
+                }
+                
+                $responseMessage = 'مبروك! لقد انتقلت إلى المستوى ' . $currentLevelNum . ' في رتبة ' . $currentRank->rank_name;
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $responseMessage,
+            'online_game_wins' => $wins,
+            'upgrade_type' => $upgradeType,
+            'current_rank' => $currentRank,
+            'current_level' => [
+                'level_number' => $currentLevelNum,
+                'wins_required_for_next_level' => $currentRank->wins_to_next_level
+            ],
+            'rewards_received' => $rewardsReceived
+        ]);
+    }
+
+    public function addOnlinePlayCount(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+
+        // إضافة عدد الألعاب الملعوبة
+        $user->increment('online_play_count');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Online play count added successfully',
+            'online_play_count' => $user->online_play_count
+        ]);
+    }
 
 }

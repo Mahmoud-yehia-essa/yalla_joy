@@ -37,6 +37,7 @@
 <th>إسم الأول</th>
 <th>إسم العائلة</th>
 <th>البريد الإلكتروني</th>
+<th>تاريخ الميلاد</th>
 <th>تاريخ التسجيل</th>
 <th>طريقة التسجيل</th>
 
@@ -44,6 +45,7 @@
 <th>نقاط الاون لاين المتاحة</th>
 
 <th> الصورة</th>
+<th>حالة الصورة</th>
 <th>الاجراء</th>
 </tr>
 </thead>
@@ -54,6 +56,13 @@
 <td>{{ $item->fname }}</td>
 <td>{{ $item->lname }}</td>
 <td>{{ $item->email }}</td>
+<td>
+    @if($item->date_of_birth)
+        {{ $item->date_of_birth }} ({{ \Carbon\Carbon::parse($item->date_of_birth)->age }} سنة)
+    @else
+        لم يتم التحديد
+    @endif
+</td>
 <td>{{ $item->created_at ? $item->created_at->diffForHumans() : 'لم يتم التحديد' }}</td>
 
 <td class="text-center">
@@ -82,6 +91,35 @@
     >
 </td>
 <td>
+    @if(!empty($item->photo) && $item->photo != 'non')
+        <div class="d-flex flex-column align-items-center gap-1">
+            @if($item->photo_approval_status == 'approved')
+                <span class="badge bg-success">مقبولة</span>
+                <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-outline-danger mt-1" style="font-size: 10px; padding: 2px 5px;" title="رفض الصورة">
+                    <i class="fa-solid fa-ban"></i> رفض
+                </a>
+            @elseif($item->photo_approval_status == 'rejected')
+                <span class="badge bg-danger">مرفوضة</span>
+                <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-outline-success mt-1" style="font-size: 10px; padding: 2px 5px;" title="قبول الصورة">
+                    <i class="fa-solid fa-check"></i> قبول
+                </a>
+            @else
+                <span class="badge bg-warning text-dark">قيد الانتظار</span>
+                <div class="d-flex gap-1 mt-1">
+                    <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-success" style="font-size: 10px; padding: 2px 6px;" title="قبول الصورة">
+                        <i class="fa-solid fa-check"></i>
+                    </a>
+                    <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-danger" style="font-size: 10px; padding: 2px 6px;" title="رفض الصورة">
+                        <i class="fa-solid fa-ban"></i>
+                    </a>
+                </div>
+            @endif
+        </div>
+    @else
+        <span class="badge bg-secondary">لا توجد صورة</span>
+    @endif
+</td>
+<td>
 
 @if($item->status == 'active')
 <a href="{{ route('inactive.user',$item->id) }}" class="btn btn-primary" title="ايقاف التفعيل"> <i class="fa-solid fa-thumbs-down"></i> </a>
@@ -104,6 +142,7 @@
 <th>إسم الأول</th>
 <th>إسم العائلة</th>
 <th>البريد الإلكتروني</th>
+<th>تاريخ الميلاد</th>
 <th>تاريخ التسجيل</th>
 <th>طريقة التسجيل</th>
 
@@ -111,6 +150,7 @@
 <th>نقاط الاون لاين المتاحة</th>
 
 <th> الصورة</th>
+<th>حالة الصورة</th>
 <th>الاجراء</th>
 </tr>
 </tfoot>

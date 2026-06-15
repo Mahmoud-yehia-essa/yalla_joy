@@ -36,6 +36,17 @@ use App\Http\Controllers\SponsorController;
 use App\Http\Controllers\TitlePositionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserGameController;
+use App\Http\Controllers\ProverbController;
+use App\Http\Controllers\RankingNewController;
+use App\Http\Controllers\AnimationFeedbackController;
+use App\Http\Controllers\CouponCompanyController;
+use App\Http\Controllers\CouponCompanyUserUsedController;
+use App\Http\Controllers\AvatarCategoryController;
+use App\Http\Controllers\AvatarItemController;
+use App\Http\Controllers\FreePlanController;
+use App\Http\Controllers\GamePurchaseController;
+use App\Http\Controllers\GameCouponController;
+use App\Http\Controllers\ProblemReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,6 +55,10 @@ Route::get('/', function () {
 
     // return redirect()->route('dashboard');
 });
+
+// Public coupon display page (no auth required)
+Route::get('/coupon', [CouponCompanyController::class, 'showCouponPage'])->name('coupon.show');
+
 
 // Route::get('/dashboard', function () {
 //     return view('admin.index');
@@ -162,6 +177,33 @@ Route::controller(GameTypeController::class)->middleware(['checkUserRole','auth'
 
 });
 
+
+Route::controller(ProverbController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/all/proverb', 'allProverb')->name('all.proverb');
+    Route::get('/admin/add/proverb', 'addProverb')->name('add.proverb');
+    Route::post('/admin/add/proverb', 'storeProverb')->name('add.proverb.store');
+    Route::get('/admin/edit/proverb/{id}', 'editProverb')->name('edit.proverb');
+    Route::post('/admin/edit/proverb', 'updateProverb')->name('edit.proverb.store');
+    Route::get('/admin/delete/proverb/{id}', 'deleteProverb')->name('delete.proverb');
+});
+
+Route::controller(RankingNewController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/all/rankings', 'allRankings')->name('all.rankings.new');
+    Route::get('/admin/add/ranking', 'addRanking')->name('add.ranking.new');
+    Route::post('/admin/add/ranking', 'storeRanking')->name('add.ranking.new.store');
+    Route::get('/admin/edit/ranking/{id}', 'editRanking')->name('edit.ranking.new');
+    Route::post('/admin/edit/ranking', 'updateRanking')->name('edit.ranking.new.store');
+    Route::get('/admin/delete/ranking/{id}', 'deleteRanking')->name('delete.ranking.new');
+});
+
+Route::controller(AnimationFeedbackController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/all/animation', 'allAnimation')->name('all.animation');
+    Route::get('/admin/add/animation', 'addAnimation')->name('add.animation');
+    Route::post('/admin/add/animation', 'storeAnimation')->name('add.animation.store');
+    Route::get('/admin/edit/animation/{id}', 'editAnimation')->name('edit.animation');
+    Route::post('/admin/edit/animation', 'updateAnimation')->name('edit.animation.store');
+    Route::get('/admin/delete/animation/{id}', 'deleteAnimation')->name('delete.animation');
+});
 
 Route::controller(MainCategoryController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/admin/main/category', 'mainCategory')->name('all.main.category');
@@ -318,14 +360,8 @@ Route::controller(UserController::class)->middleware(['checkUserRole','auth'])->
 
     Route::get('/user/delete/{id}', 'deleteUser')->name('delete.user');
 
-
-
-
-
-
-
-
-
+    Route::get('/user/photo/approve/{id}', 'approveUserPhoto')->name('user.photo.approve');
+    Route::get('/user/photo/reject/{id}', 'rejectUserPhoto')->name('user.photo.reject');
 });
 
 
@@ -387,6 +423,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
 
     Route::get('/question/delete/{id}', 'deleteQuestion')->name('delete.question');
+    Route::post('/question/delete-multiple', 'deleteMultipleQuestions')->name('delete.multiple.questions');
 
 
       Route::get('/admin/filter/question', 'fillterQuestion')->name('filter.question');
@@ -425,6 +462,34 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
 
 });
+
+
+// Coupon Company controller
+
+ Route::controller(CouponCompanyController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+         Route::get('/all/coupon-companies', 'allCouponCompanies')->name('all.coupon_companies');
+        Route::get('/add/coupon-companies', 'addCouponCompany')->name('add.coupon_companies');
+        Route::post('/store/coupon-companies', 'storeCouponCompany')->name('store.coupon_companies');
+
+        Route::get('/edit/coupon-companies/{id}', 'editCouponCompany')->name('edit.coupon_companies');
+        Route::post('/update/coupon-companies', 'updateCouponCompany')->name('update.coupon_companies');
+        Route::get('/delete/coupon-companies/{id}', 'deleteCouponCompany')->name('delete.coupon_companies');
+
+
+});
+
+
+// Coupon Company Used record
+
+ Route::controller(CouponCompanyUserUsedController::class)->middleware(['checkUserRole','auth'])->group(function(){
+
+         Route::get('/all/used-coupon-companies', 'allUsedCoupons')->name('all.used_coupon_companies');
+        Route::get('/delete/used-coupon-companies/{id}', 'deleteUsedCoupon')->name('delete.used_coupon');
+
+
+});
+
 
 
 /// price
@@ -957,5 +1022,59 @@ Route::get('/soon', [LandPageController::class, 'comingSoon'])->name('coming.soo
 
 Route::get('/use/joined/by/session/{gameSessionName}', [OnlineGameController::class, 'getOnlineGameInfo'])->name('Online.game.info');;
 
+Route::controller(AvatarCategoryController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/avatar/category', 'allAvatarCategory')->name('all.avatar.category');
+    Route::get('/add/avatar/category', 'addAvatarCategory')->name('add.avatar.category');
+    Route::post('/store/avatar/category', 'storeAvatarCategory')->name('store.avatar.category');
+    Route::get('/edit/avatar/category/{id}', 'editAvatarCategory')->name('edit.avatar.category');
+    Route::post('/update/avatar/category', 'updateAvatarCategory')->name('update.avatar.category');
+    Route::get('/delete/avatar/category/{id}', 'deleteAvatarCategory')->name('delete.avatar.category');
+});
+
+Route::controller(AvatarItemController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/avatar/item', 'allAvatarItem')->name('all.avatar.item');
+    Route::get('/add/avatar/item', 'addAvatarItem')->name('add.avatar.item');
+    Route::post('/store/avatar/item', 'storeAvatarItem')->name('store.avatar.item');
+    Route::get('/edit/avatar/item/{id}', 'editAvatarItem')->name('edit.avatar.item');
+    Route::post('/update/avatar/item', 'updateAvatarItem')->name('update.avatar.item');
+    Route::get('/delete/avatar/item/{id}', 'deleteAvatarItem')->name('delete.avatar.item');
+    Route::get('/avatar/item/{id}/purchased-users', 'purchasedUsers')->name('avatar.item.purchased.users');
+});
+
+Route::controller(FreePlanController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/free/plan', 'allFreePlan')->name('all.free.plan');
+    Route::get('/add/free/plan', 'addFreePlan')->name('add.free.plan');
+    Route::post('/store/free/plan', 'storeFreePlan')->name('store.free.plan');
+    Route::get('/edit/free/plan/{id}', 'editFreePlan')->name('edit.free.plan');
+    Route::post('/update/free/plan', 'updateFreePlan')->name('update.free.plan');
+    Route::get('/delete/free/plan/{id}', 'deleteFreePlan')->name('delete.free.plan');
+});
+
+Route::controller(GamePurchaseController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/game/purchase', 'allGamePurchase')->name('all.game.purchase');
+    Route::get('/add/game/purchase', 'addGamePurchase')->name('add.game.purchase');
+    Route::post('/store/game/purchase', 'storeGamePurchase')->name('store.game.purchase');
+    Route::get('/edit/game/purchase/{id}', 'editGamePurchase')->name('edit.game.purchase');
+    Route::post('/update/game/purchase', 'updateGamePurchase')->name('update.game.purchase');
+    Route::get('/delete/game/purchase/{id}', 'deleteGamePurchase')->name('delete.game.purchase');
+});
+
+Route::controller(GameCouponController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/game/coupon', 'allGameCoupon')->name('all.game.coupon');
+    Route::get('/add/game/coupon', 'addGameCoupon')->name('add.game.coupon');
+    Route::post('/store/game/coupon', 'storeGameCoupon')->name('store.game.coupon');
+    Route::get('/edit/game/coupon/{id}', 'editGameCoupon')->name('edit.game.coupon');
+    Route::post('/update/game/coupon', 'updateGameCoupon')->name('update.game.coupon');
+    Route::get('/delete/game/coupon/{id}', 'deleteGameCoupon')->name('delete.game.coupon');
+    Route::get('/game/coupon/active/{id}', 'gameCouponActive')->name('active.game.coupon');
+    Route::get('/game/coupon/inactive/{id}', 'gameCouponInactive')->name('inactive.game.coupon');
+});
+
+Route::controller(ProblemReportController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/problem-reports', 'allProblemReports')->name('all.problem.reports');
+    Route::post('/problem-report/update-status/{id}', 'updateStatus')->name('update.problem.report.status');
+    Route::get('/problem-report/delete/{id}', 'deleteProblemReport')->name('delete.problem.report');
+});
 
 require __DIR__.'/auth.php';
+

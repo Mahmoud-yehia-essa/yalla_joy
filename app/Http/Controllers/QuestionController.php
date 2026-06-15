@@ -768,14 +768,36 @@ foreach ($answersData as $ans) {
 
 
 
-        public function allQuestion()
+        public function allQuestion(Request $request)
         {
-            // $questions = Question::latest()->get();
-    $questions = Question::orderBy('id', 'asc')->get();
+            $query = Question::with(['category', 'mainCategory', 'gameType', 'answers', 'answerQuestionOnlines'])->orderBy('id', 'asc');
 
+            if ($request->has('category_id') && $request->category_id != '') {
+                $query->where('category_id', $request->category_id);
+            }
 
-            return view('admin.question.all_question',compact('questions'));
+            if ($request->has('search') && $request->search != '') {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%")
+                      ->orWhereHas('category', function($q2) use ($search) {
+                          $q2->where('category_name', 'like', "%{$search}%");
+                      });
+                });
+            }
 
+            $questions = $query->paginate(20);
+
+            if ($request->ajax()) {
+                $html = view('admin.question.partials.questions_rows', compact('questions'))->render();
+                return response()->json([
+                    'html' => $html,
+                    'next_page' => $questions->nextPageUrl()
+                ]);
+            }
+
+            return view('admin.question.all_question', compact('questions'));
         }
 
 
@@ -1671,6 +1693,45 @@ $pathSoundQ = 'upload/questions/sounds/'.$old_question_sound;
             return redirect()->route('all.question')->with($notification);
         }
 
+        public function deleteMultipleQuestions(Request $request)
+        {
+            $ids = $request->ids;
+            if ($ids && is_array($ids)) {
+                foreach ($ids as $id) {
+                    $question = Question::find($id);
+                    if ($question) {
+                        $old_question_image = $question->qu_image ?? "";
+                        $old_question_sound = $question->qu_sound ?? "";
+                        $old_question_video = $question->qu_video ?? "";
+
+                        $old_answer_image = $question->answers->first()->answer_image ?? "";
+                        $old_answer_sound = $question->answers->first()->answer_sound ?? "";
+                        $old_answer_video = $question->answers->first()->answer_video ?? "";
+
+                        $path = 'upload/answers/images/'.$old_answer_image;
+                        $pathSound = 'upload/answers/sounds/'.$old_answer_sound;
+                        $pathVideo = 'upload/answers/videos/'.$old_answer_video;
+
+                        if (file_exists($path) && $old_answer_image != "") { unlink($path); }
+                        if (file_exists($pathSound) && $old_answer_sound != "") { unlink($pathSound); }
+                        if (file_exists($pathVideo) && $old_answer_video != "") { unlink($pathVideo); }
+
+                        $pathQ = 'upload/questions/images/'.$old_question_image;
+                        $pathSoundQ = 'upload/questions/sounds/'.$old_question_sound;
+                        $pathVideoQ = 'upload/questions/videos/'.$old_question_video;
+
+                        if (file_exists($pathQ) && $old_question_image != "") { unlink($pathQ); }
+                        if (file_exists($pathSoundQ) && $old_question_sound != "") { unlink($pathSoundQ); }
+                        if (file_exists($pathVideoQ) && $old_question_video != "") { unlink($pathVideoQ); }
+
+                        $question->delete();
+                    }
+                }
+                return response()->json(['success' => 'تم حذف الأسئلة المحددة بنجاح!']);
+            }
+            return response()->json(['error' => 'لم يتم تحديد أي أسئلة!'], 400);
+        }
+
 
         /// Api
 
@@ -1786,26 +1847,34 @@ $pathSoundQ = 'upload/questions/sounds/'.$old_question_sound;
 */
 
 
-public function getQuestionApi($id)
+public function getQuestionApi(Request $request, $id)
 {
+    $term = $request->query('term');
+
     // Fetch 2 random questions for each qu_points category
-    $questions_200 = Question::where('category_id', $id)
-        ->where('qu_points', 200)
-        ->inRandomOrder()
-        ->take(2)
-        ->get();
+    $query_200 = Question::where('category_id', $id)->where('qu_points', 200);
+    $query_400 = Question::where('category_id', $id)->where('qu_points', 400);
+    $query_600 = Question::where('category_id', $id)->where('qu_points', 600);
 
-    $questions_400 = Question::where('category_id', $id)
-        ->where('qu_points', 400)
-        ->inRandomOrder()
-        ->take(2)
-        ->get();
+    if ($term === null || $term === 'null' || $term === '' || $term == 1) {
+        $query_200->where(function ($q) {
+            $q->whereNull('term')->orWhere('term', 1);
+        });
+        $query_400->where(function ($q) {
+            $q->whereNull('term')->orWhere('term', 1);
+        });
+        $query_600->where(function ($q) {
+            $q->whereNull('term')->orWhere('term', 1);
+        });
+    } else {
+        $query_200->where('term', $term);
+        $query_400->where('term', $term);
+        $query_600->where('term', $term);
+    }
 
-    $questions_600 = Question::where('category_id', $id)
-        ->where('qu_points', 600)
-        ->inRandomOrder()
-        ->take(2)
-        ->get();
+    $questions_200 = $query_200->inRandomOrder()->take(2)->get();
+    $questions_400 = $query_400->inRandomOrder()->take(2)->get();
+    $questions_600 = $query_600->inRandomOrder()->take(2)->get();
 
     // Merge in the required order: 200, 200, 400, 400, 600, 600
     $qu = $questions_200->merge($questions_400)->merge($questions_600);
@@ -2055,6 +2124,7 @@ public function getQuestionApi($id)
 // }
 
 
+/* very important function to get quest
 
 public function createGameSessionQuestions(Request $request)
 {
@@ -2132,6 +2202,149 @@ public function createGameSessionQuestions(Request $request)
 }
 
 
+very important function to get qustions 
+*/ 
+
+
+
+public function createGameSessionQuestions(Request $request)
+{
+    $sessionId = $request->input('session_id');
+    $categoryInput = $request->input('category_id');
+
+    if (!$sessionId) {
+        return response()->json(['error' => 'session_id is required'], 422);
+    }
+
+    // 1. الحماية الأولى: التحقق إذا كانت الجلسة مجهزة مسبقاً (لتجنب التوليد المتكرر للأسئلة)
+    $existingSessionQuestions = DB::table('game_session_question_onlines')
+        ->where('session_id', $sessionId)
+        ->orderBy('id')
+        ->get();
+
+    if ($existingSessionQuestions->count() >= 16) {
+        // إذا تم إنشاء 16 سؤال بالفعل، نقوم بإرجاعهم فقط
+        $responseQuestionIds = $existingSessionQuestions->take(16)->pluck('question_id')->toArray();
+        
+        $questions = Question::with('answers')->whereIn('id', $responseQuestionIds)
+            ->get()
+            ->sortBy(fn ($q) => array_search($q->id, $responseQuestionIds))
+            ->values();
+
+        $questions = $questions->map(function ($question) {
+            $question->is_user_answer = false;
+            $question->who_answer = 0;
+            return $question;
+        });
+
+        return response()->json($questions);
+    }
+
+    // تنظيف الجلسة من أي أسئلة قديمة (أقل من 16) للبدء من جديد
+    if ($existingSessionQuestions->count() > 0) {
+        DB::table('game_session_question_onlines')->where('session_id', $sessionId)->delete();
+    }
+
+    // 2. معالجة المدخلات بشكل آمن (في حال تم إرسالها كنص مفصول بفواصل)
+    $categoryIds = [];
+    if (is_string($categoryInput)) {
+        $decoded = json_decode($categoryInput, true);
+        if (is_array($decoded)) {
+            $categoryIds = $decoded;
+        } elseif (strpos($categoryInput, ',') !== false) {
+            $categoryIds = explode(',', $categoryInput);
+        } else {
+            $categoryIds = [$categoryInput];
+        }
+    } elseif (is_array($categoryInput)) {
+        $categoryIds = $categoryInput;
+    } else {
+        $categoryIds = [$categoryInput];
+    }
+    
+    $categoryIds = array_map('trim', $categoryIds);
+    $categoryIds = array_filter($categoryIds);
+    if (empty($categoryIds)) {
+        $categoryIds = [1]; // قيمة افتراضية لتجنب الأعطال
+    }
+
+    // 3. إجمالي الأسئلة المطلوبة دائماً هو 16
+    $totalQuestionsNeeded = 16;
+    $countCats = count($categoryIds);
+    
+    // توزيع 16 سؤال على الفئات المحددة
+    $questionsPerInstance = [];
+    $remainder = $totalQuestionsNeeded % $countCats;
+    for ($i = 0; $i < $countCats; $i++) {
+        $questionsPerInstance[$i] = floor($totalQuestionsNeeded / $countCats) + ($remainder > 0 ? 1 : 0);
+        $remainder--;
+    }
+
+    $requirementsByCat = [];
+    foreach ($categoryIds as $idx => $catId) {
+        $requirementsByCat[$catId] = ($requirementsByCat[$catId] ?? 0) + $questionsPerInstance[$idx];
+    }
+
+    $sessionQuestionIds = [];
+    $currentOrder = 1;
+
+    // 4. جلب الأسئلة المطلوبة لكل فئة وحفظها
+    foreach ($requirementsByCat as $catId => $requiredCount) {
+        $qList = Question::where('category_id', $catId)
+            ->whereNotIn('id', $sessionQuestionIds)
+            ->inRandomOrder()
+            ->take($requiredCount)
+            ->get();
+            
+        foreach ($qList as $q) {
+            DB::table('game_session_question_onlines')->insert([
+                'session_id'     => $sessionId,
+                'category_id'    => $catId,
+                'question_id'    => $q->id,
+                'question_order' => $currentOrder++,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+            $sessionQuestionIds[] = $q->id;
+        }
+    }
+
+    // 5. في حالة وجود نقص (لم تصل لـ 16 سؤال بسبب نقص الفئات)، نكمل العدد من أي فئة
+    if (count($sessionQuestionIds) < $totalQuestionsNeeded) {
+        $neededToReach16 = $totalQuestionsNeeded - count($sessionQuestionIds);
+        
+        $extraQs = Question::whereNotIn('id', $sessionQuestionIds)
+            ->inRandomOrder()
+            ->take($neededToReach16)
+            ->get();
+            
+        foreach ($extraQs as $q) {
+            DB::table('game_session_question_onlines')->insert([
+                'session_id'     => $sessionId,
+                'category_id'    => $q->category_id,
+                'question_id'    => $q->id,
+                'question_order' => $currentOrder++,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+            $sessionQuestionIds[] = $q->id;
+        }
+    }
+
+    // 6. إرجاع القائمة النهائية
+    $questions = Question::with('answers')->whereIn('id', $sessionQuestionIds)
+        ->get()
+        ->sortBy(fn ($q) => array_search($q->id, $sessionQuestionIds))
+        ->values();
+
+    $questions = $questions->map(function ($question) {
+        $question->is_user_answer = false;
+        $question->who_answer = 0;
+        return $question;
+    });
+
+    return response()->json($questions);
+}
 
 
 
@@ -2187,8 +2400,7 @@ public function getGameSessionQuestions(Request $request)
         ->join('questions as q', 'gsq.question_id', '=', 'q.id')
         ->join('categories as c', 'gsq.category_id', '=', 'c.id')
         ->where('gsq.session_id', $sessionId)
-        ->orderBy('gsq.category_id')
-        ->orderBy('gsq.question_order')
+        ->orderBy('gsq.id') // الترتيب بالـ id لضمان نفس ترتيب الإدخال
         ->select(
             'q.*',
             'gsq.category_id',
@@ -2197,6 +2409,7 @@ public function getGameSessionQuestions(Request $request)
             'c.category_name_en',
             'c.category_photo'
         )
+        ->take(16) // قفل العدد على 16 سؤال فقط كإجراء حماية
         ->get();
 
     if ($questions->isEmpty()) {

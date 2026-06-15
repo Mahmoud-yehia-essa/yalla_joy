@@ -418,7 +418,7 @@
 
                 </i>
                 </div>
-                <div class="menu-title">ادارة قيمة الألعاب الاوف لاين بالنسبة للعملات</div>
+                <div class="menu-title">ادارة قيمة الألعاب بالنسبة للعملات وبالنسبة للقيمة النقدية</div>
             </a>
             <ul>
 
@@ -431,7 +431,11 @@
                 <li> <a href="{{ route('add.game.offline.price') }}"><i class="bx bx-right-arrow-alt"></i>إضافة قيمة لعبة جديد</a>
                 </li>
 
+                <li> <a href="{{ route('all.game.purchase') }}"><i class="bx bx-right-arrow-alt"></i>عرض القيمة النقدية للألعاب</a>
+                </li>
 
+                <li> <a href="{{ route('add.game.purchase') }}"><i class="bx bx-right-arrow-alt"></i>إضافة قيمة نقدية جديدة</a>
+                </li>
 
             </ul>
         </li>
@@ -462,8 +466,20 @@
 
                 <li> <a href="{{ route('add.coupon') }}"><i class="bx bx-right-arrow-alt"></i>إضافة كوبون</a>
                 </li>
-         @endif
+          @endif
 
+                <li> <a href="{{ route('all.coupon_companies') }}"><i class="bx bx-right-arrow-alt"></i>جميع كوبونات الشركات</a>
+                </li>
+                <li> <a href="{{ route('add.coupon_companies') }}"><i class="bx bx-right-arrow-alt"></i>إضافة كوبون شركة</a>
+                </li>
+
+                <li> <a href="{{ route('all.used_coupon_companies') }}"><i class="bx bx-right-arrow-alt"></i>سجل استخدام الكوبونات</a>
+                </li>
+
+                <li> <a href="{{ route('all.game.coupon') }}"><i class="bx bx-right-arrow-alt"></i>جميع كوبونات الألعاب</a>
+                </li>
+                <li> <a href="{{ route('add.game.coupon') }}"><i class="bx bx-right-arrow-alt"></i>إضافة كوبون ألعاب جديد</a>
+                </li>
 
             </ul>
         </li>
@@ -618,7 +634,51 @@
 
 
 
-     @if(Auth::user()->can('عرض المساعدات'))
+      @if(Auth::user()->can('عرض تصنيفات الافاتار') || Auth::user()->can('إضافة تصنيفات الافاتار') || Auth::user()->can('عرض عناصر الافاتار') || Auth::user()->can('إضافة عناصر الافاتار'))
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon">
+            <ion-icon name="shirt-outline"></ion-icon>
+        </div>
+        <div class="menu-title">إدارة الأفاتار</div>
+    </a>
+    <ul>
+        @if(Auth::user()->can('عرض تصنيفات الافاتار'))
+        <li>
+            <a href="{{ route('all.avatar.category') }}">
+                <i class="bx bx-right-arrow-alt"></i>جميع التصنيفات
+            </a>
+        </li>
+        @endif
+        @if(Auth::user()->can('إضافة تصنيفات الافاتار'))
+        <li>
+            <a href="{{ route('add.avatar.category') }}">
+                <i class="bx bx-right-arrow-alt"></i>إضافة تصنيف
+            </a>
+        </li>
+        @endif
+        @if(Auth::user()->can('عرض عناصر الافاتار'))
+        <li>
+            <a href="{{ route('all.avatar.item') }}">
+                <i class="bx bx-right-arrow-alt"></i>جميع العناصر
+            </a>
+        </li>
+        @endif
+        @if(Auth::user()->can('إضافة عناصر الافاتار'))
+        <li>
+            <a href="{{ route('add.avatar.item') }}">
+                <i class="bx bx-right-arrow-alt"></i>إضافة عنصر جديد
+            </a>
+        </li>
+        @endif
+    </ul>
+</li>
+      @endif
+
+
+
+
+      @if(Auth::user()->can('عرض المساعدات'))
 
 <li>
     <a href="javascript:;" class="has-arrow">
@@ -1082,6 +1142,81 @@
 
 
 
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-text"></i>
+                </div>
+                <div class="menu-title">العبارات</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.proverb')}}"><i class='bx bx-radio-circle'></i>عرض العبارات</a>
+                </li>
+                <li> <a href="{{route('add.proverb')}}"><i class='bx bx-radio-circle'></i>إضافة عبارة جديدة</a>
+                </li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-star"></i>
+                </div>
+                <div class="menu-title">الرتب (الجديدة)</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.rankings.new')}}"><i class='bx bx-radio-circle'></i>عرض الرتب</a>
+                </li>
+                <li> <a href="{{route('add.ranking.new')}}"><i class='bx bx-radio-circle'></i>إضافة رتبة جديدة</a>
+                </li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-movie-play"></i>
+                </div>
+                <div class="menu-title">حركات الأنيميشن</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.animation')}}"><i class='bx bx-radio-circle'></i>عرض الحركات</a>
+                </li>
+                <li> <a href="{{route('add.animation')}}"><i class='bx bx-radio-circle'></i>إضافة حركة جديدة</a>
+                </li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-gift"></i>
+                </div>
+                <div class="menu-title">الخطط المجانية</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.free.plan')}}"><i class='bx bx-radio-circle'></i>عرض الخطط</a>
+                </li>
+                <li> <a href="{{route('add.free.plan')}}"><i class='bx bx-radio-circle'></i>إضافة خطة جديدة</a>
+                </li>
+            </ul>
+        </li>
+
+        @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض البلاغات'))
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-error-alt"></i>
+                </div>
+                <div class="menu-title">إدارة البلاغات</div>
+            </a>
+            <ul>
+                <li> <a href="{{ route('all.problem.reports') }}"><i class='bx bx-radio-circle'></i>عرض البلاغات</a>
+                </li>
+            </ul>
+        </li>
+        @endif
 
     </ul>
     <!--end navigation-->

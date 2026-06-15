@@ -102,7 +102,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Category Photo -->
+                                {{-- <!-- Category Photo -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">الصورة</h6>
@@ -113,15 +113,15 @@
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                </div>
+                                </div> --}}
 
-                                <!-- Image Preview -->
+                                {{-- <!-- Image Preview -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
                                         <img id="showImage" src="{{ url('upload/no_image.jpg') }}" alt="Preview" style="width:100px; height: 100px;">
                                     </div>
-                                </div>
+                                </div> --}}
 
 
                                       <!-- category special-->

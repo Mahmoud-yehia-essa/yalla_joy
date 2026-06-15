@@ -82,6 +82,14 @@ class User extends Authenticatable
         return $this->hasMany(MainCategory::class, 'user_id');
     }
 
+    /**
+     * Get the animation library entries for the user.
+     */
+    public function animationUserLibraries()
+    {
+        return $this->hasMany(AnimationUserLibrary::class, 'user_id');
+    }
+
 
 
     public static function getpermissionGroups(){

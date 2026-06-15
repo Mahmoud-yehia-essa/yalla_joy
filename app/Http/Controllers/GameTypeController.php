@@ -104,6 +104,8 @@ class GameTypeController extends Controller
             'type_photo' => $save_url ?? null,
 
             'user_id' => Auth::user()->id,
+            'is_kids' => $request->is_kids ?? 0,
+            'is_term' => $request->is_term ?? 0,
             // 'special' => $request->special,
 
         ]);
@@ -190,6 +192,8 @@ class GameTypeController extends Controller
             'type_description_en' => $request->game_type_description_en,
 
             'type_photo' => $save_url ,
+            'is_kids' => $request->is_kids ?? 0,
+            'is_term' => $request->is_term ?? 0,
             // 'special'  => $request->special,
 
         ]);
@@ -205,6 +209,8 @@ class GameTypeController extends Controller
 
                  'type_name_en' => $request->game_type_name_en,
                 'type_description_en' => $request->game_type_description_en,
+                'is_kids' => $request->is_kids ?? 0,
+                'is_term' => $request->is_term ?? 0,
                 // 'special'  => $request->special,
 
 
@@ -295,16 +301,16 @@ class GameTypeController extends Controller
 
 
      public function getGameTypeApi(Request $request) {
-        // $category = Category::latest()->get()->map(function ($item) {
-        //     $item->category_selected = false;
-        //     return $item;
-        // });
+        $is_kids = $request->is_kids ?? 0;
 
-
-        $gameType = GameType::where('status', 'active')->latest()->get()->map(function ($item) {
-            $item->game_type_selected = false;
-            return $item;
-        });
+        $gameType = GameType::where('status', 'active')
+            ->where('is_kids', $is_kids)
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                $item->game_type_selected = false;
+                return $item;
+            });
 
 
 

@@ -46,6 +46,7 @@ class UserController extends Controller
             'password' => 'required|min:6|confirmed',
             'password_confirmation' => 'required',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'date_of_birth' => 'nullable|date',
         ], [
             'fname.required' => 'حقل الاسم الأول مطلوب.',
             'fname.string' => 'يجب أن يكون الاسم الأول نصًا.',
@@ -70,6 +71,7 @@ class UserController extends Controller
             'photo.image' => 'يجب أن يكون الملف صورة.',
             'photo.mimes' => 'يجب أن تكون الصورة من نوع jpeg أو png أو jpg أو gif.',
             'photo.max' => 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت.',
+            'date_of_birth.date' => 'يجب إدخال تاريخ ميلاد صالح.',
         ]);
 
 
@@ -96,6 +98,7 @@ class UserController extends Controller
             'address' => $request->address,
             'password' => Hash::make($request->password),
             'photo' => $filename,
+            'date_of_birth' => $request->date_of_birth,
 
 
         ]);
@@ -153,6 +156,7 @@ if ($old_email == $request->email) {
         'password' => 'nullable|min:6|confirmed', // Changed to 'nullable' to avoid validation if empty
         'password_confirmation' => 'nullable',  // Make confirmation optional if password is empty
         'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'date_of_birth' => 'nullable|date',
     ];
 } else {
     // Validate with the unique rule for a new email
@@ -163,6 +167,7 @@ if ($old_email == $request->email) {
         'password' => 'nullable|min:6|confirmed', // Password validation is now optional if empty
         'password_confirmation' => 'nullable',  // Confirmation is optional if password is empty
         'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'date_of_birth' => 'nullable|date',
     ];
 
 
@@ -192,6 +197,7 @@ $request->validate($rules, [
     'photo.image' => 'يجب أن يكون الملف صورة.',
     'photo.mimes' => 'يجب أن تكون الصورة من نوع jpeg أو png أو jpg أو gif.',
     'photo.max' => 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت.',
+    'date_of_birth.date' => 'يجب إدخال تاريخ ميلاد صالح.',
 ]);
 
 
@@ -244,6 +250,7 @@ $request->validate($rules, [
         $user->phone = $request->phone;
         $user->address = $request->address;
         $user->is_game_free = $request->is_game_free;
+        $user->date_of_birth = $request->date_of_birth;
 
 
         $user->save();
@@ -305,6 +312,24 @@ $request->validate($rules, [
         return redirect()->route('all.users')->with($notification);
 
         // return redirect()->back()->with($notification);
+    }// End Method
+
+    public function approveUserPhoto($id){
+        User::findOrFail($id)->update(['photo_approval_status' => 'approved']);
+        $notification = array(
+            'message' => 'تم قبول صورة المستخدم بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
+    }// End Method
+
+    public function rejectUserPhoto($id){
+        User::findOrFail($id)->update(['photo_approval_status' => 'rejected']);
+        $notification = array(
+            'message' => 'تم رفض صورة المستخدم بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
     }// End Method
 
 
@@ -522,21 +547,28 @@ public function validateRegisterApi(Request $request)
 
     public function registerApi(Request $request)
 {
-    // 1. التحقق من اسم المستخدم (إجباري + غير مكرر)
+    // 1. التحقق من اسم المستخدم (توليد تلقائي إذا لم يتم توفيره)
     if (!$request->filled('user_name')) {
-        return response()->json([
-            'success' => false,
-            'message' => 'اسم المستخدم مطلوب'
-        ], 200);
-    }
-
-    $userName = strtolower(trim($request->user_name));
-
-    if (User::where('user_name', $userName)->exists()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'اسم المستخدم موجود بالفعل'
-        ], 200);
+        $baseName = '';
+        if ($request->filled('fname')) {
+            $baseName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $request->fname));
+        }
+        if (empty($baseName)) {
+            $baseName = "user";
+        }
+        
+        do {
+            $userName = $baseName . rand(100, 9999);
+        } while (User::where('user_name', $userName)->exists());
+    } else {
+        $userName = strtolower(trim($request->user_name));
+        
+        if (User::where('user_name', $userName)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'اسم المستخدم موجود بالفعل'
+            ], 200);
+        }
     }
 
     // 2. التحقق من البريد الإلكتروني (لو موجود)
@@ -604,6 +636,7 @@ public function validateRegisterApi(Request $request)
             'is_game_free' => 'paid',
             'provider' => $request->filled('provider') ? $request->provider : null,
             'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
+            'date_of_birth' => $request->date_of_birth,
         ]);
 
         if ($userCreated) {
@@ -711,6 +744,9 @@ public function validateRegisterApi(Request $request)
         $user->lname = $request->lname;
         $user->phone = $request->phone;
         $user->photo = $request->photo;
+        if ($request->has('photo_approval_status')) {
+            $user->photo_approval_status = $request->photo_approval_status;
+        }
         // $user->address = $request->address;
         $user->save();
 

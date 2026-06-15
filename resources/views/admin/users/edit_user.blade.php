@@ -98,6 +98,17 @@
                                 </div>
                             </div>
 
+                            <!-- Date of Birth -->
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">تاريخ الميلاد</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input name="date_of_birth" type="date" value="{{ old('date_of_birth', $user->date_of_birth) }}" class="form-control" />
+                                    @error('date_of_birth') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
                                 <div class="row mb-3">
                     <div class="col-sm-3">
                         <h6 class="mb-0">اللعبة لهذا المستخدم ؟</h6>

@@ -75,6 +75,7 @@
     <option value="إدارة حزم اللعبة" {{ $permission->group_name == "إدارة حزم اللعبة" ? 'selected' : '' }}>إدارة حزم اللعبة</option>
     <option value="إدارة صلاحيات اللعبة" {{ $permission->group_name == "إدارة صلاحيات اللعبة" ? 'selected' : '' }}>إدارة صلاحيات اللعبة</option>
     <option value="إدارة المديرين" {{ $permission->group_name == "إدارة المديرين" ? 'selected' : '' }}>إدارة المديرين</option>
+    <option value="إدارة الأفاتار" {{ $permission->group_name == "إدارة الأفاتار" ? 'selected' : '' }}>إدارة الأفاتار</option>
 
 
     <option value="إدارة ألعاب المستخدمين" {{ $permission->group_name == "إدارة ألعاب المستخدمين" ? 'selected' : '' }}>إدارة ألعاب المستخدمين</option>
