@@ -768,6 +768,172 @@ foreach ($answersData as $ans) {
 
 
 
+        /**
+         * صفحة التحقق من صور الأسئلة والإجابات
+         * - الطلب الأول: يحمّل الإحصائيات فقط بسرعة عبر COUNT queries
+         * - AJAX: يجلب الصفوف دفعة دفعة (lazy loading) مع فحص الملفات
+         */
+        public function verifyQuestionImages(Request $request)
+        {
+            // إذا كان الطلب AJAX → إرجاع دفعة من الصفوف مع فحص الملفات
+            if ($request->ajax()) {
+                return $this->verifyQuestionImagesAjax($request);
+            }
+
+            // =============================================
+            // الطلب الأول: إحصائيات سريعة فقط (بدون file_exists)
+            // =============================================
+            $search = $request->input('search', '');
+            $filterType = $request->input('filter_type', '');
+
+            $baseQuery = Question::with(['answers' => function($q) {
+                $q->where('answer_type', 'image')->select('id','question_id','answer_type','answer_image');
+            }])->orderBy('id', 'asc');
+
+            if ($search) {
+                $baseQuery->where(function($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%");
+                });
+            }
+
+            // إحصائيات سريعة من قاعدة البيانات فقط (بدون فحص الملفات)
+            $totalQuestions    = (clone $baseQuery)->count();
+            $imageQuestions    = (clone $baseQuery)->where('questions_type', 'image')->count();
+            $totalAnswerImages = \App\Models\Answer::where('answer_type', 'image')->count();
+
+            $stats = [
+                'total_questions'       => $totalQuestions,
+                'image_questions'       => $imageQuestions,
+                'total_answer_images'   => $totalAnswerImages,
+                // هذه القيم ستُحدَّث عبر AJAX بعد الانتهاء من فحص جميع الدفعات
+                'question_images_found'   => '—',
+                'question_images_missing' => '—',
+                'question_images_no_path' => '—',
+                'answer_images_found'     => '—',
+                'answer_images_missing'   => '—',
+                'answer_images_no_path'   => '—',
+            ];
+
+            return view('admin.question.verify_images', compact('stats', 'search', 'filterType'));
+        }
+
+        /**
+         * AJAX endpoint: يُرجع دفعة من الصفوف مع نتيجة فحص الملفات
+         */
+        public function verifyQuestionImagesAjax(Request $request)
+        {
+            $perPage    = 50; // حجم الدفعة - زيادة لتقليل عدد الطلبات
+            $page       = max(1, (int) $request->input('page', 1));
+            $search     = $request->input('search', '');
+            $filterType = $request->input('filter_type', '');
+
+            $query = Question::with(['category', 'answers'])->orderBy('id', 'asc');
+
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%");
+                });
+            }
+
+            $paginator  = $query->paginate($perPage, ['*'], 'page', $page);
+            $questions  = $paginator->items();
+
+            // فحص الملفات لهذه الدفعة فقط
+            $rows = [];
+            $batchStats = [
+                'question_images_found'   => 0,
+                'question_images_missing' => 0,
+                'question_images_no_path' => 0,
+                'answer_images_found'     => 0,
+                'answer_images_missing'   => 0,
+                'answer_images_no_path'   => 0,
+            ];
+
+            foreach ($questions as $question) {
+                // فحص صورة السؤال
+                $qStatus = null;
+                if ($question->questions_type === 'image') {
+                    if ($question->qu_image) {
+                        $exists  = file_exists(public_path('upload/questions/images/' . $question->qu_image));
+                        $qStatus = $exists ? 'found' : 'missing';
+                    } else {
+                        $qStatus = 'no_path';
+                    }
+                    $batchStats['question_images_' . ($qStatus === 'found' ? 'found' : ($qStatus === 'missing' ? 'missing' : 'no_path'))]++;
+                }
+
+                // فحص صور الإجابات
+                $answersData = [];
+                foreach ($question->answers as $answer) {
+                    $aStatus = null;
+                    if ($answer->answer_type === 'image') {
+                        if ($answer->answer_image) {
+                            $exists  = file_exists(public_path('upload/answers/images/' . $answer->answer_image));
+                            $aStatus = $exists ? 'found' : 'missing';
+                        } else {
+                            $aStatus = 'no_path';
+                        }
+                        $batchStats['answer_images_' . ($aStatus === 'found' ? 'found' : ($aStatus === 'missing' ? 'missing' : 'no_path'))]++;
+                    }
+                    $answersData[] = [
+                        'id'           => $answer->id,
+                        'answer_type'  => $answer->answer_type,
+                        'answer_title' => $answer->answer_title ?? '',
+                        'answer_image' => $answer->answer_image,
+                        'image_status' => $aStatus,
+                    ];
+                }
+
+                // تحديد ما إذا كان هناك مشاكل
+                $hasQuestionIssue = in_array($qStatus, ['missing', 'no_path']);
+                $hasAnswerIssue   = collect($answersData)->filter(fn($a) => in_array($a['image_status'], ['missing', 'no_path']))->count() > 0;
+
+                $rows[] = [
+                    'id'                     => $question->id,
+                    'qu_title'               => $question->qu_title,
+                    'qu_title_en'            => $question->qu_title_en,
+                    'questions_type'         => $question->questions_type,
+                    'qu_image'               => $question->qu_image,
+                    'category_name'          => optional($question->category)->category_name ?? '—',
+                    'question_image_status'  => $qStatus,
+                    'answers'                => $answersData,
+                    'has_question_issue'     => $hasQuestionIssue,
+                    'has_answer_issue'       => $hasAnswerIssue,
+                    'has_any_issue'          => $hasQuestionIssue || $hasAnswerIssue,
+                ];
+            }
+
+            // تطبيق الفلتر على مستوى PHP بعد فحص الملفات
+            if ($filterType === 'question_missing') {
+                $rows = array_filter($rows, fn($r) => $r['question_image_status'] === 'missing');
+            } elseif ($filterType === 'question_no_path') {
+                $rows = array_filter($rows, fn($r) => $r['question_image_status'] === 'no_path');
+            } elseif ($filterType === 'answer_missing') {
+                $rows = array_filter($rows, fn($r) => $r['has_answer_issue']);
+            } elseif ($filterType === 'has_issues') {
+                $rows = array_filter($rows, fn($r) => $r['has_any_issue']);
+            } elseif ($filterType === 'all_ok') {
+                $rows = array_filter($rows, fn($r) => !$r['has_any_issue']);
+            }
+
+            $html = view('admin.question.partials.verify_images_rows', [
+                'rows'       => array_values($rows),
+                'startIndex' => ($page - 1) * $perPage,
+            ])->render();
+
+            return response()->json([
+                'html'       => $html,
+                'next_page'  => $paginator->hasMorePages() ? $page + 1 : null,
+                'batch_stats'=> $batchStats,
+                'total'      => $paginator->total(),
+                'last_page'  => $paginator->lastPage(),
+                'current_page' => $page,
+            ]);
+        }
+
+
         public function allQuestion(Request $request)
         {
             $query = Question::with(['category', 'mainCategory', 'gameType', 'answers', 'answerQuestionOnlines'])->orderBy('id', 'asc');
@@ -1442,8 +1608,8 @@ public function editQuestionStore(Request $request)
         'main_category_id' => 'required|not_in:non',
         'category_id' => 'required|not_in:non',
 
-        'qu_title' => 'required|string|max:255',
-        'qu_title_en' => 'required|string|max:255',
+        'qu_title' => 'nullable|string|max:255',
+        'qu_title_en' => 'nullable|string|max:255',
 
         'qu_points' => 'required|integer',
         'qu_points_online' => 'required|integer',
@@ -1454,21 +1620,41 @@ public function editQuestionStore(Request $request)
 
         'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
 
-        'answer_title' => 'required|string|max:255',
-        'answer_title_en' => 'required|string|max:255',
+        'answer_title' => 'nullable|string|max:255',
+        'answer_title_en' => 'nullable|string|max:255',
         'answer_type' => 'required|string|in:text,image,sound,video',
         'answerـfile' => 'nullable|file|max:30720',
 
-        'answer_title_one' => 'required|string|max:255',
-        'answer_title_two' => 'required|string|max:255',
-        'answer_title_three' => 'required|string|max:255',
-        'answer_title_four' => 'required|string|max:255',
+        'answer_title_one' => 'nullable|string|max:255',
+        'answer_title_two' => 'nullable|string|max:255',
+        'answer_title_three' => 'nullable|string|max:255',
+        'answer_title_four' => 'nullable|string|max:255',
 
-        'answer_title_one_en' => 'required|string|max:255',
-        'answer_title_two_en' => 'required|string|max:255',
-        'answer_title_three_en' => 'required|string|max:255',
-        'answer_title_four_en' => 'required|string|max:255',
+        'answer_title_one_en' => 'nullable|string|max:255',
+        'answer_title_two_en' => 'nullable|string|max:255',
+        'answer_title_three_en' => 'nullable|string|max:255',
+        'answer_title_four_en' => 'nullable|string|max:255',
     ]);
+
+    // استبدال القيم الفارغة بـ 'non' للحقول الاختيارية
+    $nullableFields = [
+        'qu_title', 'qu_title_en',
+        'qu_hint', 'qu_hint_en',
+        'answer_title', 'answer_title_en',
+        'answer_title_one', 'answer_title_one_en',
+        'answer_title_two', 'answer_title_two_en',
+        'answer_title_three', 'answer_title_three_en',
+        'answer_title_four', 'answer_title_four_en',
+    ];
+    $mergeData = [];
+    foreach ($nullableFields as $field) {
+        if (empty(trim($request->input($field, '')))) {
+            $mergeData[$field] = 'non';
+        }
+    }
+    if (!empty($mergeData)) {
+        $request->merge($mergeData);
+    }
 
     DB::beginTransaction();
     try {

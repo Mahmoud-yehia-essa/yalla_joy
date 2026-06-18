@@ -211,6 +211,13 @@
                     </a>
                 </li>
 
+                <li>
+                    <a href="{{route('verify.question.images')}}" style="display:flex; align-items:center; gap:6px;">
+                        <i class='bx bx-image-check' style="color:#f59e0b; font-size:1rem;"></i>
+                        <span>التحقق من صور الأسئلة والإجابات</span>
+                    </a>
+                </li>
+
 
 
 

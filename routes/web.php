@@ -426,8 +426,15 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
     Route::post('/question/delete-multiple', 'deleteMultipleQuestions')->name('delete.multiple.questions');
 
 
-      Route::get('/admin/filter/question', 'fillterQuestion')->name('filter.question');
+    Route::get('/admin/filter/question', 'fillterQuestion')->name('filter.question');
     Route::post('/search/filter/question' , 'fillterQuestionSearch')->name('filter.question.search');
+
+    Route::get('/admin/verify/question/images', 'verifyQuestionImages')->name('verify.question.images');
+
+
+
+
+
 
 
 
