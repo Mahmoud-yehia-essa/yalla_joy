@@ -11,4 +11,9 @@ class LandPageController extends Controller
     {
         return view('frontend.landing.land_page');
     }
+
+    public function privacyPolicy()
+    {
+        return view('frontend.privacy_policy');
+    }
 }

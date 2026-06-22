@@ -1210,6 +1210,21 @@
             </ul>
         </li>
 
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-dollar-circle"></i>
+                </div>
+                <div class="menu-title">عملات فائز في لعبة الجلسة</div>
+            </a>
+            <ul>
+                <li> <a href="{{route('all.offline.game.coins')}}"><i class='bx bx-radio-circle'></i>عرض عملات فائز في لعبة الجلسة</a>
+                </li>
+                <li> <a href="{{route('add.offline.game.coins')}}"><i class='bx bx-radio-circle'></i>إضافة عملات فائز في لعبة الجلسة</a>
+                </li>
+            </ul>
+        </li>
+
         @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض البلاغات'))
         <li>
             <a href="javascript:;" class="has-arrow">

@@ -1,3 +1,8 @@
 .env
 .env.*
 public/upload
+public/uploadXXX
+public/upload_last_uplaod
+public/upload_stop_now
+public/__MACOSX
+public/archive.zip

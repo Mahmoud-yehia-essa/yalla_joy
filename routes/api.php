@@ -24,6 +24,7 @@ use App\Http\Controllers\CouponCompanyController;
 use App\Http\Controllers\AvatarCategoryController;
 use App\Http\Controllers\AvatarItemController;
 use App\Http\Controllers\FreePlanController;
+use App\Http\Controllers\OfflineGameCoinsController;
 use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
@@ -114,6 +115,7 @@ Route::post('/upload-image/{id}',[UserController::class,'uploadUpadteImageApi'])
 Route::post('/edit/user',[UserController::class,'editUserApi']);
 
 Route::get('/all/free/plan',[FreePlanController::class,'getFreePlansApi']);
+Route::get('/all/offline/game/coins',[OfflineGameCoinsController::class,'getOfflineGameCoinsApi']);
 
 Route::get('/all/game/purchase',[GamePurchaseController::class,'getGamePurchasesApi']);
 Route::post('/apply/game/coupon', [GameCouponController::class, 'applyGameCouponApi']);

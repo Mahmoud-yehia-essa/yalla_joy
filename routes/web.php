@@ -44,6 +44,7 @@ use App\Http\Controllers\CouponCompanyUserUsedController;
 use App\Http\Controllers\AvatarCategoryController;
 use App\Http\Controllers\AvatarItemController;
 use App\Http\Controllers\FreePlanController;
+use App\Http\Controllers\OfflineGameCoinsController;
 use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
@@ -1024,6 +1025,9 @@ Route::get('/payment', [PayMentController::class, 'showPaymentPage']);
 
 
 Route::get('/soon', [LandPageController::class, 'comingSoon'])->name('coming.soon');;
+Route::get('/privacy-policy', function() {
+    return view('frontend.privacy_policy');
+})->name('privacy.policy');
 
 
 
@@ -1055,6 +1059,15 @@ Route::controller(FreePlanController::class)->middleware(['checkUserRole','auth'
     Route::get('/edit/free/plan/{id}', 'editFreePlan')->name('edit.free.plan');
     Route::post('/update/free/plan', 'updateFreePlan')->name('update.free.plan');
     Route::get('/delete/free/plan/{id}', 'deleteFreePlan')->name('delete.free.plan');
+});
+
+Route::controller(OfflineGameCoinsController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/offline/game/coins', 'allOfflineGameCoins')->name('all.offline.game.coins');
+    Route::get('/add/offline/game/coins', 'addOfflineGameCoins')->name('add.offline.game.coins');
+    Route::post('/store/offline/game/coins', 'storeOfflineGameCoins')->name('store.offline.game.coins');
+    Route::get('/edit/offline/game/coins/{id}', 'editOfflineGameCoins')->name('edit.offline.game.coins');
+    Route::post('/update/offline/game/coins', 'updateOfflineGameCoins')->name('update.offline.game.coins');
+    Route::get('/delete/offline/game/coins/{id}', 'deleteOfflineGameCoins')->name('delete.offline.game.coins');
 });
 
 Route::controller(GamePurchaseController::class)->middleware(['checkUserRole','auth'])->group(function(){
