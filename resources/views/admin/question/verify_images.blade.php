@@ -419,7 +419,7 @@
         </div>
     </div>
     <div class="row g-3 align-items-end">
-        <div class="col-md-8">
+        <div class="col-md-7">
             <label class="form-label fw-600 text-dark mb-1" style="font-size:.85rem;">
                 <i class="bx bx-search me-1 text-primary"></i> البحث في الأسئلة
             </label>
@@ -429,13 +429,16 @@
             {{-- حقل مخفي للحفاظ على توافق الكود --}}
             <input type="hidden" id="filterTypeSelect" value="">
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="d-flex gap-2">
-                <button type="button" class="btn-search btn" id="btnSearch">
+                <button type="button" class="btn-search btn" id="btnSearch" style="white-space: nowrap;">
                     <i class="bx bx-search me-1"></i> بحث وتحقق
                 </button>
-                <button type="button" class="btn-reset btn" id="btnReset">
+                <button type="button" class="btn-reset btn" id="btnReset" style="white-space: nowrap;">
                     <i class="bx bx-refresh me-1"></i> إعادة تعيين
+                </button>
+                <button type="button" class="btn btn-success" id="btnSanitizeNames" style="background: linear-gradient(135deg, #10b981, #059669); border:none; border-radius:10px; font-weight:600; font-size:.92rem; padding: 10px 18px; white-space: nowrap;">
+                    <i class="bx bx-magic-wand me-1"></i> ضبط أسماء الصور
                 </button>
             </div>
         </div>
@@ -563,8 +566,9 @@
     'use strict';
 
     // ─── Config ───────────────────────────────────────
-    const ROUTE_AJAX = "{{ route('verify.question.images') }}";
-    const CSRF       = "{{ csrf_token() }}";
+    const ROUTE_AJAX     = "{{ route('verify.question.images') }}";
+    const ROUTE_SANITIZE = "{{ route('verify.question.images.sanitize') }}";
+    const CSRF           = "{{ csrf_token() }}";
 
     // ─── State ────────────────────────────────────────
     let currentPage  = 0;
@@ -822,6 +826,52 @@
         if (e.key === 'Enter') restartScan();
     });
     document.getElementById('categoryFilter').addEventListener('change', restartScan);
+
+    document.getElementById('btnSanitizeNames').addEventListener('click', async function () {
+        const categoryId = document.getElementById('categoryFilter').value;
+        const confirmMsg = categoryId 
+            ? 'هل أنت متأكد من رغبتك في تصحيح وضبط أسماء صور الأسئلة والإجابات للفئة المحددة فقط؟'
+            : 'هل أنت متأكد من رغبتك في تصحيح وضبط أسماء صور الأسئلة والإجابات لجميع الفئات؟';
+        
+        if (!confirm(confirmMsg)) return;
+
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> جاري الضبط...';
+
+        try {
+            const response = await fetch(ROUTE_SANITIZE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ category_id: categoryId })
+            });
+
+            const data = await response.json();
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (data.success) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.success(data.message);
+                } else {
+                    alert(data.message);
+                }
+                restartScan();
+            } else {
+                alert('فشلت العملية: ' + (data.message || 'خطأ غير معروف'));
+            }
+        } catch (error) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            console.error(error);
+            alert('حدث خطأ أثناء الاتصال بالسيرفر.');
+        }
+    });
 
     function restartScan() {
         // إخفاء الجدول وإعادة التهيئة

@@ -199,10 +199,12 @@ class QuestionController extends Controller
 
             if ($request->questions_type == 'image') {
                 // If it's an image, store it in the 'questions/images' folder
-                $questionFilePath = $questionFile->storeAs('questions/images', $questionFile->getClientOriginalName(), 'public');
+                $cleanName = \Illuminate\Support\Str::slug(pathinfo($questionFile->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . time() . '.' . $questionFile->getClientOriginalExtension();
+                $questionFilePath = $questionFile->storeAs('questions/images', $cleanName, 'public');
             } elseif ($request->questions_type == 'sound') {
                 // If it's a sound file, store it in the 'questions/sounds' folder
-                $questionFilePath = $questionFile->storeAs('questions/sounds', $questionFile->getClientOriginalName(), 'public');
+                $cleanName = \Illuminate\Support\Str::slug(pathinfo($questionFile->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . time() . '.' . $questionFile->getClientOriginalExtension();
+                $questionFilePath = $questionFile->storeAs('questions/sounds', $cleanName, 'public');
             }
         }
 
@@ -222,10 +224,12 @@ class QuestionController extends Controller
 
             if ($request->answer_type == 'image') {
                 // If it's an image, store it in the 'answers/images' folder
-                $answerFilePath = $answerFile->storeAs('answers/images', $answerFile->getClientOriginalName(), 'public');
+                $cleanName = \Illuminate\Support\Str::slug(pathinfo($answerFile->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . time() . '.' . $answerFile->getClientOriginalExtension();
+                $answerFilePath = $answerFile->storeAs('answers/images', $cleanName, 'public');
             } elseif ($request->answer_type == 'sound') {
                 // If it's a sound file, store it in the 'answers/sounds' folder
-                $answerFilePath = $answerFile->storeAs('answers/sounds', $answerFile->getClientOriginalName(), 'public');
+                $cleanName = \Illuminate\Support\Str::slug(pathinfo($answerFile->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . time() . '.' . $answerFile->getClientOriginalExtension();
+                $answerFilePath = $answerFile->storeAs('answers/sounds', $cleanName, 'public');
             }
         }
 
@@ -943,13 +947,158 @@ foreach ($answersData as $ans) {
             ])->render();
 
             return response()->json([
-                'html'       => $html,
+            'html'       => $html,
                 'next_page'  => $paginator->hasMorePages() ? $page + 1 : null,
                 'batch_stats'=> $batchStats,
                 'total'      => $paginator->total(),
                 'last_page'  => $paginator->lastPage(),
                 'current_page' => $page,
             ]);
+        }
+
+        public function sanitizeQuestionImagesAjax(Request $request)
+        {
+            $categoryId = $request->input('category_id', '');
+
+            $qQuery = Question::where('questions_type', 'image')
+                ->whereNotNull('qu_image')
+                ->where('qu_image', '!=', '');
+            
+            $aQuery = \App\Models\Answer::where('answer_type', 'image')
+                ->whereNotNull('answer_image')
+                ->where('answer_image', '!=', '');
+
+            if ($categoryId) {
+                $qQuery->where('category_id', $categoryId);
+                $aQuery->whereHas('question', function($q) use ($categoryId) {
+                    $q->where('category_id', $categoryId);
+                });
+            }
+
+            $questions = $qQuery->get()->groupBy('qu_image');
+            $answers = $aQuery->get()->groupBy('answer_image');
+
+            $qDir = public_path('upload/questions/images/');
+            $aDir = public_path('upload/answers/images/');
+
+            $totalRenamed = 0;
+
+            // 1. Sanitize Questions
+            if (\Illuminate\Support\Facades\File::isDirectory($qDir)) {
+                foreach ($questions as $oldName => $group) {
+                    $decoded = rawurldecode($oldName);
+                    $dirname = pathinfo($decoded, PATHINFO_DIRNAME);
+                    $basename = pathinfo($decoded, PATHINFO_FILENAME);
+                    $extension = pathinfo($decoded, PATHINFO_EXTENSION);
+
+                    $cleanBasename = \Illuminate\Support\Str::slug($basename);
+                    if (empty($cleanBasename)) {
+                        $cleanBasename = 'img_' . uniqid();
+                    }
+
+                    $sanitizedName = $cleanBasename . ($extension ? '.' . strtolower($extension) : '');
+                    $sanitized = ($dirname && $dirname !== '.') ? $dirname . '/' . $sanitizedName : $sanitizedName;
+
+                    if ($decoded === $sanitized && $oldName === $sanitized) {
+                        continue;
+                    }
+
+                    $physicalPath = $this->findPhysicalFileForAjax($qDir, $oldName);
+                    
+                    if ($physicalPath) {
+                        $newName = $sanitized;
+                        $counter = 1;
+                        while (\Illuminate\Support\Facades\File::exists($qDir . $newName) && $newName !== $oldName) {
+                            $newName = ($dirname && $dirname !== '.') 
+                                ? $dirname . '/' . $cleanBasename . '-' . $counter . ($extension ? '.' . strtolower($extension) : '')
+                                : $cleanBasename . '-' . $counter . ($extension ? '.' . strtolower($extension) : '');
+                            $counter++;
+                        }
+
+                        \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($qDir . $newName));
+                        if (\Illuminate\Support\Facades\File::move($physicalPath, $qDir . $newName)) {
+                            Question::where('qu_image', $oldName)->update(['qu_image' => $newName]);
+                            $totalRenamed++;
+                        }
+                    } else {
+                        // File missing on disk, update DB reference anyway to the sanitized name
+                        Question::where('qu_image', $oldName)->update(['qu_image' => $sanitized]);
+                    }
+                }
+            }
+
+            // 2. Sanitize Answers
+            if (\Illuminate\Support\Facades\File::isDirectory($aDir)) {
+                foreach ($answers as $oldName => $group) {
+                    $decoded = rawurldecode($oldName);
+                    $dirname = pathinfo($decoded, PATHINFO_DIRNAME);
+                    $basename = pathinfo($decoded, PATHINFO_FILENAME);
+                    $extension = pathinfo($decoded, PATHINFO_EXTENSION);
+
+                    $cleanBasename = \Illuminate\Support\Str::slug($basename);
+                    if (empty($cleanBasename)) {
+                        $cleanBasename = 'ans_' . uniqid();
+                    }
+
+                    $sanitizedName = $cleanBasename . ($extension ? '.' . strtolower($extension) : '');
+                    $sanitized = ($dirname && $dirname !== '.') ? $dirname . '/' . $sanitizedName : $sanitizedName;
+
+                    if ($decoded === $sanitized && $oldName === $sanitized) {
+                        continue;
+                    }
+
+                    $physicalPath = $this->findPhysicalFileForAjax($aDir, $oldName);
+                    
+                    if ($physicalPath) {
+                        $newName = $sanitized;
+                        $counter = 1;
+                        while (\Illuminate\Support\Facades\File::exists($aDir . $newName) && $newName !== $oldName) {
+                            $newName = ($dirname && $dirname !== '.') 
+                                ? $dirname . '/' . $cleanBasename . '-' . $counter . ($extension ? '.' . strtolower($extension) : '')
+                                : $cleanBasename . '-' . $counter . ($extension ? '.' . strtolower($extension) : '');
+                            $counter++;
+                        }
+
+                        \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($aDir . $newName));
+                        if (\Illuminate\Support\Facades\File::move($physicalPath, $aDir . $newName)) {
+                            \App\Models\Answer::where('answer_image', $oldName)->update(['answer_image' => $newName]);
+                            $totalRenamed++;
+                        }
+                    } else {
+                        // File missing on disk, update DB reference anyway to the sanitized name
+                        \App\Models\Answer::where('answer_image', $oldName)->update(['answer_image' => $sanitized]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم ضبط وتصحيح ' . $totalRenamed . ' اسم صورة بنجاح في قاعدة البيانات وعلى السيرفر!',
+            ]);
+        }
+
+        protected function findPhysicalFileForAjax($dir, $filename)
+        {
+            $decoded = rawurldecode($filename);
+            $paths = [
+                $dir . $filename,
+                $dir . $decoded
+            ];
+
+            if (class_exists('Normalizer')) {
+                $paths[] = $dir . \Normalizer::normalize($filename, \Normalizer::FORM_D);
+                $paths[] = $dir . \Normalizer::normalize($filename, \Normalizer::FORM_C);
+                $paths[] = $dir . \Normalizer::normalize($decoded, \Normalizer::FORM_D);
+                $paths[] = $dir . \Normalizer::normalize($decoded, \Normalizer::FORM_C);
+            }
+
+            foreach (array_unique($paths) as $path) {
+                if (\Illuminate\Support\Facades\File::exists($path)) {
+                    return $path;
+                }
+            }
+
+            return null;
         }
 
 

@@ -431,6 +431,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
     Route::post('/search/filter/question' , 'fillterQuestionSearch')->name('filter.question.search');
 
     Route::get('/admin/verify/question/images', 'verifyQuestionImages')->name('verify.question.images');
+    Route::post('/admin/verify/question/images/sanitize', 'sanitizeQuestionImagesAjax')->name('verify.question.images.sanitize');
 
 
 
