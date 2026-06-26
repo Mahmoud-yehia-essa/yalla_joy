@@ -1006,6 +1006,11 @@ foreach ($answersData as $ans) {
                     $physicalPath = $this->findPhysicalFileForAjax($qDir, $oldName);
                     
                     if ($physicalPath) {
+                        $parentDir = dirname($physicalPath);
+                        if (!is_writable($parentDir)) {
+                            @chmod($parentDir, 0775);
+                        }
+
                         $newName = $sanitized;
                         $counter = 1;
                         while (\Illuminate\Support\Facades\File::exists($qDir . $newName) && $newName !== $oldName) {
@@ -1015,7 +1020,12 @@ foreach ($answersData as $ans) {
                             $counter++;
                         }
 
-                        \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($qDir . $newName));
+                        $targetParentDir = dirname($qDir . $newName);
+                        \Illuminate\Support\Facades\File::ensureDirectoryExists($targetParentDir);
+                        if (!is_writable($targetParentDir)) {
+                            @chmod($targetParentDir, 0775);
+                        }
+
                         if (\Illuminate\Support\Facades\File::move($physicalPath, $qDir . $newName)) {
                             Question::where('qu_image', $oldName)->update(['qu_image' => $newName]);
                             $totalRenamed++;
@@ -1050,6 +1060,11 @@ foreach ($answersData as $ans) {
                     $physicalPath = $this->findPhysicalFileForAjax($aDir, $oldName);
                     
                     if ($physicalPath) {
+                        $parentDir = dirname($physicalPath);
+                        if (!is_writable($parentDir)) {
+                            @chmod($parentDir, 0775);
+                        }
+
                         $newName = $sanitized;
                         $counter = 1;
                         while (\Illuminate\Support\Facades\File::exists($aDir . $newName) && $newName !== $oldName) {
@@ -1059,7 +1074,12 @@ foreach ($answersData as $ans) {
                             $counter++;
                         }
 
-                        \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($aDir . $newName));
+                        $targetParentDir = dirname($aDir . $newName);
+                        \Illuminate\Support\Facades\File::ensureDirectoryExists($targetParentDir);
+                        if (!is_writable($targetParentDir)) {
+                            @chmod($targetParentDir, 0775);
+                        }
+
                         if (\Illuminate\Support\Facades\File::move($physicalPath, $aDir . $newName)) {
                             \App\Models\Answer::where('answer_image', $oldName)->update(['answer_image' => $newName]);
                             $totalRenamed++;
