@@ -360,6 +360,26 @@
         <div class="stat-value" id="val-a-issue"><span class="stat-skeleton"></span></div>
         <div class="stat-label">صور إجابات مشكلة ✗</div>
     </div>
+    <div class="stat-card stat-purple" id="card-best-q-cat" style="display: none;">
+        <div class="stat-icon"><i class="bx bx-crown"></i></div>
+        <div class="stat-value" id="val-best-q-cat" style="font-size:1.3rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="">—</div>
+        <div class="stat-label" id="label-best-q-cat">أكثر فئة سليمة (صور الأسئلة)</div>
+    </div>
+    <div class="stat-card stat-purple" id="card-best-a-cat" style="display: none;">
+        <div class="stat-icon"><i class="bx bx-award"></i></div>
+        <div class="stat-value" id="val-best-a-cat" style="font-size:1.3rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="">—</div>
+        <div class="stat-label" id="label-best-a-cat">أكثر فئة سليمة (صور الإجابات)</div>
+    </div>
+    <div class="stat-card stat-danger" id="card-worst-q-cat" style="display: none;">
+        <div class="stat-icon"><i class="bx bx-error-alt"></i></div>
+        <div class="stat-value" id="val-worst-q-cat" style="font-size:1.3rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="">—</div>
+        <div class="stat-label" id="label-worst-q-cat">أكثر فئة بها مشاكل (صور الأسئلة)</div>
+    </div>
+    <div class="stat-card stat-danger" id="card-worst-a-cat" style="display: none;">
+        <div class="stat-icon"><i class="bx bx-shield-x"></i></div>
+        <div class="stat-value" id="val-worst-a-cat" style="font-size:1.3rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="">—</div>
+        <div class="stat-label" id="label-worst-a-cat">أكثر فئة بها مشاكل (صور الإجابات)</div>
+    </div>
 </div>
 
 {{-- Scan Progress --}}
@@ -383,6 +403,21 @@
 
 {{-- Search --}}
 <div class="search-filter-card">
+    <div class="row g-3 align-items-end mb-3">
+        <div class="col-md-12">
+            <label class="form-label fw-600 text-dark mb-1" style="font-size:.85rem;">
+                <i class="bx bx-category me-1 text-primary"></i> التصفية حسب الفئة
+            </label>
+            <select id="categoryFilter" class="form-select">
+                <option value="">كل الفئات</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                        {{ $category->category_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
     <div class="row g-3 align-items-end">
         <div class="col-md-8">
             <label class="form-label fw-600 text-dark mb-1" style="font-size:.85rem;">
@@ -579,12 +614,14 @@
 
             const search     = document.getElementById('searchInput').value.trim();
             const filterType = document.getElementById('filterTypeSelect').value;
+            const categoryId = document.getElementById('categoryFilter').value;
 
             try {
                 const res  = await fetch(ROUTE_AJAX + '?' + new URLSearchParams({
                     page: currentPage,
                     search: search,
                     filter_type: filterType,
+                    category_id: categoryId,
                 }), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -658,6 +695,7 @@
         updateStatCards();
         updateTabCounts();
         updateFooter();
+        updateBestCategories();
 
         // ⑤ إظهار الجدول وتبويبات الفلترة
         tableCard.style.display  = '';
@@ -777,11 +815,13 @@
     document.getElementById('btnReset').addEventListener('click', function () {
         document.getElementById('searchInput').value      = '';
         document.getElementById('filterTypeSelect').value = '';
+        document.getElementById('categoryFilter').value   = '';
         restartScan();
     });
     document.getElementById('searchInput').addEventListener('keydown', e => {
         if (e.key === 'Enter') restartScan();
     });
+    document.getElementById('categoryFilter').addEventListener('change', restartScan);
 
     function restartScan() {
         // إخفاء الجدول وإعادة التهيئة
@@ -799,6 +839,15 @@
         if (spinnerIconReset) spinnerIconReset.style.display = '';
         scanStatusText.innerHTML = 'جاري فحص الملفات... يرجى الانتظار';
         scanLegend.style.display = 'none';
+
+        const cardBestQ = document.getElementById('card-best-q-cat');
+        const cardBestA = document.getElementById('card-best-a-cat');
+        if (cardBestQ) cardBestQ.style.display = 'none';
+        if (cardBestA) cardBestA.style.display = 'none';
+        const cardWorstQ = document.getElementById('card-worst-q-cat');
+        const cardWorstA = document.getElementById('card-worst-a-cat');
+        if (cardWorstQ) cardWorstQ.style.display = 'none';
+        if (cardWorstA) cardWorstA.style.display = 'none';
 
         // إعادة تفعيل الـ animations للفحص الجديد
         document.body.classList.remove('scan-complete');
@@ -835,6 +884,168 @@
             document.body.classList.remove('is-scrolling');
         }, 200);
     }, { passive: true });
+
+    function updateBestCategories() {
+        const rows = tbody.querySelectorAll('.verify-row');
+        const catStats = {};
+
+        rows.forEach(row => {
+            const catName = row.dataset.categoryName || '—';
+            if (catName === '—') return;
+
+            if (!catStats[catName]) {
+                catStats[catName] = {
+                    qOk: 0,
+                    qBad: 0,
+                    aOk: 0,
+                    aBad: 0
+                };
+            }
+
+            const qType = row.dataset.questionType;
+            const qStatus = row.dataset.questionStatus;
+            if (qType === 'image') {
+                if (qStatus === 'found') {
+                    catStats[catName].qOk++;
+                } else if (qStatus === 'missing' || qStatus === 'no_path') {
+                    catStats[catName].qBad++;
+                }
+            }
+
+            const aOk = parseInt(row.dataset.ansOkCount || '0', 10);
+            const aBad = parseInt(row.dataset.ansBadCount || '0', 10);
+            catStats[catName].aOk += aOk;
+            catStats[catName].aBad += aBad;
+        });
+
+        // 1. Best Question Category
+        let bestQCat = null;
+        let bestQScore = { bad: Infinity, ok: -1 };
+        
+        Object.keys(catStats).forEach(name => {
+            const stats = catStats[name];
+            if (stats.qOk > 0 || stats.qBad > 0) {
+                if (stats.qBad < bestQScore.bad || (stats.qBad === bestQScore.bad && stats.qOk > bestQScore.ok)) {
+                    bestQScore = { bad: stats.qBad, ok: stats.qOk };
+                    bestQCat = name;
+                }
+            }
+        });
+
+        // 2. Best Answer Category
+        let bestACat = null;
+        let bestAScore = { bad: Infinity, ok: -1 };
+        
+        Object.keys(catStats).forEach(name => {
+            const stats = catStats[name];
+            if (stats.aOk > 0 || stats.aBad > 0) {
+                if (stats.aBad < bestAScore.bad || (stats.aBad === bestAScore.bad && stats.aOk > bestAScore.ok)) {
+                    bestAScore = { bad: stats.aBad, ok: stats.aOk };
+                    bestACat = name;
+                }
+            }
+        });
+
+        // 3. Worst Question Category (most bad questions, then fewest ok questions)
+        let worstQCat = null;
+        let worstQScore = { bad: -1, ok: Infinity };
+        
+        Object.keys(catStats).forEach(name => {
+            const stats = catStats[name];
+            if (stats.qBad > 0) {
+                if (stats.qBad > worstQScore.bad || (stats.qBad === worstQScore.bad && stats.qOk < worstQScore.ok)) {
+                    worstQScore = { bad: stats.qBad, ok: stats.qOk };
+                    worstQCat = name;
+                }
+            }
+        });
+
+        // 4. Worst Answer Category (most bad answers, then fewest ok answers)
+        let worstACat = null;
+        let worstAScore = { bad: -1, ok: Infinity };
+        
+        Object.keys(catStats).forEach(name => {
+            const stats = catStats[name];
+            if (stats.aBad > 0) {
+                if (stats.aBad > worstAScore.bad || (stats.aBad === worstAScore.bad && stats.aOk < worstAScore.ok)) {
+                    worstAScore = { bad: stats.aBad, ok: stats.aOk };
+                    worstACat = name;
+                }
+            }
+        });
+
+        // Show/hide best question card
+        const cardBestQ = document.getElementById('card-best-q-cat');
+        if (bestQCat) {
+            const stats = catStats[bestQCat];
+            const valEl = document.getElementById('val-best-q-cat');
+            const lblEl = document.getElementById('label-best-q-cat');
+            if (valEl) {
+                valEl.textContent = bestQCat;
+                valEl.title = bestQCat;
+            }
+            if (lblEl) {
+                lblEl.innerHTML = `أكثر فئة سليمة (صور الأسئلة)<br><small style="font-size:0.75rem;opacity:0.9;">سليمة: ${stats.qOk} | مفقودة: ${stats.qBad}</small>`;
+            }
+            if (cardBestQ) cardBestQ.style.display = 'block';
+        } else {
+            if (cardBestQ) cardBestQ.style.display = 'none';
+        }
+
+        // Show/hide best answer card
+        const cardBestA = document.getElementById('card-best-a-cat');
+        if (bestACat) {
+            const stats = catStats[bestACat];
+            const valEl = document.getElementById('val-best-a-cat');
+            const lblEl = document.getElementById('label-best-a-cat');
+            if (valEl) {
+                valEl.textContent = bestACat;
+                valEl.title = bestACat;
+            }
+            if (lblEl) {
+                lblEl.innerHTML = `أكثر فئة سليمة (صور الإجابات)<br><small style="font-size:0.75rem;opacity:0.9;">سليمة: ${stats.aOk} | مفقودة: ${stats.aBad}</small>`;
+            }
+            if (cardBestA) cardBestA.style.display = 'block';
+        } else {
+            if (cardBestA) cardBestA.style.display = 'none';
+        }
+
+        // Show/hide worst question card
+        const cardWorstQ = document.getElementById('card-worst-q-cat');
+        if (worstQCat) {
+            const stats = catStats[worstQCat];
+            const valEl = document.getElementById('val-worst-q-cat');
+            const lblEl = document.getElementById('label-worst-q-cat');
+            if (valEl) {
+                valEl.textContent = worstQCat;
+                valEl.title = worstQCat;
+            }
+            if (lblEl) {
+                lblEl.innerHTML = `أكثر فئة بها مشاكل (صور الأسئلة)<br><small style="font-size:0.75rem;opacity:0.9;">مفقودة: ${stats.qBad} | سليمة: ${stats.qOk}</small>`;
+            }
+            if (cardWorstQ) cardWorstQ.style.display = 'block';
+        } else {
+            if (cardWorstQ) cardWorstQ.style.display = 'none';
+        }
+
+        // Show/hide worst answer card
+        const cardWorstA = document.getElementById('card-worst-a-cat');
+        if (worstACat) {
+            const stats = catStats[worstACat];
+            const valEl = document.getElementById('val-worst-a-cat');
+            const lblEl = document.getElementById('label-worst-a-cat');
+            if (valEl) {
+                valEl.textContent = worstACat;
+                valEl.title = worstACat;
+            }
+            if (lblEl) {
+                lblEl.innerHTML = `أكثر فئة بها مشاكل (صور الإجابات)<br><small style="font-size:0.75rem;opacity:0.9;">مفقودة: ${stats.aBad} | سليمة: ${stats.aOk}</small>`;
+            }
+            if (cardWorstA) cardWorstA.style.display = 'block';
+        } else {
+            if (cardWorstA) cardWorstA.style.display = 'none';
+        }
+    }
 
     // ─── بدء التشغيل ──────────────────────────────────────
     init();

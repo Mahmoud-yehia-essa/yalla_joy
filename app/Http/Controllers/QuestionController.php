@@ -785,6 +785,7 @@ foreach ($answersData as $ans) {
             // =============================================
             $search = $request->input('search', '');
             $filterType = $request->input('filter_type', '');
+            $categoryId = $request->input('category_id', '');
 
             $baseQuery = Question::with(['answers' => function($q) {
                 $q->where('answer_type', 'image')->select('id','question_id','answer_type','answer_image');
@@ -797,10 +798,21 @@ foreach ($answersData as $ans) {
                 });
             }
 
+            if ($categoryId) {
+                $baseQuery->where('category_id', $categoryId);
+            }
+
             // إحصائيات سريعة من قاعدة البيانات فقط (بدون فحص الملفات)
             $totalQuestions    = (clone $baseQuery)->count();
             $imageQuestions    = (clone $baseQuery)->where('questions_type', 'image')->count();
-            $totalAnswerImages = \App\Models\Answer::where('answer_type', 'image')->count();
+            
+            $totalAnswerImagesQuery = \App\Models\Answer::where('answer_type', 'image');
+            if ($categoryId) {
+                $totalAnswerImagesQuery->whereHas('question', function($q) use ($categoryId) {
+                    $q->where('category_id', $categoryId);
+                });
+            }
+            $totalAnswerImages = $totalAnswerImagesQuery->count();
 
             $stats = [
                 'total_questions'       => $totalQuestions,
@@ -815,7 +827,9 @@ foreach ($answersData as $ans) {
                 'answer_images_no_path'   => '—',
             ];
 
-            return view('admin.question.verify_images', compact('stats', 'search', 'filterType'));
+            $categories = \App\Models\Category::orderBy('category_name', 'asc')->get();
+
+            return view('admin.question.verify_images', compact('stats', 'search', 'filterType', 'categories'));
         }
 
         /**
@@ -827,6 +841,7 @@ foreach ($answersData as $ans) {
             $page       = max(1, (int) $request->input('page', 1));
             $search     = $request->input('search', '');
             $filterType = $request->input('filter_type', '');
+            $categoryId = $request->input('category_id', '');
 
             $query = Question::with(['category', 'answers'])->orderBy('id', 'asc');
 
@@ -835,6 +850,10 @@ foreach ($answersData as $ans) {
                     $q->where('qu_title', 'like', "%{$search}%")
                       ->orWhere('qu_title_en', 'like', "%{$search}%");
                 });
+            }
+
+            if ($categoryId) {
+                $query->where('category_id', $categoryId);
             }
 
             $paginator  = $query->paginate($perPage, ['*'], 'page', $page);

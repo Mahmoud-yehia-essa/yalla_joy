@@ -8,12 +8,28 @@
     $hasIssue    = $row['has_any_issue'] ? '1' : '0';
     $allFound    = (!$row['has_any_issue']) ? '1' : '0';
     $answerMiss  = $row['has_answer_issue'] ? '1' : '0';
+    
+    $ansOkCount  = 0;
+    $ansBadCount = 0;
+    foreach ($row['answers'] as $ans) {
+        if ($ans['answer_type'] === 'image') {
+            if ($ans['image_status'] === 'found') {
+                $ansOkCount++;
+            } else {
+                $ansBadCount++;
+            }
+        }
+    }
 @endphp
 <tr class="verify-row"
+    data-category-name="{{ $row['category_name'] ?? '—' }}"
+    data-question-type="{{ $row['questions_type'] ?? '' }}"
     data-question-status="{{ $qStatus ?? 'na' }}"
     data-has-issue="{{ $hasIssue }}"
     data-all-found="{{ $allFound }}"
-    data-has-answer-missing="{{ $answerMiss }}">
+    data-has-answer-missing="{{ $answerMiss }}"
+    data-ans-ok-count="{{ $ansOkCount }}"
+    data-ans-bad-count="{{ $ansBadCount }}">
 
     {{-- رقم + ID --}}
     <td>
