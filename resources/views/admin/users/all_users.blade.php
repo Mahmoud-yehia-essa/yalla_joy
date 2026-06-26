@@ -86,12 +86,12 @@
     <img
         onclick="showImageModal(this.src)"
         class="rounded-circle"
-        src="{{ (!empty($item->photo) && $item->photo != 'non') ? url('upload/user_images/'.$item->photo) : url('upload/no_image.jpg') }}"
+        src="{{ (!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo))) ? url('upload/user_images/'.$item->photo) : url('upload/no_image.jpg') }}"
         style="width: 50px; height:50px; border: 2px solid #0aa2dd; cursor: pointer;"
     >
 </td>
 <td>
-    @if(!empty($item->photo) && $item->photo != 'non')
+    @if(!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo)))
         <div class="d-flex flex-column align-items-center gap-1">
             @if($item->photo_approval_status == 'approved')
                 <span class="badge bg-success">مقبولة</span>

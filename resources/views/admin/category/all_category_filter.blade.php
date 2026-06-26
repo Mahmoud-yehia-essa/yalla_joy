@@ -70,7 +70,7 @@
 }}
 
 </td>
-<td> <img onclick="showImageModal(this.src)" src="{{ asset($item->category_photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
+<td> <img onclick="showImageModal(this.src)" src="{{ (!empty($item->category_photo) && file_exists(public_path($item->category_photo))) ? asset($item->category_photo) : url('upload/no_image.jpg') }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
 <td>
 

@@ -120,7 +120,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
-                                        <img id="showImage" src="{{ url($titlePosition->photo) }}" alt="Preview" style="width:100px; height:100px;">
+                                        <img id="showImage" src="{{ ($titlePosition->photo && file_exists(public_path($titlePosition->photo))) ? url($titlePosition->photo) : url('upload/no_image.jpg') }}" alt="Preview" style="width:100px; height:100px;">
                                     </div>
                                 </div>
 

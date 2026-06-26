@@ -36,7 +36,7 @@
                             <td>{{ $ranking->name }}</td>
                             <td>{{ $ranking->name_en }}</td>
                             {{-- <td>{{ $ranking->level->name ?? '---' }}</td> --}}
-                                                           <td> <img onclick="showImageModal(this.src)" src="{{ asset($ranking->photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
+                                                           <td> <img onclick="showImageModal(this.src)" src="{{ ($ranking->photo && file_exists(public_path($ranking->photo))) ? asset($ranking->photo) : url('upload/no_image.jpg') }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
                             <td>
                                 @if($ranking->status == 'active')

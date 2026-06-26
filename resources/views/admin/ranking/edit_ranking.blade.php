@@ -84,7 +84,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
-                                        <img id="showImage" src="{{ url($ranking->photo ?? 'upload/no_image.jpg') }}" style="width:100px; height:100px;">
+                                        <img id="showImage" src="{{ ($ranking->photo && file_exists(public_path($ranking->photo))) ? url($ranking->photo) : url('upload/no_image.jpg') }}" style="width:100px; height:100px;">
                                     </div>
                                 </div>
 

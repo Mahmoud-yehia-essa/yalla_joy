@@ -88,7 +88,7 @@
                             </td>
 
                               <td>
-                                @if($game->photo)
+                                @if($game->photo && file_exists(public_path($game->photo)))
                                     <img onclick="showImageModal(this.src)" src="{{ asset($game->photo) }}" style="width: 70px; height:40px; cursor: pointer;" >
                                 @else
                                     <span>—</span>

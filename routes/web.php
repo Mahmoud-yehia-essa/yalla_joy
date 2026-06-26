@@ -1096,5 +1096,26 @@ Route::controller(ProblemReportController::class)->middleware(['checkUserRole','
     Route::get('/problem-report/delete/{id}', 'deleteProblemReport')->name('delete.problem.report');
 });
 
+Route::get('/fix-storage', function () {
+    // 1. حذف المجلد الرمزي القديم إذا كان موجوداً ومكسوراً
+    $shortcut = public_path('storage');
+    if (file_exists($shortcut) || is_link($shortcut)) {
+        @unlink($shortcut);
+    }
+
+    // 2. إعادة إنشاء الـ Symlink وتنظيف الكاش
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+
+        return "تم إصلاح الروابط وتنظيف الكاش بنجاح!";
+    } catch (\Exception $e) {
+        return "حدث خطأ: " . $e->getMessage();
+    }
+});
+
 require __DIR__.'/auth.php';
+
 

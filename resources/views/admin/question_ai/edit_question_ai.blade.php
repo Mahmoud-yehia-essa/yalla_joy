@@ -120,11 +120,11 @@
                             <!-- Preview for Question File -->
                             <div id="questionPreview" class="mt-2"></div>
 
-                            @if ($question->questions_type == 'image')
+                            @if ($question->questions_type == 'image' && $question->qu_image && file_exists(public_path('upload/questions/images/' . $question->qu_image)))
                                 <img id="showQuestionImage" src="{{ url('upload/questions/images/' . $question->qu_image) }}" alt="Admin" width="110" class="mt-2">
-                            @elseif ($question->questions_type == 'video')
+                            @elseif ($question->questions_type == 'video' && $question->qu_video && file_exists(public_path('upload/questions/videos/' . $question->qu_video)))
                                 <video width="400px" controls><source src="{{ url('upload/questions/videos/' . $question->qu_video) }}" type="video/mp4"></video>
-                            @elseif ($question->questions_type == 'sound')
+                            @elseif ($question->questions_type == 'sound' && $question->qu_sound && file_exists(public_path('upload/questions/sounds/' . $question->qu_sound)))
                                 <audio controls id="showQuestionAudio">
                                     <source src="{{ url('upload/questions/sounds/' . $question->qu_sound) }}" type="audio/mpeg">
                                     Your browser does not support the audio tag.
@@ -192,11 +192,11 @@
                         <!-- Preview for Answer File -->
                         <div id="answerPreview" class="mt-2"></div>
 
-                        @if ($question->answers->first()->answer_type == 'image')
+                        @if ($question->answers->first()->answer_type == 'image' && $question->answers->first()->answer_image && file_exists(public_path('upload/answers/images/' . $question->answers->first()->answer_image)))
                             <img id="showAnswerImage" src="{{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answers->first()->answer_type == 'video')
+                        @elseif ($question->answers->first()->answer_type == 'video' && $question->answers->first()->answer_video && file_exists(public_path('upload/answers/videos/' . $question->answers->first()->answer_video)))
                             <video width="400px" controls><source src="{{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answers->first()->answer_type == 'sound')
+                        @elseif ($question->answers->first()->answer_type == 'sound' && $question->answers->first()->answer_sound && file_exists(public_path('upload/answers/sounds/' . $question->answers->first()->answer_sound)))
                             <audio controls id="showAnswerAudio">
                                 <source src="{{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}" type="audio/mpeg">
                                 Your browser does not support the audio tag.

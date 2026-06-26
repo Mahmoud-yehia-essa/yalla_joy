@@ -75,7 +75,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
-                                        <img id="showImage" src="{{ url($category->category_photo) }}" alt="Preview" style="width:100px; height: 100px;">
+                                        <img id="showImage" src="{{ (!empty($category->category_photo) && file_exists(public_path($category->category_photo))) ? url($category->category_photo) : url('upload/no_image.jpg') }}" alt="Preview" style="width:100px; height: 100px;">
                                     </div>
                                 </div>
 

@@ -32,9 +32,13 @@
 
                 <div class="col-md-12 mb-3">
                     <label>صورة اللعبة</label>
-                    @if($game->photo)
+                    @if($game->photo && file_exists(public_path($game->photo)))
                         <div class="mb-2">
                             <img id="oldImage" src="{{ asset($game->photo) }}" style="width: 150px; border:1px solid #ddd; padding:2px;">
+                        </div>
+                    @else
+                        <div class="mb-2">
+                            <img id="oldImage" src="{{ url('upload/no_image.jpg') }}" style="width: 150px; border:1px solid #ddd; padding:2px;">
                         </div>
                     @endif
                     <input type="file" name="photo" class="form-control" accept="image/*" onchange="previewImage(event)">

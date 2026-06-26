@@ -148,7 +148,7 @@
                             <div class="row mb-3">
                                 <div class="col-sm-3"></div>
                                 <div class="col-sm-9 text-secondary">
-                                    <img id="showImage" src="{{ (!empty($user->photo) && $user->photo != 'non' ) ? url('upload/user_images/'.$user->photo):url('upload/no_image.jpg') }}" alt="Admin" width="110">
+                                    <img id="showImage" src="{{ (!empty($user->photo) && $user->photo != 'non' && file_exists(public_path('upload/user_images/'.$user->photo))) ? url('upload/user_images/'.$user->photo):url('upload/no_image.jpg') }}" alt="Admin" width="110">
 
 
                                 </div>

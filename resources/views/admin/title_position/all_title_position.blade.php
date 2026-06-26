@@ -60,7 +60,7 @@
                         <td><span class="badge bg-secondary">{{ $item->points ?? 0 }}</span></td>
 
                         <td>
-                            @if($item->photo)
+                            @if($item->photo && file_exists(public_path($item->photo)))
                                 <img onclick="showImageModal(this.src)" src="{{ asset($item->photo) }}" style="width: 70px; height:40px; cursor: pointer;">
                             @else
                                 <img src="{{ url('upload/no_image.jpg') }}" style="width: 70px; height:40px;">

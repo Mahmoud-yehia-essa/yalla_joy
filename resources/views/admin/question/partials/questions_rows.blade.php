@@ -96,11 +96,11 @@ $item->answers->first()->answer_title ?? 'لم يتم تحديد الاجابة'
         </div>
         <div class="col-md-8">
             <strong class="text-dark">الملف المرفق للسؤال</strong><br>
-            @if($item->questions_type == 'image' && $item->qu_image)
+            @if($item->questions_type == 'image' && $item->qu_image && file_exists(public_path('upload/questions/images/'.$item->qu_image)))
                 <img src="{{ asset('upload/questions/images/'.$item->qu_image) }}" class="img-fluid rounded shadow-sm mt-2" style="max-height: 200px;">
-            @elseif($item->questions_type == 'sound' && $item->qu_sound)
+            @elseif($item->questions_type == 'sound' && $item->qu_sound && file_exists(public_path('upload/questions/sounds/'.$item->qu_sound)))
                 <audio controls src="{{ asset('upload/questions/sounds/'.$item->qu_sound) }}" class="w-100 mt-2"></audio>
-            @elseif($item->questions_type == 'video' && $item->qu_video)
+            @elseif($item->questions_type == 'video' && $item->qu_video && file_exists(public_path('upload/questions/videos/'.$item->qu_video)))
                 <video controls src="{{ asset('upload/questions/videos/'.$item->qu_video) }}" class="w-100 rounded shadow-sm mt-2" style="max-height: 200px;"></video>
             @else
                 <span class="text-muted mt-1 d-inline-block">بدون ملف</span>
@@ -130,11 +130,11 @@ $item->answers->first()->answer_title ?? 'لم يتم تحديد الاجابة'
         </div>
         @if($localAnswer->answer_type != 'text')
         <div class="col-md-12 mt-3">
-            @if($localAnswer->answer_type == 'image' && $localAnswer->answer_image)
+            @if($localAnswer->answer_type == 'image' && $localAnswer->answer_image && file_exists(public_path('upload/answers/images/'.$localAnswer->answer_image)))
                 <img src="{{ asset('upload/answers/images/'.$localAnswer->answer_image) }}" class="img-fluid rounded shadow-sm" style="max-height: 150px;">
-            @elseif($localAnswer->answer_type == 'sound' && $localAnswer->answer_sound)
+            @elseif($localAnswer->answer_type == 'sound' && $localAnswer->answer_sound && file_exists(public_path('upload/answers/sounds/'.$localAnswer->answer_sound)))
                 <audio controls src="{{ asset('upload/answers/sounds/'.$localAnswer->answer_sound) }}" class="w-100"></audio>
-            @elseif($localAnswer->answer_type == 'video' && $localAnswer->answer_video)
+            @elseif($localAnswer->answer_type == 'video' && $localAnswer->answer_video && file_exists(public_path('upload/answers/videos/'.$localAnswer->answer_video)))
                 <video controls src="{{ asset('upload/answers/videos/'.$localAnswer->answer_video) }}" class="w-100 rounded shadow-sm" style="max-height: 150px;"></video>
             @endif
         </div>
@@ -172,11 +172,11 @@ $item->answers->first()->answer_title ?? 'لم يتم تحديد الاجابة'
                             <span class="text-muted small d-block mb-1">
                                 {{ $ans->answer_type == 'text' ? 'نصي' : ($ans->answer_type == 'image' ? 'صورة' : ($ans->answer_type == 'sound' ? 'ملف صوتي' : 'ملف فيديو')) }}
                             </span>
-                            @if($ans->answer_type == 'image' && $ans->answer_image)
+                            @if($ans->answer_type == 'image' && $ans->answer_image && file_exists(public_path('upload/answers/online/images/'.$ans->answer_image)))
                                 <img src="{{ asset('upload/answers/online/images/'.$ans->answer_image) }}" class="img-fluid rounded shadow-sm" style="max-height: 80px;">
-                            @elseif($ans->answer_type == 'sound' && $ans->answer_sound)
+                            @elseif($ans->answer_type == 'sound' && $ans->answer_sound && file_exists(public_path('upload/answers/online/sounds/'.$ans->answer_sound)))
                                 <audio controls src="{{ asset('upload/answers/online/sounds/'.$ans->answer_sound) }}" class="w-100" style="height:35px;"></audio>
-                            @elseif($ans->answer_type == 'video' && $ans->answer_video)
+                            @elseif($ans->answer_type == 'video' && $ans->answer_video && file_exists(public_path('upload/answers/online/videos/'.$ans->answer_video)))
                                 <video controls src="{{ asset('upload/answers/online/videos/'.$ans->answer_video) }}" class="w-100 rounded shadow-sm" style="max-height: 80px;"></video>
                             @endif
                         </td>

@@ -51,7 +51,7 @@
 
 
 
-<td> <img onclick="showImageModal(this.src)" src="{{ asset($item->photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
+<td> <img onclick="showImageModal(this.src)" src="{{ ($item->photo && file_exists(public_path($item->photo))) ? asset($item->photo) : url('upload/no_image.jpg') }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
 <td>
 

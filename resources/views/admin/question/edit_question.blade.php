@@ -322,11 +322,11 @@
                             <!-- Preview for Question File -->
                             <div id="questionPreview" class="mt-2"></div>
 
-                            @if ($question->questions_type == 'image')
+                            @if ($question->questions_type == 'image' && $question->qu_image && file_exists(public_path('upload/questions/images/' . $question->qu_image)))
                                 <img id="showQuestionImage" src="{{ url('upload/questions/images/' . $question->qu_image) }}" alt="Admin" width="110" class="mt-2">
-                            @elseif ($question->questions_type == 'video')
+                            @elseif ($question->questions_type == 'video' && $question->qu_video && file_exists(public_path('upload/questions/videos/' . $question->qu_video)))
                                 <video id="showQuestionVideo" width="400px" controls><source src="{{ url('upload/questions/videos/' . $question->qu_video) }}" type="video/mp4"></video>
-                            @elseif ($question->questions_type == 'sound')
+                            @elseif ($question->questions_type == 'sound' && $question->qu_sound && file_exists(public_path('upload/questions/sounds/' . $question->qu_sound)))
                                 <audio controls id="showQuestionAudio">
                                     <source src="{{ url('upload/questions/sounds/' . $question->qu_sound) }}" type="audio/mpeg">
                                     Your browser does not support the audio tag.
@@ -411,11 +411,11 @@
                         <!-- Preview for Answer File -->
                         <div id="answerPreview" class="mt-2"></div>
 
-                        @if ($question->answers->first()->answer_type == 'image')
+                        @if ($question->answers->first()->answer_type == 'image' && $question->answers->first()->answer_image && file_exists(public_path('upload/answers/images/' . $question->answers->first()->answer_image)))
                             <img id="showAnswerImage" src="{{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answers->first()->answer_type == 'video')
+                        @elseif ($question->answers->first()->answer_type == 'video' && $question->answers->first()->answer_video && file_exists(public_path('upload/answers/videos/' . $question->answers->first()->answer_video)))
                             <video id="showAnswerVideo"  width="400px" controls><source src="{{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answers->first()->answer_type == 'sound')
+                        @elseif ($question->answers->first()->answer_type == 'sound' && $question->answers->first()->answer_sound && file_exists(public_path('upload/answers/sounds/' . $question->answers->first()->answer_sound)))
                             <audio controls id="showAnswerAudio">
                                 <source src="{{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}" type="audio/mpeg">
                                 Your browser does not support the audio tag.
@@ -511,12 +511,12 @@
 
         </div>
         <br>
-            @if ($question->answerQuestionOnlines[1]->answer_type == 'image')
+            @if ($question->answerQuestionOnlines[1]->answer_type == 'image' && $question->answerQuestionOnlines[1]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image)))
                             <img id="showAnswerImageTwo" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'video')
+                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'video' && $question->answerQuestionOnlines[1]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video)))
 
                             <video id="showAnswerVideoTwo" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'sound')
+                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'sound' && $question->answerQuestionOnlines[1]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound)))
 
                             <audio controls id="showAnswerAudioTwo">
                                 <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound) }}" type="audio/mpeg">
@@ -563,12 +563,12 @@
 
 
          <br>
-            @if ($question->answerQuestionOnlines[2]->answer_type == 'image')
+            @if ($question->answerQuestionOnlines[2]->answer_type == 'image' && $question->answerQuestionOnlines[2]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image)))
                             <img id="showAnswerImageThree" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'video')
+                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'video' && $question->answerQuestionOnlines[2]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video)))
 
                             <video id="showAnswerVideoThree" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'sound')
+                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'sound' && $question->answerQuestionOnlines[2]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound)))
 
                             <audio controls id="showAnswerAudioThree">
                                 <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound) }}" type="audio/mpeg">
@@ -620,12 +620,12 @@
 
 
          <br>
-            @if ($question->answerQuestionOnlines[3]->answer_type == 'image')
+            @if ($question->answerQuestionOnlines[3]->answer_type == 'image' && $question->answerQuestionOnlines[3]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image)))
                             <img id="showAnswerImageFour" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'video')
+                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'video' && $question->answerQuestionOnlines[3]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video)))
 
                             <video id="showAnswerVideoFour" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'sound')
+                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'sound' && $question->answerQuestionOnlines[3]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound)))
 
                             <audio controls id="showAnswerAudioFour">
                                 <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound) }}" type="audio/mpeg">

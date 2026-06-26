@@ -205,7 +205,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3"></div>
                                     <div class="col-sm-9 text-secondary">
-                                        <img id="showImage" src="{{$rewardsSponsor->photo == null ? url('upload/no_image.jpg'): url($rewardsSponsor->photo) }}" alt="Preview" style="width:100px; height: 100px;">
+                                        <img id="showImage" src="{{ ($rewardsSponsor->photo == null || !file_exists(public_path($rewardsSponsor->photo))) ? url('upload/no_image.jpg') : url($rewardsSponsor->photo) }}" alt="Preview" style="width:100px; height: 100px;">
                                     </div>
                                 </div>
 
