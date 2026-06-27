@@ -17,4 +17,20 @@ class ProblemReport extends Model
     {
         return $this->belongsTo(Question::class, 'question_id');
     }
+
+    protected static function booted()
+    {
+        static::created(function ($problemReport) {
+            if (!app()->runningInConsole()) {
+                try {
+                    $admins = User::where('role', 'admin')->where('notify_problem_report', true)->get();
+                    if ($admins->count() > 0) {
+                        \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewProblemReportNotification($problemReport));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send problem report notification: ' . $e->getMessage());
+                }
+            }
+        });
+    }
 }

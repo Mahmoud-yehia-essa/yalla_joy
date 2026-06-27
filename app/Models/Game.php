@@ -32,6 +32,22 @@ class Game extends Model
         return $this->belongsTo(Team::class, 'team_id_winner');
     }
 
+    protected static function booted()
+    {
+        static::created(function ($game) {
+            if (!app()->runningInConsole()) {
+                try {
+                    $admins = User::where('role', 'admin')->where('notify_game_played', true)->get();
+                    if ($admins->count() > 0) {
+                        \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewGamePlayedNotification($game));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send game played notification: ' . $e->getMessage());
+                }
+            }
+        });
+    }
+
 
 
 

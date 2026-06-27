@@ -6,6 +6,9 @@
 <!--breadcrumb-->
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
     <div class="breadcrumb-title pe-3">اضافة سؤال جديد</div>
+    <div class="ms-auto">
+        <a href="{{ route('excel.index') }}" class="btn btn-success">اضافة الاسئلة من خلال excel</a>
+    </div>
 </div>
 <!--end breadcrumb-->
 <div class="container">
@@ -89,7 +92,7 @@
 
 
 
-                                  <div class="row mb-3">
+                                  {{-- <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">اختر نوع العملة</h6>
                                     </div>
@@ -120,7 +123,7 @@
         <input id="coins_number" name="coins_number" type="number" class="form-control" value="{{ old('coins_number') }}" />
         @error('coins_number') <span class="text-danger">{{ $message }}</span> @enderror
     </div>
-</div>
+</div> --}}
 
 
                             <!-- Question Title -->
@@ -211,9 +214,7 @@
                                     @error('time_counter')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
-                                    <small class="form-text text-muted">
-                                        ملاحظة : اذا تم ترك الحقل فارغ سيتم عدم حساب توقيت للسؤال ومعيار الحساب دقائق يعني اذا تم ادخال 1 تعني دقيقة واحدة
-                                    </small>
+
                                 </div>
                             </div>
 
@@ -227,9 +228,7 @@
                                     @error('time_counter_online')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
-                                    <small class="form-text text-muted">
-                                        ملاحظة : اذا تم ترك الحقل فارغ سيتم حساب توقيت للسؤال 10 ثواني ومعيار الحساب ثواني
-                                    </small>
+
                                 </div>
                             </div>
 

@@ -51,10 +51,9 @@ class UserGameNotification extends Notification
             'type' => "انشاء لعبة جديد",
             'message' => "لقد تم انشاء لعبة جديدة",
             'senderName' => $this->game->user->fname,
-            'gameName' => $this->game->name
-
-
-
+            'gameName' => $this->game->name,
+            'user_id' => $this->game->user_id,
+            'user_photo' => $this->game->user->photo ?? null
         ];
     }
 }

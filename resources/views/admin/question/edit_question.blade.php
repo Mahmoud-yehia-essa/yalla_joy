@@ -700,6 +700,7 @@
                             <div class="col-sm-3"></div>
                             <div class="col-sm-9 text-secondary">
                                 <input type="submit" class="btn btn-primary px-4" value="تعديل السؤال" />
+                                <a href="{{ route('delete.question', $question->id) }}" class="btn btn-danger px-4 ms-2" id="delete">حذف السؤال</a>
                             </div>
                         </div>
 

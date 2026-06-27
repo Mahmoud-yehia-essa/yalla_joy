@@ -86,7 +86,7 @@ class UserGameController extends Controller
 
         $game->save();
 
-        $usersForNotification = User::where('role','admin')->get();
+        $usersForNotification = User::where('role','admin')->where('notify_game_played', true)->get();
 
 
 

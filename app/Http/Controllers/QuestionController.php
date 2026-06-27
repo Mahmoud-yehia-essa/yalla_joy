@@ -378,13 +378,13 @@ public function addQuestionStore(Request $request)
 
                 'game_type_id' => 'required|not_in:non',
                 'main_category_id' => 'required|not_in:non',
-                'game_coin_id' => 'required|not_in:non',
+                // 'game_coin_id' => 'required|not_in:non',
 
-                        'coins_number' => 'required|integer',
+                // 'coins_number' => 'required|integer',
 
 
-        'qu_title' => 'required|string|max:255',
-                'qu_title_en' => 'required|string|max:255',
+        'qu_title' => 'nullable|string|max:255',
+                'qu_title_en' => 'nullable|string|max:255',
 
         // 'qu_points' => 'required|integer',
         // 'qu_points_online' => 'required|integer',
@@ -394,8 +394,8 @@ public function addQuestionStore(Request $request)
          'time_counter_online' => 'nullable|integer',
 
         'questionsـfile' => 'nullable|file|max:30720', // Increased size for videos
-        'answer_title' => 'required|string|max:255',
-                'answer_title_en' => 'required|string|max:255',
+        'answer_title' => 'nullable|string|max:255',
+                'answer_title_en' => 'nullable|string|max:255',
 
         'answer_type' => 'required|string|in:text,image,sound,video',
         'answerـfile' => 'nullable|file|max:30720',
@@ -404,17 +404,17 @@ public function addQuestionStore(Request $request)
 
 
 
-                'answer_title_one' => 'required|string|max:255',
-                'answer_title_two' => 'required|string|max:255',
-                 'answer_title_three' => 'required|string|max:255',
-                'answer_title_four' => 'required|string|max:255',
+                'answer_title_one' => 'nullable|string|max:255',
+                'answer_title_two' => 'nullable|string|max:255',
+                 'answer_title_three' => 'nullable|string|max:255',
+                'answer_title_four' => 'nullable|string|max:255',
 
 
 
-                  'answer_title_one_en' => 'required|string|max:255',
-                'answer_title_two_en' => 'required|string|max:255',
-                 'answer_title_three_en' => 'required|string|max:255',
-                'answer_title_four_en' => 'required|string|max:255',
+                  'answer_title_one_en' => 'nullable|string|max:255',
+                'answer_title_two_en' => 'nullable|string|max:255',
+                 'answer_title_three_en' => 'nullable|string|max:255',
+                'answer_title_four_en' => 'nullable|string|max:255',
 
 
 
@@ -528,9 +528,9 @@ public function addQuestionStore(Request $request)
 
         // Create question
         $question = Question::create([
-            'qu_title' => $request->qu_title,
+            'qu_title' => $request->filled('qu_title') ? $request->qu_title : 'non',
 
-                        'qu_title_en' => $request->qu_title_en,
+                        'qu_title_en' => $request->filled('qu_title_en') ? $request->qu_title_en : 'non',
 
             'game_type_id' => $request->game_type_id,
 
@@ -589,8 +589,8 @@ public function addQuestionStore(Request $request)
         // Create answer for local
         $answer = Answer::create([
             'question_id' => $question->id,
-            'answer_title' => $request->answer_title,
-                        'answer_title_en' => $request->answer_title_en,
+            'answer_title' => $request->filled('answer_title') ? $request->answer_title : 'non',
+                        'answer_title_en' => $request->filled('answer_title_en') ? $request->answer_title_en : 'non',
 
             'answer_type' => $request->answer_type,
             'answer_image' => $answerImage,
@@ -681,8 +681,8 @@ public function addQuestionStore(Request $request)
 
        $answersData = [
     [
-        'ar' => $request->answer_title_one,
-        'en' => $request->answer_title_one_en,
+        'ar' => $request->filled('answer_title_one') ? $request->answer_title_one : 'non',
+        'en' => $request->filled('answer_title_one_en') ? $request->answer_title_one_en : 'non',
         'is_correct' => true,
             'answer_type' => $request->answer_type,
              'answer_image' => $answerImage,
@@ -691,8 +691,8 @@ public function addQuestionStore(Request $request)
 
     ],
     [
-        'ar' => $request->answer_title_two,
-        'en' => $request->answer_title_two_en,
+        'ar' => $request->filled('answer_title_two') ? $request->answer_title_two : 'non',
+        'en' => $request->filled('answer_title_two_en') ? $request->answer_title_two_en : 'non',
         'is_correct' => false,
           'answer_type' => $request->answer_type_two,
              'answer_image' => $answerImageTwo,
@@ -701,8 +701,8 @@ public function addQuestionStore(Request $request)
     ],
     [
         // Three
-        'ar' => $request->answer_title_three,
-        'en' => $request->answer_title_three_en,
+        'ar' => $request->filled('answer_title_three') ? $request->answer_title_three : 'non',
+        'en' => $request->filled('answer_title_three_en') ? $request->answer_title_three_en : 'non',
         'is_correct' => false,
          'answer_type' => $request->answer_type_three,
              'answer_image' => $answerImageThree,
@@ -711,8 +711,8 @@ public function addQuestionStore(Request $request)
     ],
     [
     // Four
-        'ar' => $request->answer_title_four,
-        'en' => $request->answer_title_four_en,
+        'ar' => $request->filled('answer_title_four') ? $request->answer_title_four : 'non',
+        'en' => $request->filled('answer_title_four_en') ? $request->answer_title_four_en : 'non',
         'is_correct' => false,
         'answer_type' => $request->answer_type_four,
              'answer_image' => $answerImageFour,
@@ -1124,13 +1124,32 @@ foreach ($answersData as $ans) {
 
         public function allQuestion(Request $request)
         {
-            $query = Question::with(['category', 'mainCategory', 'gameType', 'answers', 'answerQuestionOnlines'])->orderBy('id', 'asc');
+            $query = Question::with(['category', 'mainCategory', 'gameType', 'answers', 'answerQuestionOnlines']);
 
-            if ($request->has('category_id') && $request->category_id != '') {
+            // Filter by Category
+            if ($request->filled('category_id') && $request->category_id !== 'all') {
                 $query->where('category_id', $request->category_id);
             }
 
-            if ($request->has('search') && $request->search != '') {
+            // Filter by Question Type
+            if ($request->filled('questions_type') && $request->questions_type !== 'all') {
+                $query->where('questions_type', $request->questions_type);
+            }
+
+            // Filter by Answer Type
+            if ($request->filled('answer_type') && $request->answer_type !== 'all') {
+                $query->whereHas('answers', function($q) use ($request) {
+                    $q->where('answer_type', $request->answer_type);
+                });
+            }
+
+            // Filter by Points
+            if ($request->filled('points') && $request->points !== 'all') {
+                $query->where('qu_points', $request->points);
+            }
+
+            // Search
+            if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('qu_title', 'like', "%{$search}%")
@@ -1141,7 +1160,16 @@ foreach ($answersData as $ans) {
                 });
             }
 
-            $questions = $query->paginate(20);
+            // Sort
+            if ($request->filled('sort_by') && $request->sort_by === 'oldest') {
+                $query->orderBy('id', 'asc');
+            } else {
+                $query->orderBy('id', 'desc');
+            }
+
+            $perPage = 20;
+            $scrollToId = $request->get('scroll_to');
+            $questions = $query->paginate($perPage);
 
             if ($request->ajax()) {
                 $html = view('admin.question.partials.questions_rows', compact('questions'))->render();
@@ -1151,7 +1179,30 @@ foreach ($answersData as $ans) {
                 ]);
             }
 
-            return view('admin.question.all_question', compact('questions'));
+            $categories = Category::with('mainCategory')->orderBy('category_name', 'asc')->get();
+
+            return view('admin.question.all_question', compact('questions', 'categories', 'scrollToId'));
+        }
+
+        public function updateTimingsByPoints(Request $request)
+        {
+            $request->validate([
+                'points' => 'required|in:200,400,600',
+                'time_counter' => 'nullable|integer',
+                'time_counter_online' => 'nullable|integer',
+            ]);
+
+            $points = $request->points;
+
+            Question::where('qu_points', $points)->update([
+                'time_counter' => $request->time_counter,
+                'time_counter_online' => $request->time_counter_online,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تعديل توقيتات الأسئلة ذات القيمة ' . $points . ' بنجاح.'
+            ]);
         }
 
 
@@ -2008,7 +2059,7 @@ foreach ($onlineAnswers as $index => $item) {
 
 
         DB::commit();
-        return redirect()->route('all.question')->with(['message' => 'تم تعديل السؤال بنجاح', 'alert-type' => 'success']);
+        return redirect()->route('all.question', ['scroll_to' => $request->question_id])->with(['message' => 'تم تعديل السؤال بنجاح', 'alert-type' => 'success']);
 
     } catch (\Exception $e) {
         DB::rollBack();

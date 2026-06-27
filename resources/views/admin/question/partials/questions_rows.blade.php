@@ -1,10 +1,28 @@
 @foreach($questions as $key => $item)
-<tr>
+<tr id="question-row-{{ $item->id }}">
 <td style="text-align: center;">
     <input type="checkbox" class="form-check-input question-checkbox" value="{{ $item->id }}">
 </td>
 <td> {{ ($questions->currentPage() - 1) * $questions->perPage() + $loop->iteration }} </td>
-<td class="question-column text-wrap">{{ $item->qu_title}}</td>
+<td class="question-column text-wrap">
+    <div>{{ $item->qu_title }}</div>
+    @if ($item->questions_type == 'image' && $item->qu_image && file_exists(public_path('upload/questions/images/'.$item->qu_image)))
+        <div class="mt-1">
+            <img src="{{ asset('upload/questions/images/'.$item->qu_image) }}" class="rounded shadow-sm border media-preview-trigger" data-type="image" data-src="{{ asset('upload/questions/images/'.$item->qu_image) }}" style="max-width: 80px; max-height: 80px; object-fit: cover; cursor: pointer;" title="اضغط لتكبير الصورة">
+        </div>
+    @elseif ($item->questions_type == 'sound' && $item->qu_sound && file_exists(public_path('upload/questions/sounds/'.$item->qu_sound)))
+        <div class="mt-1">
+            <audio controls src="{{ asset('upload/questions/sounds/'.$item->qu_sound) }}" style="max-width: 200px; height: 30px;"></audio>
+        </div>
+    @elseif ($item->questions_type == 'video' && $item->qu_video && file_exists(public_path('upload/questions/videos/'.$item->qu_video)))
+        <div class="mt-1 position-relative d-inline-block media-preview-trigger" data-type="video" data-src="{{ asset('upload/questions/videos/'.$item->qu_video) }}" style="cursor: pointer;" title="اضغط لتشغيل الفيديو">
+            <video src="{{ asset('upload/questions/videos/'.$item->qu_video) }}" style="max-width: 150px; max-height: 90px; object-fit: cover;" class="rounded shadow-sm border"></video>
+            <div class="position-absolute top-50 start-50 translate-middle bg-dark bg-opacity-75 rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <i class="bx bx-play text-white fs-4"></i>
+            </div>
+        </div>
+    @endif
+</td>
 <td>
     @if ($item->questions_type == "text")
 
@@ -18,13 +36,38 @@
 
     @endif
 </td>
+<td>{{ $item->qu_points ?: 'بدون' }}</td>
+<td>{{ $item->qu_points_online ?: 'بدون' }}</td>
+<td>{{ $item->time_counter ?: 'بدون' }} {{ $item->time_counter ? 'ثانية' : '' }}</td>
+<td>{{ $item->time_counter_online ?: '10' }} ثانية</td>
 <td>{{ $item->category ? $item->category->category_name : 'بدون فئة' }}</td>
 
-<td class="text-wrap"> {{
-// we can make loop to get more than answer but now we need one answer only
-$item->answers->first()->answer_title ?? 'لم يتم تحديد الاجابة'
-
-    }}  </td>
+<td class="text-wrap">
+    @php
+        $localAnswer = $item->answers->first();
+    @endphp
+    @if($localAnswer)
+        <div>{{ $localAnswer->answer_title }}</div>
+        @if ($localAnswer->answer_type == 'image' && $localAnswer->answer_image && file_exists(public_path('upload/answers/images/'.$localAnswer->answer_image)))
+            <div class="mt-1">
+                <img src="{{ asset('upload/answers/images/'.$localAnswer->answer_image) }}" class="rounded shadow-sm border media-preview-trigger" data-type="image" data-src="{{ asset('upload/answers/images/'.$localAnswer->answer_image) }}" style="max-width: 80px; max-height: 80px; object-fit: cover; cursor: pointer;" title="اضغط لتكبير الصورة">
+            </div>
+        @elseif ($localAnswer->answer_type == 'sound' && $localAnswer->answer_sound && file_exists(public_path('upload/answers/sounds/'.$localAnswer->answer_sound)))
+            <div class="mt-1">
+                <audio controls src="{{ asset('upload/answers/sounds/'.$localAnswer->answer_sound) }}" style="max-width: 200px; height: 30px;"></audio>
+            </div>
+        @elseif ($localAnswer->answer_type == 'video' && $localAnswer->answer_video && file_exists(public_path('upload/answers/videos/'.$localAnswer->answer_video)))
+            <div class="mt-1 position-relative d-inline-block media-preview-trigger" data-type="video" data-src="{{ asset('upload/answers/videos/'.$localAnswer->answer_video) }}" style="cursor: pointer;" title="اضغط لتشغيل الفيديو">
+                <video src="{{ asset('upload/answers/videos/'.$localAnswer->answer_video) }}" style="max-width: 150px; max-height: 90px; object-fit: cover;" class="rounded shadow-sm border"></video>
+                <div class="position-absolute top-50 start-50 translate-middle bg-dark bg-opacity-75 rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bx bx-play text-white fs-4"></i>
+                </div>
+            </div>
+        @endif
+    @else
+        <span class="text-muted">لم يتم تحديد الاجابة</span>
+    @endif
+</td>
 
 <td >{{ $item->created_at ? $item->created_at->diffForHumans() : 'لم يتم التحديد' }}</td>
 
@@ -79,7 +122,7 @@ $item->answers->first()->answer_title ?? 'لم يتم تحديد الاجابة'
         </div>
         <div class="col-md-3">
             <strong class="text-dark">توقيت السؤال</strong><br>
-            <span class="badge bg-warning text-dark px-3 py-2 mt-1">{{ $item->time_counter ?: 'بدون' }} {{ $item->time_counter ? 'دقيقة' : '' }}</span>
+            <span class="badge bg-warning text-dark px-3 py-2 mt-1">{{ $item->time_counter ?: 'بدون' }} {{ $item->time_counter ? 'ثانية' : '' }}</span>
         </div>
         <div class="col-md-3">
             <strong class="text-dark">توقيت السؤال OnLine</strong><br>

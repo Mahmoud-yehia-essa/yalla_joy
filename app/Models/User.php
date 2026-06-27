@@ -56,6 +56,22 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if ($user->role !== 'admin' && !app()->runningInConsole()) {
+                try {
+                    $admins = self::where('role', 'admin')->where('notify_new_user', true)->get();
+                    if ($admins->count() > 0) {
+                        \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewUserRegisterNotification($user));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send register notification: ' . $e->getMessage());
+                }
+            }
+        });
+    }
+
 
 
 

@@ -328,6 +328,9 @@
                 </li>
              @endif
 
+                <li> <a href="{{route('admin.notification.settings')}}"><i class='bx bx-radio-circle'></i>إعدادات إشعارات لوحة التحكم</a>
+                </li>
+
 
 
 

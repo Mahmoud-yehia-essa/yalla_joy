@@ -421,6 +421,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
 
     Route::post('/admin/edit/question', 'editQuestionStore')->name('edit.question.store');
+    Route::post('/admin/question/update-timings-by-points', 'updateTimingsByPoints')->name('question.update.timings.by.points');
 
 
     Route::get('/question/delete/{id}', 'deleteQuestion')->name('delete.question');
@@ -867,6 +868,8 @@ Route::controller(NotificationDashboardController::class)->middleware(['checkUse
 
 
     Route::get('/notification/read/{id}' , 'setNotificationRead')->name('notification.read');
+    Route::get('/admin/notification-settings', 'notificationSettings')->name('admin.notification.settings');
+    Route::post('/admin/notification-settings', 'updateNotificationSettings')->name('admin.notification.settings.update');
 
 });
 

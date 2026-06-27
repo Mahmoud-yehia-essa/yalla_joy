@@ -34,6 +34,22 @@ if ($notification) {
         return redirect()->route('all.user.games');
 
     }
+    else if($notification->type == "App\Notifications\NewUserRegisterNotification")
+    {
+        $userId = $notification->data['user_id'] ?? null;
+        if ($userId) {
+            return redirect()->route('edit.user', $userId);
+        }
+        return redirect()->route('dashboard');
+    }
+    else if($notification->type == "App\Notifications\NewProblemReportNotification")
+    {
+        return redirect()->route('all.problem.reports');
+    }
+    else if($notification->type == "App\Notifications\NewGamePlayedNotification")
+    {
+        return redirect()->route('all.games');
+    }
     else if($notification->type == "App\Notifications\ContactUsNotification")
     {
 
@@ -77,4 +93,26 @@ if ($notification) {
 
     }
 
+    public function notificationSettings()
+    {
+        $user = Auth::user();
+        return view('admin.notification.settings', compact('user'));
+    }
+
+    public function updateNotificationSettings(Request $request)
+    {
+        $user = User::find(Auth::id());
+        $user->update([
+            'notify_new_user' => $request->has('notify_new_user'),
+            'notify_problem_report' => $request->has('notify_problem_report'),
+            'notify_game_played' => $request->has('notify_game_played'),
+        ]);
+
+        $notification = array(
+            'message' => 'تم حفظ إعدادات الإشعارات بنجاح.',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->back()->with($notification);
+    }
 }

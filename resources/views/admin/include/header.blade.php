@@ -585,37 +585,69 @@
                                         @endphp
 
                                         @forelse ($user->unreadNotifications as $notification )
-                                <a class="dropdown-item" href="{{route('notification.read',$notification)}}">
-											<div class="d-flex align-items-center">
-												{{-- <div class="notify bg-light-danger text-danger">dc
-												</div> --}}
-												<div class="flex-grow-1">
-													<h6 class="msg-name"> {{$notification->data['type']}}<span class="msg-time float-end">
-                                                        {{$notification->created_at->diffForHumans()}}
-												</span></h6>
-													<p class="msg-info">{{$notification->data['message']}}
-                                                        بواسطة المستخدم
-                                                        <span style="color: red">
-                                                        {{$notification->data['senderName']}}
-                                                        </span>
+                                <a class="dropdown-item" href="{{route('notification.read',$notification)}}" @if($notification->type === 'App\Notifications\NewProblemReportNotification') style="background-color: #fff5f5;" @elseif($notification->type === 'App\Notifications\UserGameNotification') style="background-color: #f0f7ff;" @elseif($notification->type === 'App\Notifications\NewGamePlayedNotification') style="background-color: #f4fbf7;" @endif>
+												<div class="d-flex align-items-center">
+                                                    @if($notification->type === 'App\Notifications\NewUserRegisterNotification' || $notification->type === 'App\Notifications\NewProblemReportNotification' || $notification->type === 'App\Notifications\UserGameNotification' || $notification->type === 'App\Notifications\NewGamePlayedNotification')
+                                                        @php
+                                                            $photoUrl = url('upload/no_image.jpg');
+                                                            if (isset($notification->data['user_id'])) {
+                                                                $notifUser = \App\Models\User::find($notification->data['user_id']);
+                                                                if ($notifUser && !empty($notifUser->photo) && $notifUser->photo !== 'non') {
+                                                                    $userPhoto = $notifUser->photo;
+                                                                    if (str_starts_with($userPhoto, 'http://') || str_starts_with($userPhoto, 'https://')) {
+                                                                        $photoUrl = $userPhoto;
+                                                                    } elseif (str_starts_with($userPhoto, 'upload/user_images/')) {
+                                                                        if (file_exists(public_path($userPhoto))) {
+                                                                            $photoUrl = url($userPhoto);
+                                                                        }
+                                                                    } else {
+                                                                        if (file_exists(public_path('upload/user_images/' . $userPhoto))) {
+                                                                            $photoUrl = url('upload/user_images/' . $userPhoto);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        <div class="me-3">
+                                                            <img src="{{ $photoUrl }}" class="msg-avatar" alt="user avatar">
+                                                        </div>
+                                                    @else
+                                                        <div class="notify bg-light-primary text-primary">
+                                                            <i class="bx bx-game"></i>
+                                                        </div>
+                                                    @endif
+													<div class="flex-grow-1">
+														<h6 class="msg-name"> {{$notification->data['type']}}<span class="msg-time float-end">
+                                                            {{$notification->created_at->diffForHumans()}}
+													</span></h6>
+														<p class="msg-info text-wrap" style="white-space: normal;">{{$notification->data['message']}}
+                                                            بواسطة المستخدم
+                                                            <span style="color: red">
+                                                            {{$notification->data['senderName']}}
+                                                            </span>
 
-                                                    </p>
-                                                    <p class="msg-info">
-                                                        اسم اللعبة
-                                                                                                                <span style="color: red">
-                                                        <span style="color: red">
+                                                        </p>
+                                                        @if($notification->type !== 'App\Notifications\NewUserRegisterNotification' && $notification->type !== 'App\Notifications\NewProblemReportNotification')
+                                                        <p class="msg-info text-wrap" style="white-space: normal;">
+                                                            اسم اللعبة
+                                                            <span style="color: red">
+                                                            {{$notification->data['gameName']}}
+                                                            </span>
 
-                                                        {{$notification->data['gameName']}}
-                                                        </span>
-
-                                                    </p>
+                                                        </p>
+                                                        @endif
 
 
+													</div>
 												</div>
-											</div>
-										</a>
+											</a>
                                         @empty
-
+                                            <div class="text-center my-4 py-3">
+                                                <div class="text-muted mb-2" style="font-size: 2rem;">
+                                                    <i class="bx bx-bell-off"></i>
+                                                </div>
+                                                <p class="text-muted mb-0 small">لا توجد إشعارات جديدة حالياً</p>
+                                            </div>
                                         @endforelse
 
 
