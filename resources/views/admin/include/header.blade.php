@@ -575,7 +575,7 @@
 
 										</div>
 									</a>
-									<div class="header-notifications-list ps">
+									<div class="header-notifications-list ps" style="overflow-y: auto;">
 
 
 

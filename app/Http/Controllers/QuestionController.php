@@ -2648,8 +2648,15 @@ public function createGameSessionQuestions(Request $request)
         ->get();
 
     if ($existingSessionQuestions->count() >= 16) {
-        // إذا تم إنشاء 16 سؤال بالفعل، نقوم بإرجاعهم فقط
-        $responseQuestionIds = $existingSessionQuestions->take(16)->pluck('question_id')->toArray();
+        // إذا تم إنشاء 16 سؤال بالفعل، نقوم بإرجاع الأسئلة المطلوبة فقط بناءً على category_id الممرر
+        $filteredSessionQuestions = $existingSessionQuestions;
+        if ($categoryInput) {
+            $filteredSessionQuestions = $existingSessionQuestions->filter(function ($item) use ($categoryInput) {
+                return (string)$item->category_id === (string)$categoryInput;
+            });
+        }
+
+        $responseQuestionIds = $filteredSessionQuestions->pluck('question_id')->toArray();
         
         $questions = Question::with('answers')->whereIn('id', $responseQuestionIds)
             ->get()
@@ -2670,34 +2677,51 @@ public function createGameSessionQuestions(Request $request)
         DB::table('game_session_question_onlines')->where('session_id', $sessionId)->delete();
     }
 
-    // 2. معالجة المدخلات بشكل آمن (في حال تم إرسالها كنص مفصول بفواصل)
+    // 2. محاولة جلب جميع الفئات الستة المحددة للجلسة من جدول online_game_categories
     $categoryIds = [];
-    if (is_string($categoryInput)) {
-        $decoded = json_decode($categoryInput, true);
-        if (is_array($decoded)) {
-            $categoryIds = $decoded;
-        } elseif (strpos($categoryInput, ',') !== false) {
-            $categoryIds = explode(',', $categoryInput);
+    $gameInfo = DB::table('online_game_infos')
+        ->where('game_session_name', $sessionId)
+        ->orWhere('id', $sessionId)
+        ->first();
+
+    if ($gameInfo) {
+        $categoryIds = DB::table('online_game_categories')
+            ->where('online_game_info_id', $gameInfo->id)
+            ->pluck('category_id')
+            ->toArray();
+    }
+
+    // في حال لم نجد فئات مسجلة مسبقاً، نعتمد على المدخلات المباشرة من الطلب
+    if (empty($categoryIds)) {
+        if (is_string($categoryInput)) {
+            $decoded = json_decode($categoryInput, true);
+            if (is_array($decoded)) {
+                $categoryIds = $decoded;
+            } elseif (strpos($categoryInput, ',') !== false) {
+                $categoryIds = explode(',', $categoryInput);
+            } else {
+                $categoryIds = [$categoryInput];
+            }
+        } elseif (is_array($categoryInput)) {
+            $categoryIds = $categoryInput;
         } else {
             $categoryIds = [$categoryInput];
         }
-    } elseif (is_array($categoryInput)) {
-        $categoryIds = $categoryInput;
-    } else {
-        $categoryIds = [$categoryInput];
     }
     
     $categoryIds = array_map('trim', $categoryIds);
-    $categoryIds = array_filter($categoryIds);
+    $categoryIds = array_filter($categoryIds, function($val) {
+        return $val !== null && $val !== '';
+    });
     if (empty($categoryIds)) {
-        $categoryIds = [1]; // قيمة افتراضية لتجنب الأعطال
+        $categoryIds = [$categoryInput ?: 1]; // قيمة افتراضية لتجنب الأعطال
     }
 
     // 3. إجمالي الأسئلة المطلوبة دائماً هو 16
     $totalQuestionsNeeded = 16;
     $countCats = count($categoryIds);
     
-    // توزيع 16 سؤال على الفئات المحددة
+    // توزيع 16 سؤال على الفئات المحددة بالتساوي مع توزيع المتبقي
     $questionsPerInstance = [];
     $remainder = $totalQuestionsNeeded % $countCats;
     for ($i = 0; $i < $countCats; $i++) {
@@ -2712,6 +2736,7 @@ public function createGameSessionQuestions(Request $request)
 
     $sessionQuestionIds = [];
     $currentOrder = 1;
+    $insertedQuestions = collect();
 
     // 4. جلب الأسئلة المطلوبة لكل فئة وحفظها
     foreach ($requirementsByCat as $catId => $requiredCount) {
@@ -2731,6 +2756,10 @@ public function createGameSessionQuestions(Request $request)
                 'updated_at'     => now(),
             ]);
             $sessionQuestionIds[] = $q->id;
+            $insertedQuestions->push((object)[
+                'question_id' => $q->id,
+                'category_id' => $catId,
+            ]);
         }
     }
 
@@ -2753,13 +2782,26 @@ public function createGameSessionQuestions(Request $request)
                 'updated_at'     => now(),
             ]);
             $sessionQuestionIds[] = $q->id;
+            $insertedQuestions->push((object)[
+                'question_id' => $q->id,
+                'category_id' => $q->category_id,
+            ]);
         }
     }
 
-    // 6. إرجاع القائمة النهائية
-    $questions = Question::with('answers')->whereIn('id', $sessionQuestionIds)
+    // 6. تصفية الأسئلة لإرجاع ما يخص الفئة المطلوبة فقط
+    $filteredQuestions = $insertedQuestions;
+    if ($categoryInput) {
+        $filteredQuestions = $insertedQuestions->filter(function ($item) use ($categoryInput) {
+            return (string)$item->category_id === (string)$categoryInput;
+        });
+    }
+    $filteredQuestionIds = $filteredQuestions->pluck('question_id')->toArray();
+
+    // إرجاع القائمة المطلوبة فقط
+    $questions = Question::with('answers')->whereIn('id', $filteredQuestionIds)
         ->get()
-        ->sortBy(fn ($q) => array_search($q->id, $sessionQuestionIds))
+        ->sortBy(fn ($q) => array_search($q->id, $filteredQuestionIds))
         ->values();
 
     $questions = $questions->map(function ($question) {
