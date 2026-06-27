@@ -553,7 +553,7 @@
 
 
                                              @php
-                                            $ncount = Auth::user()->unreadNotifications()->count()
+                                            $ncount = 20;
                                             @endphp
                     <li class="nav-item dropdown dropdown-large">
 								<a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -575,17 +575,32 @@
 
 										</div>
 									</a>
-									<div class="header-notifications-list ps" style="overflow-y: auto;">
+									<div class="header-notifications-list ps" style="overflow-y: auto !important;">
 
 
 
                                         @php
                                             $user = Auth::user();
-
+                                            $mockNotifications = collect();
+                                            for ($i = 1; $i <= 20; $i++) {
+                                                $mockNotifications->push((object)[
+                                                    'id' => 'mock-' . $i,
+                                                    'type' => 'App\Notifications\UserGameNotification',
+                                                    'created_at' => now()->subMinutes($i * 5),
+                                                    'data' => [
+                                                        'type' => 'إشعار تجريبي ' . $i,
+                                                        'message' => 'هذا إشعار تجريبي رقم ' . $i . ' لاختبار شريط التمرير والتصميم.',
+                                                        'senderName' => 'مستخدم تجريبي',
+                                                        'gameName' => 'تحدي تجريبي ' . $i,
+                                                        'user_id' => null
+                                                    ]
+                                                ]);
+                                            }
+                                            $notificationsToDisplay = $mockNotifications;
                                         @endphp
 
-                                        @forelse ($user->unreadNotifications as $notification )
-                                <a class="dropdown-item" href="{{route('notification.read',$notification)}}" @if($notification->type === 'App\Notifications\NewProblemReportNotification') style="background-color: #fff5f5;" @elseif($notification->type === 'App\Notifications\UserGameNotification') style="background-color: #f0f7ff;" @elseif($notification->type === 'App\Notifications\NewGamePlayedNotification') style="background-color: #f4fbf7;" @endif>
+                                        @forelse ($notificationsToDisplay as $notification )
+                                <a class="dropdown-item" href="{{ (is_string($notification->id) && str_starts_with($notification->id, 'mock-')) ? '#' : route('notification.read', $notification->id) }}" @if($notification->type === 'App\Notifications\NewProblemReportNotification') style="background-color: #fff5f5;" @elseif($notification->type === 'App\Notifications\UserGameNotification') style="background-color: #f0f7ff;" @elseif($notification->type === 'App\Notifications\NewGamePlayedNotification') style="background-color: #f4fbf7;" @endif>
 												<div class="d-flex align-items-center">
                                                     @if($notification->type === 'App\Notifications\NewUserRegisterNotification' || $notification->type === 'App\Notifications\NewProblemReportNotification' || $notification->type === 'App\Notifications\UserGameNotification' || $notification->type === 'App\Notifications\NewGamePlayedNotification')
                                                         @php

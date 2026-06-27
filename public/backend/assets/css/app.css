@@ -3326,14 +3326,14 @@ input::placeholder {
     position: relative;
 
     height: 360px;
-    overflow-y: auto;
+    overflow-y: auto !important;
 }
 
 .header-notifications-list {
     position: relative;
 
     height: 360px;
-    overflow-y: auto;
+    overflow-y: auto !important;
 }
 
 .dropdown-large .notify {
