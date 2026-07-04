@@ -11,6 +11,8 @@ use App\Mail\SpecialCouponMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Exports\CouponCompanyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CouponCompanyController extends Controller
 {
@@ -365,5 +367,10 @@ class CouponCompanyController extends Controller
             'message' => 'تم استخدام الكوبون بنجاح',
             'used_at' => $usedAt->format('Y-m-d H:i:s')
         ]);
+    }
+
+    public function exportCouponCompany()
+    {
+        return Excel::download(new CouponCompanyExport, 'coupon_companies_' . date('Y_m_d_His') . '.xlsx');
     }
 }

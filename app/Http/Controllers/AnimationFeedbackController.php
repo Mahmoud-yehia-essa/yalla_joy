@@ -7,6 +7,8 @@ use App\Models\RankingNew;
 use App\Models\GameCoin;
 use App\Models\AnimationUserLibrary;
 use Illuminate\Http\Request;
+use App\Exports\AnimationFeedbackExport;
+use Maatwebsite\Excel\Facades\Excel;
 use File;
 
 class AnimationFeedbackController extends Controller
@@ -276,5 +278,16 @@ class AnimationFeedbackController extends Controller
             'user_id' => $user->id,
             'data'    => $rankings,
         ], 200);
+    }
+
+    public function previewAnimation($id)
+    {
+        $animation = AnimationFeedback::with(['rankingNew', 'coin'])->findOrFail($id);
+        return view('admin.animation_feedback.preview', compact('animation'));
+    }
+
+    public function exportAnimation()
+    {
+        return Excel::download(new AnimationFeedbackExport, 'animations_export_' . date('Y_m_d_His') . '.xlsx');
     }
 }

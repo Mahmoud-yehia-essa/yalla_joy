@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProblemReport;
 use Illuminate\Http\Request;
+use App\Exports\ProblemReportExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProblemReportController extends Controller
 {
@@ -86,5 +88,10 @@ class ProblemReportController extends Controller
             'message' => 'تم تسجيل البلاغ بنجاح',
             'data' => $report
         ], 201);
+    }
+
+    public function exportProblemReports()
+    {
+        return Excel::download(new ProblemReportExport, 'problem_reports_' . date('Y_m_d_His') . '.xlsx');
     }
 }

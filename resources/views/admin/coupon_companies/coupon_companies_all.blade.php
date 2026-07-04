@@ -14,7 +14,14 @@
             </nav>
         </div>
         <div class="ms-auto">
-            <a href="{{ route('add.coupon_companies') }}" class="btn btn-primary">إضافة كوبون جديد</a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('export.coupon_companies') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+                    <i class="bx bx-download"></i> تصدير إلى Excel
+                </a>
+                <a href="{{ route('add.coupon_companies') }}" class="btn btn-primary px-3 d-flex align-items-center gap-1">
+                    <i class="bx bx-plus"></i> إضافة كوبون جديد
+                </a>
+            </div>
         </div>
     </div>
     <!--end breadcrumb-->

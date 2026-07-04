@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\AvatarItems;
 use App\Models\AvatarCategory;
 use App\Models\GameCoin;
+use App\Exports\AvatarItemsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AvatarItemController extends Controller
 {
@@ -34,6 +36,12 @@ class AvatarItemController extends Controller
         $categories = AvatarCategory::all();
 
         return view('admin.avatar_item.all_avatar_item', compact('avatarItems', 'categories'));
+    }
+
+    // 🔹 Export Avatar Items to Excel
+    public function exportAvatarItem(Request $request)
+    {
+        return Excel::download(new AvatarItemsExport($request), 'avatar_items_' . date('Y-m-d_H-i-s') . '.xlsx');
     }
 
     // 🔹 Add Avatar Item

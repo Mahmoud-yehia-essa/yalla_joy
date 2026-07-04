@@ -190,6 +190,7 @@ Route::controller(ProverbController::class)->middleware(['checkUserRole','auth']
 
 Route::controller(RankingNewController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/admin/all/rankings', 'allRankings')->name('all.rankings.new');
+    Route::get('/admin/export/rankings', 'exportRankings')->name('export.rankings.new');
     Route::get('/admin/add/ranking', 'addRanking')->name('add.ranking.new');
     Route::post('/admin/add/ranking', 'storeRanking')->name('add.ranking.new.store');
     Route::get('/admin/edit/ranking/{id}', 'editRanking')->name('edit.ranking.new');
@@ -204,6 +205,8 @@ Route::controller(AnimationFeedbackController::class)->middleware(['checkUserRol
     Route::get('/admin/edit/animation/{id}', 'editAnimation')->name('edit.animation');
     Route::post('/admin/edit/animation', 'updateAnimation')->name('edit.animation.store');
     Route::get('/admin/delete/animation/{id}', 'deleteAnimation')->name('delete.animation');
+    Route::get('/admin/animation/preview/{id}', 'previewAnimation')->name('admin.animation.preview');
+    Route::get('/admin/export/animation', 'exportAnimation')->name('export.animation');
 });
 
 Route::controller(MainCategoryController::class)->middleware(['checkUserRole','auth'])->group(function () {
@@ -339,6 +342,7 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 
 Route::controller(UserController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/users/all', 'getAllUsers')->name('all.users');
+    Route::get('/export/users', 'exportUsers')->name('export.users');
 
     Route::get('/user/add', 'addUser')->name('add.user');
 
@@ -463,6 +467,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
     ///
 
          Route::get('/all/coupon', 'AllCoupon')->name('all.coupon');
+         Route::get('/export/coupon', 'exportCoupon')->name('export.coupon');
         Route::get('/add/coupon', 'AddCoupon')->name('add.coupon');
         Route::post('/store/coupon', 'StoreCoupon')->name('store.coupon');
 
@@ -479,6 +484,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
  Route::controller(CouponCompanyController::class)->middleware(['checkUserRole','auth'])->group(function(){
 
          Route::get('/all/coupon-companies', 'allCouponCompanies')->name('all.coupon_companies');
+         Route::get('/export/coupon-companies', 'exportCouponCompany')->name('export.coupon_companies');
         Route::get('/add/coupon-companies', 'addCouponCompany')->name('add.coupon_companies');
         Route::post('/store/coupon-companies', 'storeCouponCompany')->name('store.coupon_companies');
 
@@ -495,6 +501,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
  Route::controller(CouponCompanyUserUsedController::class)->middleware(['checkUserRole','auth'])->group(function(){
 
          Route::get('/all/used-coupon-companies', 'allUsedCoupons')->name('all.used_coupon_companies');
+         Route::get('/export/used-coupon-companies', 'exportUsedCoupons')->name('export.used_coupon_companies');
         Route::get('/delete/used-coupon-companies/{id}', 'deleteUsedCoupon')->name('delete.used_coupon');
 
 
@@ -986,6 +993,7 @@ Route::controller(LevelController::class)->middleware(['checkUserRole','auth'])-
 
 
         Route::get('/all/game/coin', 'allGameCoin')->name('all.game.coin');
+        Route::get('/export/game/coin', 'exportGameCoin')->name('export.game.coin');
 
                 Route::get('/add/game/coin', 'addGameCoin')->name('add.game.coin');
 
@@ -1048,6 +1056,7 @@ Route::controller(AvatarCategoryController::class)->middleware(['checkUserRole',
 
 Route::controller(AvatarItemController::class)->middleware(['checkUserRole','auth'])->group(function(){
     Route::get('/all/avatar/item', 'allAvatarItem')->name('all.avatar.item');
+    Route::get('/export/avatar/item', 'exportAvatarItem')->name('export.avatar.item');
     Route::get('/add/avatar/item', 'addAvatarItem')->name('add.avatar.item');
     Route::post('/store/avatar/item', 'storeAvatarItem')->name('store.avatar.item');
     Route::get('/edit/avatar/item/{id}', 'editAvatarItem')->name('edit.avatar.item');
@@ -1085,6 +1094,7 @@ Route::controller(GamePurchaseController::class)->middleware(['checkUserRole','a
 
 Route::controller(GameCouponController::class)->middleware(['checkUserRole','auth'])->group(function(){
     Route::get('/all/game/coupon', 'allGameCoupon')->name('all.game.coupon');
+    Route::get('/export/game/coupon', 'exportGameCoupon')->name('export.game.coupon');
     Route::get('/add/game/coupon', 'addGameCoupon')->name('add.game.coupon');
     Route::post('/store/game/coupon', 'storeGameCoupon')->name('store.game.coupon');
     Route::get('/edit/game/coupon/{id}', 'editGameCoupon')->name('edit.game.coupon');
@@ -1096,6 +1106,7 @@ Route::controller(GameCouponController::class)->middleware(['checkUserRole','aut
 
 Route::controller(ProblemReportController::class)->middleware(['checkUserRole','auth'])->group(function(){
     Route::get('/all/problem-reports', 'allProblemReports')->name('all.problem.reports');
+    Route::get('/export/problem-reports', 'exportProblemReports')->name('export.problem.reports');
     Route::post('/problem-report/update-status/{id}', 'updateStatus')->name('update.problem.report.status');
     Route::get('/problem-report/delete/{id}', 'deleteProblemReport')->name('delete.problem.report');
 });

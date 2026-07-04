@@ -6,6 +6,8 @@ use App\Models\RankingNew;
 use App\Models\GameCoin;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Exports\RankingNewExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RankingNewController extends Controller
 {
@@ -243,6 +245,11 @@ class RankingNewController extends Controller
 
             $rank->update(['total_wins_to_next_rank' => $accumulatedWins]);
         }
+    }
+
+    public function exportRankings()
+    {
+        return Excel::download(new RankingNewExport, 'rankings_' . date('Y_m_d_His') . '.xlsx');
     }
 }
 

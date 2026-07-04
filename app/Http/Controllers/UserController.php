@@ -10,6 +10,8 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Illuminate\Support\Str;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class UserController extends Controller
@@ -1040,13 +1042,10 @@ public function validateRegisterApi(Request $request)
             'user' => $user, // Return all user data
             'token' => $token
         ], 200);
-
-
-
-
     }
 
-
-
-
+    public function exportUsers()
+    {
+        return Excel::download(new UsersExport, 'users_' . date('Y_m_d_His') . '.xlsx');
+    }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\coupon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Exports\CouponExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CouponController extends Controller
 {
@@ -141,5 +143,8 @@ public function getCouponByNameApi(Request $request)
     return response()->json($couponData);
 }
 
-
+    public function exportCoupon()
+    {
+        return Excel::download(new CouponExport, 'coupons_' . date('Y_m_d_His') . '.xlsx');
+    }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GameCoin;
 use App\Models\Game;
+use App\Exports\GameCoinExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
@@ -223,9 +225,8 @@ public function StoreGameCoin(Request $request){
         return redirect()->back()->with($notification);
     }
 
-
-
-
-
-
+    public function exportGameCoin()
+    {
+        return Excel::download(new GameCoinExport, 'game_coins_' . date('Y_m_d_His') . '.xlsx');
+    }
 }

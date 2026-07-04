@@ -4,6 +4,13 @@
 <!--breadcrumb-->
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
     <div class="breadcrumb-title pe-3">كل عناصر الأفاتار</div>
+    <div class="ms-auto">
+        <div class="btn-group">
+            <a href="{{ route('export.avatar.item', request()->query()) }}" class="btn btn-success px-3 d-flex align-items-center justify-content-center gap-1">
+                <i class="bx bx-download"></i> تصدير إلى Excel
+            </a>
+        </div>
+    </div>
 </div>
 <!--end breadcrumb-->
 

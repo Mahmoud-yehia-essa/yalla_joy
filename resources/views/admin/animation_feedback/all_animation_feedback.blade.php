@@ -6,11 +6,12 @@
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
     <div class="breadcrumb-title pe-3">كل حركات الأنيميشن</div>
     <div class="ms-auto">
-        <div class="btn-group">
-            <a href="{{route('add.animation')}}" >
-                <button type="button" class="btn btn-primary">
-                    اضافة حركة جديدة
-                </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('export.animation') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-download"></i> تصدير إلى Excel
+            </a>
+            <a href="{{ route('add.animation') }}" class="btn btn-primary px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-plus"></i> اضافة حركة جديدة
             </a>
         </div>
     </div>

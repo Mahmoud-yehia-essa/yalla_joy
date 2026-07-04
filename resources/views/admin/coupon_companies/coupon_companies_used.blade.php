@@ -13,6 +13,11 @@
                 </ol>
             </nav>
         </div>
+        <div class="ms-auto">
+            <a href="{{ route('export.used_coupon_companies') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-download"></i> تصدير إلى Excel
+            </a>
+        </div>
     </div>
     <!--end breadcrumb-->
 

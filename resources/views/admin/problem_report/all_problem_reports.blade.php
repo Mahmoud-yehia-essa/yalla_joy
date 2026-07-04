@@ -12,6 +12,11 @@
             </ol>
         </nav>
     </div>
+    <div class="ms-auto">
+        <a href="{{ route('export.problem.reports') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+            <i class="bx bx-download"></i> تصدير إلى Excel
+        </a>
+    </div>
 </div>
 <!--end breadcrumb-->
 

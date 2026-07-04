@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
+use App\Exports\GameCouponExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class GameCouponController extends Controller
 {
@@ -278,5 +280,10 @@ class GameCouponController extends Controller
             'success' => false,
             'message' => '⚠️ نوع الكوبون غير معروف'
         ], 200);
+    }
+
+    public function exportGameCoupon()
+    {
+        return Excel::download(new GameCouponExport, 'game_coupons_' . date('Y_m_d_His') . '.xlsx');
     }
 }

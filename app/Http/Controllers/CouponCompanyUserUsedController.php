@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\CouponCompanyUserUsed;
 use Illuminate\Http\Request;
+use App\Exports\CouponCompanyUserUsedExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CouponCompanyUserUsedController extends Controller
 {
@@ -29,5 +31,10 @@ class CouponCompanyUserUsedController extends Controller
         );
 
         return redirect()->back()->with($notification);
+    }
+
+    public function exportUsedCoupons()
+    {
+        return Excel::download(new CouponCompanyUserUsedExport, 'used_coupon_companies_' . date('Y_m_d_His') . '.xlsx');
     }
 }

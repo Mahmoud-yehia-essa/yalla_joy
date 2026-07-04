@@ -9,7 +9,14 @@
 
 					</div>
 					<div class="ms-auto">
-
+						<div class="d-flex gap-2">
+							<a href="{{ route('export.coupon') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+								<i class="bx bx-download"></i> تصدير إلى Excel
+							</a>
+							<a href="{{ route('add.coupon') }}" class="btn btn-primary px-3 d-flex align-items-center gap-1">
+								<i class="bx bx-plus"></i> اضافة كوبون جديد
+							</a>
+						</div>
 					</div>
 				</div>
 				<!--end breadcrumb-->

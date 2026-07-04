@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 return new class extends Migration
 {
@@ -10,6 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasColumn('permissions', 'group_name')) {
+            Schema::table('permissions', function (Blueprint $table) {
+                $table->string('group_name')->nullable()->after('guard_name');
+            });
+        }
+
         $permissions = [
             [
                 'name' => 'عرض تصنيفات الافاتار',

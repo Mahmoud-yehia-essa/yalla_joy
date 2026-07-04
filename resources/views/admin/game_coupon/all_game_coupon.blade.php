@@ -5,9 +5,12 @@
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
     <div class="breadcrumb-title pe-3">جميع كوبونات ألعاب الفيديو</div>
     <div class="ms-auto">
-        <div class="btn-group">
-            <a href="{{ route('add.game.coupon') }}">
-                <button type="button" class="btn btn-primary">إضافة كوبون ألعاب جديد</button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('export.game.coupon') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-download"></i> تصدير إلى Excel
+            </a>
+            <a href="{{ route('add.game.coupon') }}" class="btn btn-primary px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-plus"></i> إضافة كوبون ألعاب جديد
             </a>
         </div>
     </div>

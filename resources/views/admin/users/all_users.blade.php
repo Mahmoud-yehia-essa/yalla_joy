@@ -10,17 +10,13 @@
         </nav>
     </div>
     <div class="ms-auto">
-        <div class="btn-group">
-            <a href="{{route('add.user')}}" >
-
-<button type="button" class="btn btn-primary">
-
-    اضافة مستخدم
-
-</button>
-</a>
-
-
+        <div class="d-flex gap-2">
+            <a href="{{ route('export.users') }}" class="btn btn-success px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-download"></i> تصدير إلى Excel
+            </a>
+            <a href="{{ route('add.user') }}" class="btn btn-primary px-3 d-flex align-items-center gap-1">
+                <i class="bx bx-plus"></i> اضافة مستخدم
+            </a>
         </div>
     </div>
 </div>
