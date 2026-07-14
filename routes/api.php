@@ -28,6 +28,7 @@ use App\Http\Controllers\OfflineGameCoinsController;
 use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -113,6 +114,7 @@ Route::post('/upload-image/{id}',[UserController::class,'uploadUpadteImageApi'])
 
 
 Route::post('/edit/user',[UserController::class,'editUserApi']);
+Route::post('/user/update-fcm-token', [UserController::class, 'updateFcmTokenApi']);
 
 Route::get('/all/free/plan',[FreePlanController::class,'getFreePlansApi']);
 Route::get('/all/offline/game/coins',[OfflineGameCoinsController::class,'getOfflineGameCoinsApi']);
@@ -161,7 +163,7 @@ Route::post('/buy-coupon', [CouponCompanyController::class, 'buyCouponApi']);
 Route::post('/use-coupon', [CouponCompanyController::class, 'useCouponApi']);
 
 
-Route::get('/get/sponsor',[SponsorController::class,'getSponsor']);
+Route::post('/get/sponsor',[SponsorController::class,'getSponsor']);
 
 
 Route::post('/get/levels',[LevelController::class,'getLevelByPoints']);
@@ -243,6 +245,11 @@ Route::post('add/online/game/play-count', [OnlineGameController::class, 'addOnli
 // Route::get('/get/levels',[LevelController::class,'getLevel']);
 
 Route::post('/problem-report/create', [ProblemReportController::class, 'storeProblemReportApi']);
+
+// Notifications APIs
+Route::post('user/notifications/unread-count', [NotificationController::class, 'getUnreadNotificationsCountApi']);
+Route::post('user/notifications/all', [NotificationController::class, 'getUserNotificationsApi']);
+Route::post('user/notifications/update-status', [NotificationController::class, 'updateNotificationStatusApi']);
 
 
 

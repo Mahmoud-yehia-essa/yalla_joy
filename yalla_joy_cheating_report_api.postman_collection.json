@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "7f8582f3-1c09-4ee4-aa86-7a71f0dfde05",
+		"name": "Yalla Joy Problem Report API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Cheating Problem Report",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 1,\n    \"issue_type\": \"cheating\",\n    \"user_id_cheating\": 2,\n    \"additional_notes\": \"تم رصد هذا اللاعب يستخدم تطبيقاً خارجياً لتعديل النقاط.\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8888/api/problem-report/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8888",
+					"path": [
+						"api",
+						"problem-report",
+						"create"
+					]
+				},
+				"description": "تسجيل بلاغ غش جديد للمستخدم (المبلّغ) ضد مستخدم آخر (المبلّغ عنه)."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Question Error Problem Report",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 1,\n    \"issue_type\": \"question_error\",\n    \"question_id\": 5,\n    \"additional_notes\": \"هذا السؤال يحتوي على خطأ إملائي في نص السؤال نفسه.\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8888/api/problem-report/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8888",
+					"path": [
+						"api",
+						"problem-report",
+						"create"
+					]
+				},
+				"description": "تسجيل بلاغ عادي بخصوص خطأ في سؤال معين."
+			},
+			"response": []
+		}
+	]
+}

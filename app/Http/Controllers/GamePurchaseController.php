@@ -93,11 +93,31 @@ class GamePurchaseController extends Controller
 
     public function getGamePurchasesApi()
     {
-        $purchases = GamePurchase::latest()->get();
+        $purchases = GamePurchase::where('status', 'active')->latest()->get();
         return response()->json([
             'success' => true,
             'message' => 'Game purchases retrieved successfully',
             'data' => $purchases
         ], 200);
+    }
+
+    public function gamePurchaseInactive($id)
+    {
+        GamePurchase::findOrFail($id)->update(['status' => 'inactive']);
+        $notification = array(
+            'message' => 'تم إخفاء الباقة بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
+    }
+
+    public function gamePurchaseActive($id)
+    {
+        GamePurchase::findOrFail($id)->update(['status' => 'active']);
+        $notification = array(
+            'message' => 'تم إظهار الباقة بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
     }
 }

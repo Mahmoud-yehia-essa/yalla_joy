@@ -18,6 +18,11 @@ class ProblemReport extends Model
         return $this->belongsTo(Question::class, 'question_id');
     }
 
+    public function cheatingUser()
+    {
+        return $this->belongsTo(User::class, 'user_id_cheating');
+    }
+
     protected static function booted()
     {
         static::created(function ($problemReport) {

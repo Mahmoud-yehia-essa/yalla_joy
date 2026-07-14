@@ -118,6 +118,15 @@
                             @endif
                         </td>
                         <td>
+                            @if($item->status == 'active')
+                                <a href="{{ route('inactive.avatar.item', $item->id) }}" class="btn btn-primary" title="اخفاء">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            @else
+                                <a href="{{ route('active.avatar.item', $item->id) }}" class="btn btn-primary" title="اظهار">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </a>
+                            @endif
                             <a href="{{ route('edit.avatar.item', $item->id) }}" class="btn btn-info">تعديل</a>
                             <a href="{{ route('avatar.item.purchased.users', $item->id) }}" class="btn btn-warning">المشترون</a>
                         </td>

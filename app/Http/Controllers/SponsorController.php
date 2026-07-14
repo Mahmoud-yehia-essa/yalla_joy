@@ -238,15 +238,17 @@ class SponsorController extends Controller
 
     /// API
 
-      public function getSponsor()
+      public function getSponsor(Request $request)
     {
+        $limit = $request->input('limit', 0);
 
+        if ($limit > 0) {
+            $sponsor = Sponsor::latest()->limit($limit)->get();
+        } else {
+            $sponsor = Sponsor::latest()->get();
+        }
 
-    $sponsor = Sponsor::latest()->get();
-
-
-
-    return response()->json($sponsor);
+        return response()->json($sponsor);
     }
 
 }

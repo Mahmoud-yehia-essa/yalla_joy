@@ -175,6 +175,7 @@ class CouponCompanyController extends Controller
     public function getCouponCompaniesApi(Request $request)
     {
         $user_id = $request->user_id;
+        $sponsor_id = $request->sponsor_id;
 
         if (!$user_id) {
             return response()->json([
@@ -184,7 +185,13 @@ class CouponCompanyController extends Controller
         }
 
         // Get all coupons with their sponsor and game coin info
-        $coupons = CouponCompany::with(['sponsor', 'gameCoin'])->latest()->get();
+        $query = CouponCompany::with(['sponsor', 'gameCoin'])->latest();
+
+        if (!empty($sponsor_id) && $sponsor_id != 0) {
+            $query->where('sponsor_id', $sponsor_id);
+        }
+
+        $coupons = $query->get();
 
         // Get the coupons this user has already bought with their usage status
         $userCoupons = \App\Models\CouponCompanyUserUsed::where('user_id', $user_id)

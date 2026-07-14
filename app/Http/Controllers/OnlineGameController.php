@@ -15,6 +15,11 @@ class OnlineGameController extends Controller
 //api
     public function addGameOnlineInfo(Request $request)
     {
+        // Cleanup waiting games that are older than 5 minutes
+        OnlineGameInfo::where('game_online_state', 'waiting')
+            ->where('created_at', '<=', now()->subMinutes(5))
+            ->update(['game_online_state' => 'finished']);
+
         // Search for an existing waiting search game
         $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
             ->where('game_online_type', 'search')

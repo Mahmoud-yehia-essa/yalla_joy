@@ -773,7 +773,34 @@ public function validateRegisterApi(Request $request)
 
     }
 
+    public function updateFcmTokenApi(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+            'user_id' => 'nullable|integer',
+        ]);
 
+        $user = $request->user();
+        if (!$user && $request->filled('user_id')) {
+            $user = User::find($request->user_id);
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المستخدم غير موجود أو غير مسجل الدخول.'
+            ], 404);
+        }
+
+        $user->update([
+            'fcm_token' => $request->fcm_token
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث توكن FCM بنجاح.'
+        ], 200);
+    }
 
         public function socialLoginApi(Request $request) {
     // 1. التحقق من وصول التوكن من فلاتر
@@ -1042,6 +1069,54 @@ public function validateRegisterApi(Request $request)
             'user' => $user, // Return all user data
             'token' => $token
         ], 200);
+    }
+
+    public function updateUserCollapseDetails(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'online_game_wins' => 'required|integer|min:0',
+            'online_play_count' => 'required|integer|min:0',
+            'online_points' => 'required|integer|min:0',
+            'coins' => 'nullable|array',
+        ]);
+
+        $userId = $request->user_id;
+        $user = User::findOrFail($userId);
+
+        // 1. Update stats
+        $user->update([
+            'online_game_wins' => $request->online_game_wins,
+            'online_play_count' => $request->online_play_count,
+            'online_points' => $request->online_points,
+        ]);
+
+        // 2. Adjust coins if provided
+        if ($request->filled('coins') && is_array($request->coins)) {
+            foreach ($request->coins as $coinId => $newTotal) {
+                // Get current total for this coin
+                $currentTotal = \App\Models\UserCoin::where('user_id', $userId)
+                    ->where('game_coin_id', $coinId)
+                    ->sum('coins_number');
+
+                $diff = $newTotal - $currentTotal;
+
+                if ($diff != 0) {
+                    // Record transaction to adjust the balance
+                    \App\Models\UserCoin::create([
+                        'user_id' => $userId,
+                        'game_coin_id' => $coinId,
+                        'coins_number' => $diff,
+                        'type' => $diff > 0 ? 'add' : 'withdraw',
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حفظ التعديلات بنجاح',
+        ]);
     }
 
     public function exportUsers()

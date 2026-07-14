@@ -2641,43 +2641,13 @@ public function createGameSessionQuestions(Request $request)
         return response()->json(['error' => 'session_id is required'], 422);
     }
 
-    // 1. الحماية الأولى: التحقق إذا كانت الجلسة مجهزة مسبقاً (لتجنب التوليد المتكرر للأسئلة)
+    // 1. جلب قائمة الفئات المسجلة في الجلسة لحساب العدد الإجمالي المتوقع (6 أسئلة لكل فئة)
     $existingSessionQuestions = DB::table('game_session_question_onlines')
         ->where('session_id', $sessionId)
         ->orderBy('id')
         ->get();
 
-    if ($existingSessionQuestions->count() >= 16) {
-        // إذا تم إنشاء 16 سؤال بالفعل، نقوم بإرجاع الأسئلة المطلوبة فقط بناءً على category_id الممرر
-        $filteredSessionQuestions = $existingSessionQuestions;
-        if ($categoryInput) {
-            $filteredSessionQuestions = $existingSessionQuestions->filter(function ($item) use ($categoryInput) {
-                return (string)$item->category_id === (string)$categoryInput;
-            });
-        }
-
-        $responseQuestionIds = $filteredSessionQuestions->pluck('question_id')->toArray();
-        
-        $questions = Question::with('answers')->whereIn('id', $responseQuestionIds)
-            ->get()
-            ->sortBy(fn ($q) => array_search($q->id, $responseQuestionIds))
-            ->values();
-
-        $questions = $questions->map(function ($question) {
-            $question->is_user_answer = false;
-            $question->who_answer = 0;
-            return $question;
-        });
-
-        return response()->json($questions);
-    }
-
-    // تنظيف الجلسة من أي أسئلة قديمة (أقل من 16) للبدء من جديد
-    if ($existingSessionQuestions->count() > 0) {
-        DB::table('game_session_question_onlines')->where('session_id', $sessionId)->delete();
-    }
-
-    // 2. محاولة جلب جميع الفئات الستة المحددة للجلسة من جدول online_game_categories
+    // 2. محاولة جلب جميع الفئات المحددة للجلسة من جدول online_game_categories
     $categoryIds = [];
     $gameInfo = DB::table('online_game_infos')
         ->where('game_session_name', $sessionId)
@@ -2708,45 +2678,104 @@ public function createGameSessionQuestions(Request $request)
             $categoryIds = [$categoryInput];
         }
     }
-    
+
     $categoryIds = array_map('trim', $categoryIds);
     $categoryIds = array_filter($categoryIds, function($val) {
         return $val !== null && $val !== '';
     });
+    $categoryIds = array_values($categoryIds);
     if (empty($categoryIds)) {
-        $categoryIds = [$categoryInput ?: 1]; // قيمة افتراضية لتجنب الأعطال
+        $categoryIds = [$categoryInput ?: 1];
     }
 
-    // 3. إجمالي الأسئلة المطلوبة دائماً هو 16
-    $totalQuestionsNeeded = 16;
-    $countCats = count($categoryIds);
-    
-    // توزيع 16 سؤال على الفئات المحددة بالتساوي مع توزيع المتبقي
-    $questionsPerInstance = [];
-    $remainder = $totalQuestionsNeeded % $countCats;
-    for ($i = 0; $i < $countCats; $i++) {
-        $questionsPerInstance[$i] = floor($totalQuestionsNeeded / $countCats) + ($remainder > 0 ? 1 : 0);
-        $remainder--;
+    // الإجمالي المتوقع = 6 أسئلة × عدد الفئات
+    $expectedTotal = count($categoryIds) * 6;
+
+    // الحماية: إذا تم إنشاء الجلسة بالكامل مسبقاً، نُرجع ما يخص الفئة المطلوبة فقط
+    if ($existingSessionQuestions->count() >= $expectedTotal) {
+        $filteredSessionQuestions = $existingSessionQuestions;
+        if ($categoryInput) {
+            $filteredSessionQuestions = $existingSessionQuestions->filter(function ($item) use ($categoryInput) {
+                return (string)$item->category_id === (string)$categoryInput;
+            });
+        }
+
+        $responseQuestionIds = $filteredSessionQuestions->pluck('question_id')->toArray();
+
+        $questions = Question::with('answers')->whereIn('id', $responseQuestionIds)
+            ->get()
+            ->sortBy(fn ($q) => array_search($q->id, $responseQuestionIds))
+            ->values();
+
+        $questions = $questions->map(function ($question) {
+            $question->is_user_answer = false;
+            $question->who_answer = 0;
+            return $question;
+        });
+
+        return response()->json($questions);
     }
 
-    $requirementsByCat = [];
-    foreach ($categoryIds as $idx => $catId) {
-        $requirementsByCat[$catId] = ($requirementsByCat[$catId] ?? 0) + $questionsPerInstance[$idx];
+    // تنظيف الجلسة من أي أسئلة قديمة غير مكتملة للبدء من جديد
+    if ($existingSessionQuestions->count() > 0) {
+        DB::table('game_session_question_onlines')->where('session_id', $sessionId)->delete();
     }
 
-    $sessionQuestionIds = [];
+    // 3. بناء قائمة تتبع تكرار الفئات (للتعامل مع الفئات المكررة في اختيارات اللاعبين)
+    //    مثال: إذا اختار اللاعبان نفس الفئة مرتين → نجلب 6 أسئلة مختلفة لكل تكرار
+    $categoryCounts = []; // عدد مرات ظهور كل فئة في قائمة الاختيارات
+    foreach ($categoryIds as $catId) {
+        $categoryCounts[$catId] = ($categoryCounts[$catId] ?? 0) + 1;
+    }
+
+    $sessionQuestionIds = []; // الأسئلة المُضافة حتى الآن (لتجنب التكرار)
     $currentOrder = 1;
     $insertedQuestions = collect();
 
-    // 4. جلب الأسئلة المطلوبة لكل فئة وحفظها
-    foreach ($requirementsByCat as $catId => $requiredCount) {
-        $qList = Question::where('category_id', $catId)
+    // 4. لكل فئة (حتى لو مكررة): جلب 6 أسئلة موزعة (2×200 + 2×400 + 2×600)
+    $processedCatOccurrences = []; // لتتبع كم مرة عالجنا كل فئة
+
+    foreach ($categoryIds as $catId) {
+        $processedCatOccurrences[$catId] = ($processedCatOccurrences[$catId] ?? 0) + 1;
+
+        // جلب 2 سؤال درجة 200 (يستبعد الأسئلة المُضافة مسبقاً)
+        $q200 = Question::where('category_id', $catId)
+            ->where('qu_points', 200)
             ->whereNotIn('id', $sessionQuestionIds)
             ->inRandomOrder()
-            ->take($requiredCount)
+            ->take(2)
             ->get();
-            
-        foreach ($qList as $q) {
+
+        // جلب 2 سؤال درجة 400
+        $q400 = Question::where('category_id', $catId)
+            ->where('qu_points', 400)
+            ->whereNotIn('id', $sessionQuestionIds)
+            ->inRandomOrder()
+            ->take(2)
+            ->get();
+
+        // جلب 2 سؤال درجة 600
+        $q600 = Question::where('category_id', $catId)
+            ->where('qu_points', 600)
+            ->whereNotIn('id', $sessionQuestionIds)
+            ->inRandomOrder()
+            ->take(2)
+            ->get();
+
+        // دمج الأسئلة بالترتيب: 200، 200، 400، 400، 600، 600
+        $catQuestions = $q200->merge($q400)->merge($q600);
+
+        // في حال نقص (فئة بها أسئلة أقل من 6): نكمل من أسئلة الفئة نفسها بأي درجة
+        if ($catQuestions->count() < 6) {
+            $extra = Question::where('category_id', $catId)
+                ->whereNotIn('id', array_merge($sessionQuestionIds, $catQuestions->pluck('id')->toArray()))
+                ->inRandomOrder()
+                ->take(6 - $catQuestions->count())
+                ->get();
+            $catQuestions = $catQuestions->merge($extra);
+        }
+
+        foreach ($catQuestions as $q) {
             DB::table('game_session_question_onlines')->insert([
                 'session_id'     => $sessionId,
                 'category_id'    => $catId,
@@ -2763,33 +2792,7 @@ public function createGameSessionQuestions(Request $request)
         }
     }
 
-    // 5. في حالة وجود نقص (لم تصل لـ 16 سؤال بسبب نقص الفئات)، نكمل العدد من أي فئة
-    if (count($sessionQuestionIds) < $totalQuestionsNeeded) {
-        $neededToReach16 = $totalQuestionsNeeded - count($sessionQuestionIds);
-        
-        $extraQs = Question::whereNotIn('id', $sessionQuestionIds)
-            ->inRandomOrder()
-            ->take($neededToReach16)
-            ->get();
-            
-        foreach ($extraQs as $q) {
-            DB::table('game_session_question_onlines')->insert([
-                'session_id'     => $sessionId,
-                'category_id'    => $q->category_id,
-                'question_id'    => $q->id,
-                'question_order' => $currentOrder++,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
-            $sessionQuestionIds[] = $q->id;
-            $insertedQuestions->push((object)[
-                'question_id' => $q->id,
-                'category_id' => $q->category_id,
-            ]);
-        }
-    }
-
-    // 6. تصفية الأسئلة لإرجاع ما يخص الفئة المطلوبة فقط
+    // 5. تصفية الأسئلة لإرجاع ما يخص الفئة المطلوبة في هذا الاستدعاء فقط
     $filteredQuestions = $insertedQuestions;
     if ($categoryInput) {
         $filteredQuestions = $insertedQuestions->filter(function ($item) use ($categoryInput) {
@@ -2798,7 +2801,6 @@ public function createGameSessionQuestions(Request $request)
     }
     $filteredQuestionIds = $filteredQuestions->pluck('question_id')->toArray();
 
-    // إرجاع القائمة المطلوبة فقط
     $questions = Question::with('answers')->whereIn('id', $filteredQuestionIds)
         ->get()
         ->sortBy(fn ($q) => array_search($q->id, $filteredQuestionIds))
@@ -2876,7 +2878,7 @@ public function getGameSessionQuestions(Request $request)
             'c.category_name_en',
             'c.category_photo'
         )
-        ->take(16) // قفل العدد على 16 سؤال فقط كإجراء حماية
+        // لا يوجد حد ثابت للأسئلة - العدد يعتمد على عدد الفئات المختارة (6 × عدد الفئات)
         ->get();
 
     if ($questions->isEmpty()) {

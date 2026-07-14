@@ -35,6 +35,15 @@
                             <td>{{ $item->games_count ?? 1 }} ألعاب</td>
                             <td>{{ number_format($item->price, 2) }}</td>
                             <td>
+                                @if($item->status == 'active')
+                                    <a href="{{ route('inactive.game.purchase', $item->id) }}" class="btn btn-primary" title="اخفاء">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('active.game.purchase', $item->id) }}" class="btn btn-primary" title="اظهار">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                    </a>
+                                @endif
                                 <a href="{{ route('edit.game.purchase', $item->id) }}" class="btn btn-info">تعديل</a>
                                 <a href="{{ route('delete.game.purchase', $item->id) }}" class="btn btn-danger" id="delete">حذف</a>
                             </td>

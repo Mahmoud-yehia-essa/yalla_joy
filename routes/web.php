@@ -79,6 +79,8 @@ Route::controller(NotificationController::class)->middleware(['checkUserRole','a
 
     Route::get('/add/notification', 'sendNotification')->name('send.notification');
     Route::get('/all/notification', 'alldNotification')->name('all.notification');
+    Route::post('/store/notification', 'storeNotification')->name('store.notification');
+    Route::get('/delete/notification/{id}', 'deleteNotification')->name('delete.notification');
 
 
 });
@@ -342,6 +344,7 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 
 Route::controller(UserController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/users/all', 'getAllUsers')->name('all.users');
+    Route::post('/user/update-collapse-details', 'updateUserCollapseDetails')->name('user.update.collapse.details');
     Route::get('/export/users', 'exportUsers')->name('export.users');
 
     Route::get('/user/add', 'addUser')->name('add.user');
@@ -522,12 +525,11 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
         Route::get('/add/price', 'addPrice')->name('add.price');
         Route::post('/add/price', 'addPriceStore')->name('add.price.store');
 
-                Route::get('/delete/price/{id}', 'deletePrice')->name('delete.price');
+        Route::get('/delete/price/{id}', 'deletePrice')->name('delete.price');
         Route::get('/edit/price/{id}', 'editPrice')->name('edit.price');
-
-
-
         Route::post('/edit/price', 'editPriceStore')->name('edit.price.store');
+        Route::get('/price/inactive/{id}', 'priceInactive')->name('inactive.price');
+        Route::get('/price/active/{id}', 'priceActive')->name('active.price');
 
 
 });
@@ -1063,6 +1065,8 @@ Route::controller(AvatarItemController::class)->middleware(['checkUserRole','aut
     Route::post('/update/avatar/item', 'updateAvatarItem')->name('update.avatar.item');
     Route::get('/delete/avatar/item/{id}', 'deleteAvatarItem')->name('delete.avatar.item');
     Route::get('/avatar/item/{id}/purchased-users', 'purchasedUsers')->name('avatar.item.purchased.users');
+    Route::get('/avatar/item/inactive/{id}', 'avatarItemInactive')->name('inactive.avatar.item');
+    Route::get('/avatar/item/active/{id}', 'avatarItemActive')->name('active.avatar.item');
 });
 
 Route::controller(FreePlanController::class)->middleware(['checkUserRole','auth'])->group(function(){
@@ -1090,6 +1094,8 @@ Route::controller(GamePurchaseController::class)->middleware(['checkUserRole','a
     Route::get('/edit/game/purchase/{id}', 'editGamePurchase')->name('edit.game.purchase');
     Route::post('/update/game/purchase', 'updateGamePurchase')->name('update.game.purchase');
     Route::get('/delete/game/purchase/{id}', 'deleteGamePurchase')->name('delete.game.purchase');
+    Route::get('/game/purchase/inactive/{id}', 'gamePurchaseInactive')->name('inactive.game.purchase');
+    Route::get('/game/purchase/active/{id}', 'gamePurchaseActive')->name('active.game.purchase');
 });
 
 Route::controller(GameCouponController::class)->middleware(['checkUserRole','auth'])->group(function(){

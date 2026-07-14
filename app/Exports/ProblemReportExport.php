@@ -19,7 +19,7 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
     private $items = null;
     private $rowNumber = 0;
 
-    public function __construct(Request $request = null)
+    public function __construct(?Request $request = null)
     {
         $this->request = $request;
     }
@@ -30,7 +30,30 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
     public function collection()
     {
         if ($this->items === null) {
-            $this->items = ProblemReport::with(['user', 'question'])->latest()->get();
+            $query = ProblemReport::with(['user', 'question', 'cheatingUser']);
+
+            if ($this->request) {
+                // Issue Type Filter
+                if ($this->request->filled('issue_type') && $this->request->issue_type !== 'all') {
+                    $query->where('issue_type', $this->request->issue_type);
+                }
+
+                // Status Filter
+                if ($this->request->filled('status') && $this->request->status !== 'all') {
+                    $query->where('status', $this->request->status);
+                }
+
+                // Sorting
+                if ($this->request->sort_by === 'oldest') {
+                    $query->oldest();
+                } else {
+                    $query->latest();
+                }
+            } else {
+                $query->latest();
+            }
+
+            $this->items = $query->get();
         }
 
         return $this->items;
@@ -60,16 +83,22 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
         $this->rowNumber++;
 
         $user = 'مستخدم غير معروف';
-        if ($item->user) {
-            $user = $item->user->name;
-            if ($item->user->email) {
-                $user .= "\n(" . $item->user->email . ")";
+        if ($item->issue_type == 'cheating') {
+            $reporter = $item->user ? $item->user->name . ($item->user->email ? " (" . $item->user->email . ")" : "") : 'مستخدم غير معروف';
+            $reported = $item->cheatingUser ? $item->cheatingUser->name . ($item->cheatingUser->email ? " (" . $item->cheatingUser->email . ")" : "") : 'غير معروف (ID: ' . $item->user_id_cheating . ')';
+            $user = "المبلِّغ: " . $reporter . "\nالمبلَّغ عنه: " . $reported;
+            $questionText = 'غير مرتبط بسؤال (حالة غش)';
+        } else {
+            if ($item->user) {
+                $user = $item->user->name;
+                if ($item->user->email) {
+                    $user .= "\n(" . $item->user->email . ")";
+                }
             }
-        }
-
-        $questionText = 'سؤال غير موجود (ID: ' . $item->question_id . ')';
-        if ($item->question) {
-            $questionText = $item->question->qu_title . "\n(ID: " . $item->question_id . ")";
+            $questionText = 'سؤال غير موجود (ID: ' . $item->question_id . ')';
+            if ($item->question) {
+                $questionText = $item->question->qu_title . "\n(ID: " . $item->question_id . ")";
+            }
         }
 
         $issueType = 'غير معروف';
@@ -79,6 +108,8 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
             $issueType = 'خطأ في الإجابة';
         } elseif ($item->issue_type == 'inappropriate_content') {
             $issueType = 'محتوى غير لائق';
+        } elseif ($item->issue_type == 'cheating') {
+            $issueType = 'حالة غش';
         } else {
             $issueType = $item->issue_type;
         }

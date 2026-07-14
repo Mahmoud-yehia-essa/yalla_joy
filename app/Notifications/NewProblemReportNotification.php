@@ -55,9 +55,11 @@ class NewProblemReportNotification extends Notification
             $issueTypeArabic = 'خطأ في الإجابة';
         } elseif ($issueType === 'inappropriate_content') {
             $issueTypeArabic = 'محتوى غير لائق';
+        } elseif ($issueType === 'cheating') {
+            $issueTypeArabic = 'حالة غش';
         }
 
-        return [
+        $data = [
             'type' => 'بلاغ جديد عن مشكلة',
             'message' => 'نوع المشكلة: ' . $issueTypeArabic,
             'senderName' => $name,
@@ -66,5 +68,11 @@ class NewProblemReportNotification extends Notification
             'user_id' => $user ? $user->id : null,
             'report_id' => $this->problemReport->id,
         ];
+
+        if ($issueType === 'cheating') {
+            $data['user_id_cheating'] = $this->problemReport->user_id_cheating;
+        }
+
+        return $data;
     }
 }

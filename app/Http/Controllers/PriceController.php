@@ -277,7 +277,7 @@ $price = Price::latest('id')->get();
 
 public function getAllPrice(Request $request)
 {
-    $price = Price::with('gameCoin')->latest('id')->get()->map(function ($item) {
+    $price = Price::with('gameCoin')->where('status', 'active')->latest('id')->get()->map(function ($item) {
 
         $item->price_after_coupon = "0";
         $item->game_coin_name = $item->gameCoin?->name;
@@ -293,6 +293,24 @@ public function getAllPrice(Request $request)
     return response()->json($price);
 }
 
+public function priceInactive($id)
+{
+    Price::findOrFail($id)->update(['status' => 'inactive']);
+    $notification = array(
+        'message' => 'تم إخفاء السعر بنجاح',
+        'alert-type' => 'success'
+    );
+    return redirect()->back()->with($notification);
+}
 
+public function priceActive($id)
+{
+    Price::findOrFail($id)->update(['status' => 'active']);
+    $notification = array(
+        'message' => 'تم إظهار السعر بنجاح',
+        'alert-type' => 'success'
+    );
+    return redirect()->back()->with($notification);
+}
 
 }

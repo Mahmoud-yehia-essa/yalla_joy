@@ -63,15 +63,17 @@
 
 
 <td>
-
-
-
-
-
-<a href="{{route('edit.price',$item->id)}}" class="btn btn-info">تعديل</a>
-
-<a href="{{ route('delete.price',$item->id) }}" class="btn btn-danger" id="delete" >حذف</a>
-
+    @if($item->status == 'active')
+        <a href="{{ route('inactive.price', $item->id) }}" class="btn btn-primary" title="اخفاء">
+            <i class="fa-solid fa-eye"></i>
+        </a>
+    @else
+        <a href="{{ route('active.price', $item->id) }}" class="btn btn-primary" title="اظهار">
+            <i class="fa-solid fa-eye-slash"></i>
+        </a>
+    @endif
+    <a href="{{route('edit.price',$item->id)}}" class="btn btn-info">تعديل</a>
+    <a href="{{ route('delete.price',$item->id) }}" class="btn btn-danger" id="delete" >حذف</a>
 </td>
 </tr>
 @endforeach

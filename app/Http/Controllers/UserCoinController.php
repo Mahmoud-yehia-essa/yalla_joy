@@ -140,6 +140,7 @@ public function getUserCoinDetails(Request $request)
                     'name_en' => $coin->name_en,
                     'photo' => $coin->photo,
                     'status' => $coin->status,
+                    'type' => $item->type,
                     'created_at' => $item->created_at,
                     'created_at_human' => Carbon::parse($item->created_at)->diffForHumans(),
                     'updated_at' => $item->updated_at,

@@ -227,6 +227,7 @@ class AvatarItemController extends Controller
 
         $items = AvatarItems::with('coin')
             ->where('category_id', $request->category_id)
+            ->where('status', 'active')
             ->latest()
             ->get();
 
@@ -325,5 +326,25 @@ class AvatarItemController extends Controller
             'success' => true,
             'message' => 'تم شراء عنصر الأفاتار بنجاح'
         ], 200);
+    }
+
+    public function avatarItemInactive($id)
+    {
+        AvatarItems::findOrFail($id)->update(['status' => 'inactive']);
+        $notification = array(
+            'message' => 'تم إخفاء عنصر الأفاتار بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
+    }
+
+    public function avatarItemActive($id)
+    {
+        AvatarItems::findOrFail($id)->update(['status' => 'active']);
+        $notification = array(
+            'message' => 'تم إظهار عنصر الأفاتار بنجاح',
+            'alert-type' => 'success'
+        );
+        return redirect()->back()->with($notification);
     }
 }

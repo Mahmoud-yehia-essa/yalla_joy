@@ -20,7 +20,8 @@ return new class extends Migration
             $table->enum('issue_type', [
                 'question_error',    // خطأ في السؤال
                 'answer_error',      // خطأ في الإجابة
-                'inappropriate_content' // محتوى غير لائق
+                'inappropriate_content', // محتوى غير لائق
+                'cheating' // حالة غش
             ]);
             
             // ملاحظات إضافية (nullable لأن المستخدم قد لا يكتب ملاحظات ويكتفي بتحديد النوع)
@@ -29,7 +30,8 @@ return new class extends Migration
             // (اختياري ولكن مهم جداً) ربط البلاغ بالمستخدم الذي أبلغ عن المشكلة
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             
-            $table->foreignId('question_id')->constrained()->onDelete('cascade'); // Foreign key to questions table
+            $table->foreignId('question_id')->nullable()->constrained()->onDelete('cascade'); // Foreign key to questions table
+            $table->foreignId('user_id_cheating')->nullable()->constrained('users')->onDelete('cascade'); // Foreign key to cheating user
             
             // (اختياري) حقل لمتابعة حالة البلاغ (جدول مرن للمستقبل)
             $table->enum('status', ['pending', 'resolved', 'ignored'])->default('pending');
