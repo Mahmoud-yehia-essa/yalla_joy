@@ -78,10 +78,10 @@
     <!-- 3. Currency Select -->
     <td data-order="{{ $item->is_free ? 'مجاني' : ($item->coin->name ?? '') }}">
         <select class="form-select form-select-sm ajax-currency-select border-2" data-id="{{ $item->id }}" style="min-width: 120px;">
-            <option value="free" {{ $item->is_free ? 'selected' : '' }}>🎁 مجاني</option>
+            <option value="free" {{ $item->is_free ? 'selected' : '' }}>مجاني</option>
             @foreach($coins as $coin)
                 <option value="{{ $coin->id }}" {{ !$item->is_free && $item->game_coin_id == $coin->id ? 'selected' : '' }}>
-                    🪙 {{ $coin->name }}
+                    {{ $coin->name }}
                 </option>
             @endforeach
         </select>
