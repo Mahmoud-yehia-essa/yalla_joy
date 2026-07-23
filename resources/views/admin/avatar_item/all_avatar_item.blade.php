@@ -209,7 +209,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: "{{ route('ajax.update.avatar.item.name') }}",
+            url: "{{ Route::has('ajax.update.avatar.item.name') ? route('ajax.update.avatar.item.name') : url('/ajax/update/avatar/item/name') }}",
             type: "POST",
             data: {
                 id: id,
@@ -270,7 +270,7 @@ $(document).ready(function() {
         $('#image-spinner-' + id).removeClass('d-none').addClass('d-flex');
 
         $.ajax({
-            url: "{{ route('ajax.update.avatar.item.image') }}",
+            url: "{{ Route::has('ajax.update.avatar.item.image') ? route('ajax.update.avatar.item.image') : url('/ajax/update/avatar/item/image') }}",
             type: "POST",
             data: formData,
             contentType: false,
@@ -314,7 +314,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: "{{ route('ajax.update.avatar.item.currency') }}",
+            url: "{{ Route::has('ajax.update.avatar.item.currency') ? route('ajax.update.avatar.item.currency') : url('/ajax/update/avatar/item/currency') }}",
             type: "POST",
             data: {
                 id: id,
@@ -371,7 +371,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: "{{ route('ajax.update.avatar.item.price') }}",
+            url: "{{ Route::has('ajax.update.avatar.item.price') ? route('ajax.update.avatar.item.price') : url('/ajax/update/avatar/item/price') }}",
             type: "POST",
             data: {
                 id: id,
