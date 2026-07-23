@@ -122,6 +122,7 @@
         @endif
         <a href="{{ route('edit.avatar.item', $item->id) }}" class="btn btn-info">تعديل</a>
         <a href="{{ route('avatar.item.purchased.users', $item->id) }}" class="btn btn-warning">المشترون</a>
+        <a href="{{ route('delete.avatar.item', $item->id) }}" class="btn btn-danger" id="delete" title="حذف">حذف</a>
     </td>
 </tr>
 @endforeach

@@ -211,15 +211,27 @@ class AvatarItemController extends Controller
         return redirect()->route('all.avatar.item')->with($notification);
     }
 
-    // 🔹 Delete Avatar Item (Disabled)
+    // 🔹 Delete Avatar Item
     public function deleteAvatarItem($id)
     {
+        $item = AvatarItems::findOrFail($id);
+
+        // Delete user purchased associations
+        \Illuminate\Support\Facades\DB::table('user_avatar_items')->where('avatar_item_id', $id)->delete();
+
+        // Remove image file if exists
+        if ($item->image && file_exists(public_path($item->image))) {
+            @unlink(public_path($item->image));
+        }
+
+        $item->delete();
+
         $notification = [
-            'message' => '⚠️ حذف عناصر الأفاتار غير مسموح به حالياً',
-            'alert-type' => 'warning'
+            'message' => '🗑️ تم حذف عنصر الأفاتار بنجاح',
+            'alert-type' => 'success'
         ];
 
-        return redirect()->route('all.avatar.item')->with($notification);
+        return redirect()->back()->with($notification);
     }
 
     // 🔹 API: Fetch Avatar Items by Category ID
