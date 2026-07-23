@@ -234,6 +234,7 @@
 
 </script>
  <script src="{{ asset('backend/assets/js/form-editor.init.js')}}"></script>
+ @yield('scripts')
 
 </body>
 

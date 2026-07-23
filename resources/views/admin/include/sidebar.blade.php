@@ -10,6 +10,7 @@
         <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i>
         </div>
      </div>
+
     <!--navigation-->
     <ul class="metismenu" id="menu">
         <li>
@@ -1246,3 +1247,4 @@
     </ul>
     <!--end navigation-->
 </div>
+

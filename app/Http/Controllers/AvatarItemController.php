@@ -32,10 +32,27 @@ class AvatarItemController extends Controller
             }
         }
 
-        $avatarItems = $query->latest()->get();
-        $categories = AvatarCategory::all();
+        $perPage = 20;
+        $avatarItems = $query->latest()->paginate($perPage);
 
-        return view('admin.avatar_item.all_avatar_item', compact('avatarItems', 'categories'));
+        if ($request->ajax()) {
+            $categories = AvatarCategory::all();
+            $coins = GameCoin::all();
+            $startKey = ($avatarItems->currentPage() - 1) * $avatarItems->perPage();
+
+            $html = view('admin.avatar_item.partials.avatar_item_rows', compact('avatarItems', 'categories', 'coins', 'startKey'))->render();
+
+            return response()->json([
+                'html' => $html,
+                'has_more' => $avatarItems->hasMorePages(),
+                'next_page' => $avatarItems->currentPage() + 1,
+            ]);
+        }
+
+        $categories = AvatarCategory::all();
+        $coins = GameCoin::all();
+
+        return view('admin.avatar_item.all_avatar_item', compact('avatarItems', 'categories', 'coins'));
     }
 
     // 🔹 Export Avatar Items to Excel
@@ -346,5 +363,121 @@ class AvatarItemController extends Controller
             'alert-type' => 'success'
         );
         return redirect()->back()->with($notification);
+    }
+
+    // 🔹 AJAX Update Item Name
+    public function ajaxUpdateName(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:avatar_items,id',
+            'name' => 'required|string|max:255',
+        ], [
+            'name.required' => '⚠️ الرجاء إدخال اسم العنصر',
+        ]);
+
+        $item = AvatarItems::findOrFail($request->id);
+        $item->name = $request->name;
+        $item->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ تم تحديث اسم العنصر بنجاح',
+            'name' => $item->name,
+        ]);
+    }
+
+    // 🔹 AJAX Update Item Image
+    public function ajaxUpdateImage(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:avatar_items,id',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        ], [
+            'image.required' => '⚠️ الرجاء اختيار صورة',
+            'image.image' => '⚠️ ملف غير صحيح',
+            'image.mimes' => '⚠️ بصيغ jpeg, png, jpg, gif, svg, webp فقط',
+            'image.max' => '⚠️ حجم الصورة أقصاه 2MB',
+        ]);
+
+        $item = AvatarItems::findOrFail($request->id);
+
+        if ($request->file('image')) {
+            $file = $request->file('image');
+            $filename = date('YmdHi') . $file->getClientOriginalName();
+            $path = public_path('upload/avatar_item');
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            if ($item->image && file_exists(public_path($item->image))) {
+                @unlink(public_path($item->image));
+            }
+
+            $file->move($path, $filename);
+            $item->image = 'upload/avatar_item/' . $filename;
+            $item->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ تم تحديث صورة العنصر بنجاح',
+            'image_url' => asset($item->image),
+        ]);
+    }
+
+    // 🔹 AJAX Update Item Currency
+    public function ajaxUpdateCurrency(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:avatar_items,id',
+            'currency' => 'required',
+        ]);
+
+        $item = AvatarItems::findOrFail($request->id);
+
+        if ($request->currency === 'free') {
+            $item->is_free = 1;
+            $item->game_coin_id = null;
+            $item->coins_number = 0;
+        } else {
+            $coin = GameCoin::findOrFail($request->currency);
+            $item->is_free = 0;
+            $item->game_coin_id = $coin->id;
+        }
+
+        $item->save();
+        $item->load('coin');
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ تم تحديث نوع العملة بنجاح',
+            'is_free' => $item->is_free,
+            'coin_id' => $item->game_coin_id,
+            'coin_name' => $item->is_free ? 'مجاني' : ($item->coin ? $item->coin->name : '---'),
+            'coins_number' => $item->coins_number,
+        ]);
+    }
+
+    // 🔹 AJAX Update Item Price
+    public function ajaxUpdatePrice(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:avatar_items,id',
+            'coins_number' => 'required|integer|min:0',
+        ], [
+            'coins_number.required' => '⚠️ الرجاء إدخال السعر',
+            'coins_number.integer' => '⚠️ السعر يجب أن يكون رقماً صحيحاً',
+            'coins_number.min' => '⚠️ السعر لا يمكن أن يكون أقل من 0',
+        ]);
+
+        $item = AvatarItems::findOrFail($request->id);
+        $item->coins_number = (int)$request->coins_number;
+        $item->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ تم تحديث سعر العنصر بنجاح',
+            'coins_number' => $item->coins_number,
+        ]);
     }
 }

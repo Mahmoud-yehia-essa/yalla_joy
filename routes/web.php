@@ -1067,6 +1067,12 @@ Route::controller(AvatarItemController::class)->middleware(['checkUserRole','aut
     Route::get('/avatar/item/{id}/purchased-users', 'purchasedUsers')->name('avatar.item.purchased.users');
     Route::get('/avatar/item/inactive/{id}', 'avatarItemInactive')->name('inactive.avatar.item');
     Route::get('/avatar/item/active/{id}', 'avatarItemActive')->name('active.avatar.item');
+
+    // 🔹 AJAX Inline Update Routes
+    Route::post('/ajax/update/avatar/item/name', 'ajaxUpdateName')->name('ajax.update.avatar.item.name');
+    Route::post('/ajax/update/avatar/item/image', 'ajaxUpdateImage')->name('ajax.update.avatar.item.image');
+    Route::post('/ajax/update/avatar/item/currency', 'ajaxUpdateCurrency')->name('ajax.update.avatar.item.currency');
+    Route::post('/ajax/update/avatar/item/price', 'ajaxUpdatePrice')->name('ajax.update.avatar.item.price');
 });
 
 Route::controller(FreePlanController::class)->middleware(['checkUserRole','auth'])->group(function(){
