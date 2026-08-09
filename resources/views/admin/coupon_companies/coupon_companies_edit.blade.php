@@ -82,11 +82,24 @@
 
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">تاريخ الانتهاء</h6>
+                                        <h6 class="mb-0">تاريخ ووقت الانتهاء</h6>
                                     </div>
                                     <div class="form-group col-sm-9 text-secondary">
-                                        <input type="date" name="valid_until" class="form-control" min="{{ date('Y-m-d') }}" value="{{ $couponCompany->valid_until ? date('Y-m-d', strtotime($couponCompany->valid_until)) : '' }}" />
+                                        <input type="datetime-local" name="valid_until" class="form-control" value="{{ $couponCompany->valid_until ? date('Y-m-d\TH:i', strtotime($couponCompany->valid_until)) : '' }}" />
                                         @error('valid_until')
+                                        <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">عدد الكوبونات المتاحة</h6>
+                                    </div>
+                                    <div class="form-group col-sm-9 text-secondary">
+                                        <input type="number" name="coupons_count" class="form-control" min="1" placeholder="أدخل عدد الكوبونات الكلي المتاح (أتركه فارغاً لعدد غير محدود)" value="{{ $couponCompany->coupons_count }}" />
+                                        <small class="text-muted">إذا تركت هذا الحقل فارغاً، سيكون عدد الكوبونات المتاحة غير محدود.</small>
+                                        @error('coupons_count')
                                         <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>

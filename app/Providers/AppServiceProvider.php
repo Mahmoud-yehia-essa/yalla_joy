@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(Kernel $kernel): void
     {
+        date_default_timezone_set('Asia/Kuwait');
         // Register middleware
         // $kernel->appendMiddlewareToGroup('web', CheckUserRole::class);
     }

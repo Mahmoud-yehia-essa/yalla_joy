@@ -66,6 +66,20 @@
                                     </div>
                                 </div>
 
+                                <!-- Reward Condition (Type) -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">حالة الحصول على الجائزة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="type" class="form-select" required>
+                                            <option value="win" {{ old('type', 'win') == 'win' ? 'selected' : '' }}>في حالة الفوز</option>
+                                            <option value="loss" {{ old('type') == 'loss' ? 'selected' : '' }}>في حالة الخسارة</option>
+                                        </select>
+                                        @error('type') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Submit -->
                                 <div class="row">
                                     <div class="col-sm-3"></div>

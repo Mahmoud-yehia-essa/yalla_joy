@@ -48,6 +48,7 @@ use App\Http\Controllers\OfflineGameCoinsController;
 use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
+use App\Http\Controllers\ChallengeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -231,7 +232,7 @@ Route::controller(MainCategoryController::class)->middleware(['checkUserRole','a
 
     Route::get('/main/category/active/{id}', 'mainCategoryActive')->name('active.main.category');
 
-
+    Route::post('/update/main/category/order', 'updateMainCategoryOrder')->name('main.category.update.order');
 
 });
 
@@ -322,7 +323,8 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 
 
     Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
-    Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
+
+    Route::post('/update/category/order', 'updateCategoryOrder')->name('category.update.order');
 
 
         Route::get('/admin/filter/category', 'fillterCategory')->name('filter.category');
@@ -584,7 +586,9 @@ Route::middleware(['checkUserRole','auth'])->group(function () {
 
         Route::get('/all/sponsor' , 'allSponsor')->name('sponsor.all');
 
-                Route::get('/delete/sponsor/{id}', 'deleteSponsor')->name('delete.sponsor');
+        Route::post('/update/sponsor/order', 'updateSponsorOrder')->name('sponsor.update.order');
+
+        Route::get('/delete/sponsor/{id}', 'deleteSponsor')->name('delete.sponsor');
 
 
     // Route::post('/search/by/date' , 'SearchByDate')->name('search-by-date');
@@ -1121,6 +1125,13 @@ Route::controller(ProblemReportController::class)->middleware(['checkUserRole','
     Route::get('/export/problem-reports', 'exportProblemReports')->name('export.problem.reports');
     Route::post('/problem-report/update-status/{id}', 'updateStatus')->name('update.problem.report.status');
     Route::get('/problem-report/delete/{id}', 'deleteProblemReport')->name('delete.problem.report');
+});
+
+Route::controller(ChallengeController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/all/challenges', 'allChallenges')->name('all.challenges');
+    Route::get('/challenge/details/{id}', 'detailsChallenge')->name('details.challenge');
+    Route::get('/challenge/delete/{id}', 'deleteChallenge')->name('delete.challenge');
+    Route::get('/export/challenges', 'exportChallenges')->name('export.challenges');
 });
 
 Route::get('/fix-storage', function () {

@@ -29,6 +29,8 @@ use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OttuPaymentController;
+use App\Http\Controllers\ChallengeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +72,7 @@ Route::post('/main/category',[MainCategoryController::class,'getMainCategoryApi'
 
 
 Route::post('/categories',[CategoryController::class,'getCategoryApi']);
+Route::post('/categories/repetition-status', [CategoryController::class, 'getCategoryRepetitionStatusApi']);
 
 Route::post('/avatar/categories', [AvatarCategoryController::class, 'getAvatarCategoriesApi']);
 
@@ -250,6 +253,19 @@ Route::post('/problem-report/create', [ProblemReportController::class, 'storePro
 Route::post('user/notifications/unread-count', [NotificationController::class, 'getUnreadNotificationsCountApi']);
 Route::post('user/notifications/all', [NotificationController::class, 'getUserNotificationsApi']);
 Route::post('user/notifications/update-status', [NotificationController::class, 'updateNotificationStatusApi']);
+
+// Ottu Payment Gateway APIs
+Route::post('ottu/generate-checkout', [OttuPaymentController::class, 'generateCheckout']);
+Route::post('ottu/webhook', [OttuPaymentController::class, 'handleWebhook']);
+Route::get('ottu/check-status/{sessionId}', [OttuPaymentController::class, 'checkStatus']);
+Route::get('ottu/redirect', [OttuPaymentController::class, 'handleRedirect']);
+
+// Challenge APIs
+Route::post('/challenge/send-invitation', [ChallengeController::class, 'sendChallengeInvitationApi']);
+Route::post('/challenge/create', [ChallengeController::class, 'sendChallengeInvitationApi']);
+Route::post('/challenge/update-status', [ChallengeController::class, 'updateChallengeStatusApi']);
+Route::post('/challenge/user-challenges', [ChallengeController::class, 'getUserChallengesApi']);
+Route::post('/challenge/get-user-challenges', [ChallengeController::class, 'getUserChallengesApi']);
 
 
 

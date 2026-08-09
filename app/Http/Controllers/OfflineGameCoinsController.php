@@ -26,20 +26,24 @@ class OfflineGameCoinsController extends Controller
             'name' => 'required|string|max:255',
             'game_coin_id' => 'required|exists:game_coins,id',
             'coins_number' => 'required|integer|min:0',
+            'type' => 'required|in:win,loss',
         ], [
             'name.required' => '⚠️ الرجاء إدخال اسم البند',
             'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
             'coins_number.required' => '⚠️ الرجاء إدخال عدد العملات',
+            'type.required' => '⚠️ الرجاء اختيار حالة الحصول على الجائزة',
+            'type.in' => '⚠️ حالة الحصول على الجائزة غير صالحة',
         ]);
 
         OfflineGameCoins::create([
             'name' => $request->name,
             'game_coin_id' => $request->game_coin_id,
             'coins_number' => $request->coins_number,
+            'type' => $request->type,
         ]);
 
         $notification = array(
-            'message' => 'تم إضافة عملات فائز في لعبة الجلسة بنجاح',
+            'message' => 'تم إضافة عملات لعبة الجلسة بنجاح',
             'alert-type' => 'success'
         );
 
@@ -60,16 +64,20 @@ class OfflineGameCoinsController extends Controller
             'name' => 'required|string|max:255',
             'game_coin_id' => 'required|exists:game_coins,id',
             'coins_number' => 'required|integer|min:0',
+            'type' => 'required|in:win,loss',
         ], [
             'name.required' => '⚠️ الرجاء إدخال اسم البند',
             'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
             'coins_number.required' => '⚠️ الرجاء إدخال عدد العملات',
+            'type.required' => '⚠️ الرجاء اختيار حالة الحصول على الجائزة',
+            'type.in' => '⚠️ حالة الحصول على الجائزة غير صالحة',
         ]);
 
         OfflineGameCoins::findOrFail($id)->update([
             'name' => $request->name,
             'game_coin_id' => $request->game_coin_id,
             'coins_number' => $request->coins_number,
+            'type' => $request->type,
         ]);
 
         $notification = array(

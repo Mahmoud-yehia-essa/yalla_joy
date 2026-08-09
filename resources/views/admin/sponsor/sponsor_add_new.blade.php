@@ -69,6 +69,19 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">ترتيب الظهور</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="number" class="form-control @error('order_by') is-invalid @enderror"
+                               name="order_by" value="{{ old('order_by') }}" placeholder="أدخل رقم الترتيب (مثال: 1, 2, 3...)" min="1">
+                        @error('order_by')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
 
 
                 <div class="row mb-3">

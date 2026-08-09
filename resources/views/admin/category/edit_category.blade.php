@@ -111,6 +111,19 @@
                                     </div>
                                 </div>
 
+                                <!-- Order By -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">ترتيب الظهور</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" name="order_by" class="form-control" value="{{ old('order_by', $category->order_by) }}" placeholder="أدخل رقم الترتيب (مثال: 1, 2, 3...)" min="1" />
+                                        @error('order_by')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Category Description -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">

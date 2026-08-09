@@ -267,50 +267,6 @@
 
 
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-2 justify-content-center">
-
-    <div class="col-md-6 col-xl-4">
-    <a href="{{ route('all.category') }}">
-        <div class="card radius-10 bg-gradient-game-new bg-warning text-center">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 text-white">الفئة الأكثر استخداما</h5>
-                    <div class="ms-auto">
-                        <div style="
-                            width: 35px;
-                            height: 35px;
-                            background-color: white;
-                            color: #000;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: bold;
-                            font-size: 14px;
-                        ">
-                            {{$categoryHowManyUse->how_many_use}}
-                        </div>
-                    </div>
-                </div>
-                <div class="progress my-2 bg-opacity-25 bg-white" style="height:4px;">
-                    <div class="progress-bar bg-white" role="progressbar" style="width: 100%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                <div class="d-flex align-items-center justify-content-center text-white">
-                    <p class="mb-0">
-
-                 {{$categoryHowManyUse->gameType->type_name}}  / {{$categoryHowManyUse->mainCategory->main_category_name}} / {{$categoryHowManyUse->category_name}}
-
-                    </p>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
-
-
-</div><!--end row-->
-
-
 
 
    <div class="row row-cols-1 row-cols-lg-1">

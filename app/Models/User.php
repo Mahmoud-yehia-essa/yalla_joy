@@ -106,6 +106,11 @@ class User extends Authenticatable
         return $this->hasMany(AnimationUserLibrary::class, 'user_id');
     }
 
+    public function games()
+    {
+        return $this->hasMany(Game::class, 'user_id_created');
+    }
+
 
 
     public static function getpermissionGroups(){

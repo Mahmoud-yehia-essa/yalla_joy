@@ -62,15 +62,7 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-sm-3">
-                        <h6 class="mb-0">رقم الـ Badge <small class="text-muted">(يظهر على أيقونة التطبيق)</small></h6>
-                    </div>
-                    <div class="col-sm-9 text-secondary">
-                        <input type="number" class="form-control" name="badge" min="0" placeholder="0" value="1">
-                        <small class="text-muted">الرقم الذي يظهر على أيقونة التطبيق من الخارج. اتركه 0 لإخفائه.</small>
-                    </div>
-                </div>
+
 
                 <div class="row mb-3">
                     <div class="col-sm-3">

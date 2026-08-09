@@ -24,83 +24,59 @@ class SponsorController extends Controller
 
     public function allSponsor()
     {
+        $sponsors = Sponsor::orderByRaw('order_by IS NULL ASC')->orderBy('order_by', 'asc')->orderBy('id', 'desc')->get();
 
-        $sponsors = Sponsor::latest()->get();
-
-
-        return view('admin.sponsor.all_sponsor',compact('sponsors'));
+        return view('admin.sponsor.all_sponsor', compact('sponsors'));
     }
 
-
-
-
-
-
-      public function addSponsorStore(Request $request){
-  $request->validate([
+    public function addSponsorStore(Request $request)
+    {
+        $request->validate([
             'title' => 'required|string|max:255',
-                        'title_en' => 'required|string|max:255',
-
+            'title_en' => 'required|string|max:255',
             'des' => 'nullable|string',
-                        'des_en' => 'nullable|string',
-
-
-                        'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-
+            'des_en' => 'nullable|string',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_by' => 'nullable|integer|min:1|unique:sponsors,order_by',
         ], [
-               'title.required' => '⚠️ الرجاء اضافة اسم الراعي',
+            'title.required' => '⚠️ الرجاء اضافة اسم الراعي',
             'title.string' => '⚠️ الرجاء التأكد من كتابة الراعي بشكل صحيح',
-    'title_en.required' => '⚠️  الرجاء اضافة اسم الراعي بالانجليزية' ,
+            'title_en.required' => '⚠️  الرجاء اضافة اسم الراعي بالانجليزية',
             'title_en.string' => '⚠️ الرجاء التأكد من كتابة الراعي بالانجليزية بشكل صحيح',
-
-
             'photo.required' => '⚠️ الرجاء اضافة صورة ',
             'photo.image' => '⚠️ تأكد من اضافة صورة',
             'photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
             'photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
+            'order_by.integer' => '⚠️ ترتيب الراعي يجب ان يكون رقماً صحيحاً',
+            'order_by.min' => '⚠️ ترتيب الراعي يجب ان يكون أكبر من 0',
+            'order_by.unique' => '⚠️ رقم الترتيب مكرر بالفعل، يرجى اختيار رقم ترتيب آخر غير مستخدم.',
         ]);
-
-
 
         if ($request->hasFile('photo')) {
             $image = $request->file('photo');
             $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
 
-            // Ensure directory exists
-
-                    $path = public_path('upload/sponsor/');
+            $path = public_path('upload/sponsor/');
             if (!file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
-            $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
-            // Process and save image
-            // $imageResized = $imageManager->read($image)->resize(364, 176);
-
-                    $imageResized = $imageManager->read($image);
-
+            $imageManager = new ImageManager(new Driver());
+            $imageResized = $imageManager->read($image);
             $imageResized->save($path . $name_gen);
 
             $save_url = 'upload/sponsor/' . $name_gen;
         }
 
-        // Insert game type
-
         Sponsor::create([
             'title' => $request->title,
-                        'title_en' => $request->title_en,
-
+            'title_en' => $request->title_en,
             'des' => $request->des,
             'des_en' => $request->des_en,
-
-                'link'  => $request->link,
-
-
+            'link'  => $request->link,
             'photo' => $save_url ?? null,
-            // 'special' => $request->special,
-
+            'order_by' => $request->order_by,
         ]);
-
 
         $notification = array(
             'message' => 'تم اضافة الراعي ',
@@ -108,118 +84,142 @@ class SponsorController extends Controller
         );
 
         return redirect()->route('sponsor.all')->with($notification);
-
-
     }
-        public function editSponsor($id){
 
-            $getSponsorHome = Sponsor::findOrFail($id);
+    public function editSponsor($id){
+
+        $getSponsorHome = Sponsor::findOrFail($id);
 
         return view('admin.sponsor.sponsor_home_cate_add',compact('getSponsorHome'));
     }
 
+    public function addSponsorQuestion(){
 
-       public function addSponsorQuestion(){
-
-            $getSponsorHome = Sponsor::findOrFail(2);
+        $getSponsorHome = Sponsor::findOrFail(2);
 
         return view('admin.sponsor.sponsor_home_cate_add',compact('getSponsorHome'));
     }
 
-
-
-       public function editHomeCateStore(Request $request){
-
-
-
+    public function editHomeCateStore(Request $request){
+        $id = $request->id;
 
         $request->validate([
             'title' => 'required|string|max:255',
-                        'title_en' => 'required|string|max:255',
-
-            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'title_en' => 'required|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_by' => 'nullable|integer|min:1|unique:sponsors,order_by,' . $id,
         ], [
             'title.required' => '⚠️ الرجاء اضافة اسم الراعي',
             'title.string' => '⚠️ الرجاء التأكد من كتابة الراعي بشكل صحيح',
-
-              'title_en.required' => '⚠️ الرجاء اضافة اسم الراعي بالانجليزية' ,
+            'title_en.required' => '⚠️ الرجاء اضافة اسم الراعي بالانجليزية',
             'title_en.string' => '⚠️ الرجاء التأكد من كتابة الراعي بالانجليزية بشكل صحيح',
-
-
-            'photo.required' => '⚠️ الرجاء اضافة صورة ',
             'photo.image' => '⚠️ تأكد من اضافة صورة',
             'photo.mimes' => '⚠️ الصورة يجب ان تكون jpeg, png, jpg, or gif ',
             'photo.max' => '⚠️  2MB حجم الصورة يجب الا يتعدى',
+            'order_by.integer' => '⚠️ ترتيب الراعي يجب ان يكون رقماً صحيحاً',
+            'order_by.min' => '⚠️ ترتيب الراعي يجب ان يكون أكبر من 0',
+            'order_by.unique' => '⚠️ رقم الترتيب مكرر بالفعل، يرجى اختيار رقم ترتيب آخر غير مستخدم.',
         ]);
 
-
-        $id = $request->id;
         $old_img = $request->old_image;
         if ($request->file('photo')) {
-        $image = $request->file('photo');
-        $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
+            $image = $request->file('photo');
+            $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
 
+            $path = public_path('upload/sponsor/');
+            $imageManager = new ImageManager(new Driver());
+            $imageResized = $imageManager->read($image);
+            $imageResized->save($path . $name_gen);
 
+            $save_url = 'upload/sponsor/' . $name_gen;
 
-        $path = public_path('upload/sponsor/');
-
-        $imageManager = new ImageManager(new Driver()); // Use new Imagick\Driver() for Imagick
-        // Process and save image
-        // $imageResized = $imageManager->read($image)->resize(364, 176);
-        $imageResized = $imageManager->read($image);
-
-        $imageResized->save($path . $name_gen);
-
-        $save_url = 'upload/sponsor/' . $name_gen;
-
-
-        if (file_exists($old_img)) {
-           unlink($old_img);
-        }
-        Sponsor::findOrFail($id)->update([
-            'title' => $request->title,
-                        'title_en' => $request->title_en,
-
-            'des' => $request->des,
-
-                        'des_en' => $request->des_en,
-
-            'photo' => $save_url ,
-            'link'  => $request->link,
-
-        ]);
-       $notification = array(
-            'message' => 'تم تعديل الراعي',
-            'alert-type' => 'success'
-        );
-        return redirect()->route('sponsor.all')->with($notification);
-
+            if (file_exists($old_img)) {
+                unlink($old_img);
+            }
+            Sponsor::findOrFail($id)->update([
+                'title' => $request->title,
+                'title_en' => $request->title_en,
+                'des' => $request->des,
+                'des_en' => $request->des_en,
+                'photo' => $save_url,
+                'link'  => $request->link,
+                'order_by' => $request->order_by,
+            ]);
         } else {
             Sponsor::findOrFail($id)->update([
-               'title' => $request->title,
-                                       'title_en' => $request->title_en,
+                'title' => $request->title,
+                'title_en' => $request->title_en,
+                'des' => $request->des,
+                'des_en' => $request->des_en,
+                'link'  => $request->link,
+                'order_by' => $request->order_by,
+            ]);
+        }
 
-            'des' => $request->des,
-                                    'des_en' => $request->des_en,
-
-            'link'  => $request->link,
-
-
-        ]);
-       $notification = array(
+        $notification = array(
             'message' => 'تم تعديل الراعي',
             'alert-type' => 'success'
         );
         return redirect()->route('sponsor.all')->with($notification);
-        } // end else
-    }// End Method
+    }
 
+    public function updateSponsorOrder(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:sponsors,id',
+            'order_by' => 'nullable|integer|min:1',
+            'confirm_swap' => 'nullable|boolean',
+        ]);
 
-       public function deleteSponsor($id){
+        $id = $request->id;
+        $orderBy = $request->order_by;
+        $confirmSwap = $request->boolean('confirm_swap', false);
+
         $sponsor = Sponsor::findOrFail($id);
-        $img = $sponsor->photo;
+        $oldOrder = $sponsor->order_by;
 
-        // unlink($img );
+        if (!empty($orderBy)) {
+            $conflictingSponsor = Sponsor::where('order_by', $orderBy)->where('id', '!=', $id)->first();
+            if ($conflictingSponsor) {
+                if (!$confirmSwap) {
+                    return response()->json([
+                        'status' => false,
+                        'is_duplicate' => true,
+                        'conflicting_sponsor_id' => $conflictingSponsor->id,
+                        'conflicting_sponsor_name' => $conflictingSponsor->title,
+                        'message' => 'الراعي ("' . $conflictingSponsor->title . '") يحمل نفس رقم الترتيب (' . $orderBy . '). هل تريد استبدال المراكز بينهما؟'
+                    ]);
+                } else {
+                    // Perform swap between sponsors
+                    $conflictingSponsor->order_by = $oldOrder;
+                    $conflictingSponsor->save();
+
+                    $sponsor->order_by = $orderBy;
+                    $sponsor->save();
+
+                    return response()->json([
+                        'status' => true,
+                        'swapped' => true,
+                        'swapped_sponsor_id' => $conflictingSponsor->id,
+                        'swapped_sponsor_order' => $oldOrder,
+                        'message' => 'تم استبدال المراكز بنجاح بين "' . $sponsor->title . '" و "' . $conflictingSponsor->title . '"'
+                    ]);
+                }
+            }
+        }
+
+        $sponsor->order_by = $orderBy;
+        $sponsor->save();
+
+        return response()->json([
+            'status' => true,
+            'swapped' => false,
+            'message' => 'تم تحديث الترتيب بنجاح'
+        ]);
+    }
+
+    public function deleteSponsor($id){
+        $sponsor = Sponsor::findOrFail($id);
 
         if ($sponsor->photo && file_exists(public_path($sponsor->photo))) {
             unlink(public_path($sponsor->photo));
@@ -229,23 +229,22 @@ class SponsorController extends Controller
             'message' => 'تم حذف الراعي ',
             'alert-type' => 'success'
         );
-       // return redirect()->route('all.category')->with($notification);
 
         return redirect()->route('sponsor.all')->with($notification);
-
-        // return redirect()->back()->with($notification);
-    }// End Method
+    }
 
     /// API
 
-      public function getSponsor(Request $request)
+    public function getSponsor(Request $request)
     {
         $limit = $request->input('limit', 0);
 
+        $query = Sponsor::orderByRaw('order_by IS NULL ASC')->orderBy('order_by', 'asc')->orderBy('id', 'asc');
+
         if ($limit > 0) {
-            $sponsor = Sponsor::latest()->limit($limit)->get();
+            $sponsor = $query->limit($limit)->get();
         } else {
-            $sponsor = Sponsor::latest()->get();
+            $sponsor = $query->get();
         }
 
         return response()->json($sponsor);

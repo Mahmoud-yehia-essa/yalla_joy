@@ -35,12 +35,7 @@ class DashboardController extends Controller
 
 
 
-            //  $categoryHowManyUse = Category::where('how_many_use',20);
-$categoryHowManyUse = Category::orderBy('how_many_use', 'desc')->first();
-
-
-
-    return view('admin.index',compact('users','category','games','questions','gameType','mainCategory','sponsor','titlePosition','categoryHowManyUse'));
+    return view('admin.index',compact('users','category','games','questions','gameType','mainCategory','sponsor','titlePosition'));
 
         // return view('admin.index');
     }

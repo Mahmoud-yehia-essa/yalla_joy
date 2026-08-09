@@ -2735,32 +2735,47 @@ public function createGameSessionQuestions(Request $request)
     // 4. لكل فئة (حتى لو مكررة): جلب 6 أسئلة موزعة (2×200 + 2×400 + 2×600)
     $processedCatOccurrences = []; // لتتبع كم مرة عالجنا كل فئة
 
+    $userId = $request->input('user_id') ?? ($request->user() ? $request->user()->id : null);
+    $userPlayedQuestionIds = [];
+    if ($userId) {
+        $userPlayedQuestionIds = DB::table('questions_registers')
+            ->join('games', 'games.id', '=', 'questions_registers.game_id')
+            ->where('games.user_id_created', $userId)
+            ->pluck('questions_registers.question_id')
+            ->toArray();
+    }
+
+    $getTierQuestions = function($catId, $points, $count) use (&$sessionQuestionIds, $userPlayedQuestionIds) {
+        $baseQuery = Question::where('category_id', $catId)
+            ->where('qu_points', $points)
+            ->whereNotIn('id', $sessionQuestionIds);
+
+        if (!empty($userPlayedQuestionIds)) {
+            $unplayed = (clone $baseQuery)->whereNotIn('id', $userPlayedQuestionIds)->inRandomOrder()->take($count)->get();
+            if ($unplayed->count() < $count) {
+                $needed = $count - $unplayed->count();
+                $excludeIds = array_merge($sessionQuestionIds, $unplayed->pluck('id')->toArray());
+                $playedFallback = Question::where('category_id', $catId)
+                    ->where('qu_points', $points)
+                    ->whereNotIn('id', $excludeIds)
+                    ->inRandomOrder()
+                    ->take($needed)
+                    ->get();
+                return $unplayed->merge($playedFallback);
+            }
+            return $unplayed;
+        }
+
+        return $baseQuery->inRandomOrder()->take($count)->get();
+    };
+
     foreach ($categoryIds as $catId) {
         $processedCatOccurrences[$catId] = ($processedCatOccurrences[$catId] ?? 0) + 1;
 
-        // جلب 2 سؤال درجة 200 (يستبعد الأسئلة المُضافة مسبقاً)
-        $q200 = Question::where('category_id', $catId)
-            ->where('qu_points', 200)
-            ->whereNotIn('id', $sessionQuestionIds)
-            ->inRandomOrder()
-            ->take(2)
-            ->get();
-
-        // جلب 2 سؤال درجة 400
-        $q400 = Question::where('category_id', $catId)
-            ->where('qu_points', 400)
-            ->whereNotIn('id', $sessionQuestionIds)
-            ->inRandomOrder()
-            ->take(2)
-            ->get();
-
-        // جلب 2 سؤال درجة 600
-        $q600 = Question::where('category_id', $catId)
-            ->where('qu_points', 600)
-            ->whereNotIn('id', $sessionQuestionIds)
-            ->inRandomOrder()
-            ->take(2)
-            ->get();
+        // جلب أسئلة الدرجات المتنوعة مع تفضيل الأسئلة غير الملعوبة
+        $q200 = $getTierQuestions($catId, 200, 2);
+        $q400 = $getTierQuestions($catId, 400, 2);
+        $q600 = $getTierQuestions($catId, 600, 2);
 
         // دمج الأسئلة بالترتيب: 200، 200، 400، 400، 600، 600
         $catQuestions = $q200->merge($q400)->merge($q600);

@@ -37,7 +37,8 @@
                             <th>اسم الكوبون</th>
                             <th>الكود</th>
                             <th>الشركة</th>
-                            <th>تاريخ الانتهاء</th>
+                            <th>تاريخ ووقت الانتهاء</th>
+                            <th>الكمية / المستخدم / المتبقي</th>
                             <th>تكلفة الشراء</th>
                             <th>نوع الكوبون</th>
                             <th>كوبون خاص؟</th>
@@ -51,7 +52,34 @@
                             <td> {{ $item->coupon_name }} <br> <small>{{ $item->coupon_name_en }}</small></td>
                             <td> <span class="badge bg-primary">{{ $item->coupon_code }}</span> </td>
                             <td> {{ $item->sponsor->title ?? 'N/A' }} </td>
-                            <td> {{ $item->valid_until ? Carbon\Carbon::parse($item->valid_until)->format('Y-m-d') : 'دائم' }} </td>
+                            <td>
+                                @if($item->valid_until)
+                                    {{ Carbon\Carbon::parse($item->valid_until)->format('Y-m-d H:i') }}
+                                    <br><small class="text-muted">({{ Carbon\Carbon::parse($item->valid_until)->locale('ar')->diffForHumans() }})</small>
+                                @else
+                                    <span class="badge bg-success">دائم</span>
+                                @endif
+                            </td>
+                            <td>
+                                @php
+                                    $boughtCount = \App\Models\CouponCompanyUserUsed::where('coupon_companie_id', $item->id)->where('is_buy', 1)->count();
+                                @endphp
+                                @if($item->coupons_count !== null)
+                                    @php
+                                        $remaining = max(0, $item->coupons_count - $boughtCount);
+                                    @endphp
+                                    <div><span class="badge bg-secondary">الكلي: {{ $item->coupons_count }}</span></div>
+                                    <div><span class="badge bg-info">المستخدم: {{ $boughtCount }}</span></div>
+                                    @if($remaining > 0)
+                                        <div><span class="badge bg-success">المتبقي: {{ $remaining }}</span></div>
+                                    @else
+                                        <div><span class="badge bg-danger">نفدت الكمية</span></div>
+                                    @endif
+                                @else
+                                    <div><span class="badge bg-info">غير محدود</span></div>
+                                    <div><small class="text-muted">المستخدم: {{ $boughtCount }}</small></div>
+                                @endif
+                            </td>
                             <td> 
                                 @if($item->gameCoin)
                                     {{ $item->game_coins_count }} ({{ $item->gameCoin->name }})

@@ -26,118 +26,124 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table id="example" class="table table-striped table-bordered" style="width:100%">
+            <table id="example" class="table table-striped table-bordered align-middle" style="width:100%; font-size: 13px;">
                 <thead>
-<tr>
-<th>الرقم</th>
-<th>إسم الأول</th>
-<th>إسم العائلة</th>
-<th>البريد الإلكتروني</th>
-<th>تاريخ الميلاد</th>
-<th>تاريخ التسجيل</th>
-<th>طريقة التسجيل</th>
+                    <tr class="text-center align-middle">
+                        <th>#</th>
+                        <th>الاسم</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>تاريخ الميلاد</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>طريقة التسجيل</th>
+                        <th>نقاط الأونلاين (الكلي)</th>
+                        <th>نقاط الأونلاين (المتاحة)</th>
+                        <th>الصورة</th>
+                        <th>حالة الصورة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($users as $key => $item)
+                <tr>
+                <td class="text-center"> {{ $key+1 }} </td>
+                <td class="fw-bold text-nowrap">{{ $item->fname }} {{ $item->lname }}</td>
+                <td>{{ $item->email }}</td>
+                <td class="text-nowrap">
+                    @if($item->date_of_birth)
+                        {{ $item->date_of_birth }} <span class="text-muted">({{ \Carbon\Carbon::parse($item->date_of_birth)->age }} سنة)</span>
+                    @else
+                        <span class="text-muted">لم يتم التحديد</span>
+                    @endif
+                </td>
+                <td class="text-nowrap">
+                    @if($item->created_at)
+                        {{ $item->created_at->format('Y-m-d') }}
+                        <div class="small text-muted" style="font-size: 11px;">({{ $item->created_at->diffForHumans() }})</div>
+                    @else
+                        <span class="text-muted">لم يتم التحديد</span>
+                    @endif
+                </td>
 
-<th>نقاط الاون لاين منذ تاريخ التسجيل</th>
-<th>نقاط الاون لاين المتاحة</th>
+                <td class="text-center">
+                    @if($item->register_type == 'normal')
+                        <i class="fa-solid fa-envelope fa-lg" title="Email"></i>
+                    @elseif($item->register_type == 'google')
+                        <i class="fa-brands fa-google fa-lg" style="color:#DB4437;" title="Google"></i>
+                    @elseif($item->register_type == 'facebook')
+                        <i class="fa-brands fa-facebook fa-lg" style="color:#1877F2;" title="Facebook"></i>
+                    @elseif($item->register_type == 'apple')
+                        <i class="fa-brands fa-apple fa-lg" style="color:#000;" title="Apple"></i>
+                    @else
+                        <i class="fa-solid fa-question fa-lg" title="Unknown"></i>
+                    @endif
+                </td>
 
-<th> الصورة</th>
-<th>حالة الصورة</th>
-<th>الاجراء</th>
-</tr>
-</thead>
-<tbody>
-@foreach($users as $key => $item)
-<tr>
-<td> {{ $key+1 }} </td>
-<td>{{ $item->fname }}</td>
-<td>{{ $item->lname }}</td>
-<td>{{ $item->email }}</td>
-<td>
-    @if($item->date_of_birth)
-        {{ $item->date_of_birth }} ({{ \Carbon\Carbon::parse($item->date_of_birth)->age }} سنة)
-    @else
-        لم يتم التحديد
-    @endif
-</td>
-<td>{{ $item->created_at ? $item->created_at->format('Y-m-d') . ' (' . $item->created_at->diffForHumans() . ')' : 'لم يتم التحديد' }}</td>
+                <td class="text-center fw-bold">{{ $item->online_points_fixed }}</td>
+                <td class="text-center fw-bold">{{ $item->online_points }}</td>
 
-<td class="text-center">
-    @if($item->register_type == 'normal')
-        <i class="fa-solid fa-envelope fa-2x" title="Email"></i>
-    @elseif($item->register_type == 'google')
-        <i class="fa-brands fa-google fa-2x" style="color:#DB4437;" title="Google"></i>
-    @elseif($item->register_type == 'facebook')
-        <i class="fa-brands fa-facebook fa-2x" style="color:#1877F2;" title="Facebook"></i>
-    @elseif($item->register_type == 'apple')
-        <i class="fa-brands fa-apple fa-2x" style="color:#000;" title="Apple"></i>
-    @else
-        <i class="fa-solid fa-question fa-2x" title="Unknown"></i>
-    @endif
-</td>
+                <td class="text-center">
+                    <img
+                        onclick="showImageModal(this.src)"
+                        class="rounded-circle"
+                        src="{{ (!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo))) ? url('upload/user_images/'.$item->photo) : url('upload/no_image.jpg') }}"
+                        style="width: 45px; height:45px; border: 2px solid #0aa2dd; cursor: pointer; object-fit: cover;"
+                    >
+                </td>
+                <td class="text-center">
+                    @if(!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo)))
+                        <div class="d-flex flex-column align-items-center gap-1">
+                            @if($item->photo_approval_status == 'approved')
+                                <span class="badge bg-success">مقبولة</span>
+                                <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-outline-danger mt-1" style="font-size: 10px; padding: 2px 5px;" title="رفض الصورة">
+                                    <i class="fa-solid fa-ban"></i> رفض
+                                </a>
+                            @elseif($item->photo_approval_status == 'rejected')
+                                <span class="badge bg-danger">مرفوضة</span>
+                                <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-outline-success mt-1" style="font-size: 10px; padding: 2px 5px;" title="قبول الصورة">
+                                    <i class="fa-solid fa-check"></i> قبول
+                                </a>
+                            @else
+                                <span class="badge bg-warning text-dark">قيد الانتظار</span>
+                                <div class="d-flex gap-1 mt-1">
+                                    <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-success" style="font-size: 10px; padding: 2px 6px;" title="قبول الصورة">
+                                        <i class="fa-solid fa-check"></i>
+                                    </a>
+                                    <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-danger" style="font-size: 10px; padding: 2px 6px;" title="رفض الصورة">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <span class="badge bg-secondary">لا توجد صورة</span>
+                    @endif
+                </td>
+                <td class="text-nowrap text-center">
 
-<td>{{ $item->online_points_fixed }}</td>
-<td>{{ $item->online_points }}</td>
+                @if($item->status == 'active')
+                <a href="{{ route('inactive.user',$item->id) }}" class="btn btn-sm btn-primary" title="ايقاف التفعيل"> <i class="fa-solid fa-thumbs-down"></i> </a>
+                @else
+                <a href="{{ route('active.user',$item->id) }}" class="btn btn-sm btn-primary" title="تفعيل"> <i class="fa-solid fa-thumbs-up"></i> </a>
+                @endif
+                <a href="{{ route('edit.user',$item->id) }}" class="btn btn-sm btn-info" title="Edit Data"> <i class="fa fa-pencil"></i> </a>
 
-<td>
-    <img
-        onclick="showImageModal(this.src)"
-        class="rounded-circle"
-        src="{{ (!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo))) ? url('upload/user_images/'.$item->photo) : url('upload/no_image.jpg') }}"
-        style="width: 50px; height:50px; border: 2px solid #0aa2dd; cursor: pointer;"
-    >
-</td>
-<td>
-    @if(!empty($item->photo) && $item->photo != 'non' && file_exists(public_path('upload/user_images/'.$item->photo)))
-        <div class="d-flex flex-column align-items-center gap-1">
-            @if($item->photo_approval_status == 'approved')
-                <span class="badge bg-success">مقبولة</span>
-                <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-outline-danger mt-1" style="font-size: 10px; padding: 2px 5px;" title="رفض الصورة">
-                    <i class="fa-solid fa-ban"></i> رفض
-                </a>
-            @elseif($item->photo_approval_status == 'rejected')
-                <span class="badge bg-danger">مرفوضة</span>
-                <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-outline-success mt-1" style="font-size: 10px; padding: 2px 5px;" title="قبول الصورة">
-                    <i class="fa-solid fa-check"></i> قبول
-                </a>
-            @else
-                <span class="badge bg-warning text-dark">قيد الانتظار</span>
-                <div class="d-flex gap-1 mt-1">
-                    <a href="{{ route('user.photo.approve', $item->id) }}" class="btn btn-sm btn-success" style="font-size: 10px; padding: 2px 6px;" title="قبول الصورة">
-                        <i class="fa-solid fa-check"></i>
-                    </a>
-                    <a href="{{ route('user.photo.reject', $item->id) }}" class="btn btn-sm btn-danger" style="font-size: 10px; padding: 2px 6px;" title="رفض الصورة">
-                        <i class="fa-solid fa-ban"></i>
-                    </a>
-                </div>
-            @endif
-        </div>
-    @else
-        <span class="badge bg-secondary">لا توجد صورة</span>
-    @endif
-</td>
-<td>
+                <a href="{{ route('delete.user',$item->id) }}" class="btn btn-sm btn-danger" id="delete" title="Delete Data" ><i class="fa fa-trash"></i></a>
+                <button type="button" class="btn btn-sm btn-warning toggle-coins-btn text-dark" data-user-id="{{ $item->id }}" title="العملات المكتسبة">
+                    <i class="fa-solid fa-coins"></i>
+                </button>
 
-@if($item->status == 'active')
-<a href="{{ route('inactive.user',$item->id) }}" class="btn btn-primary" title="ايقاف التفعيل"> <i class="fa-solid fa-thumbs-down"></i> </a>
-@else
-<a href="{{ route('active.user',$item->id) }}" class="btn btn-primary" title="تفعيل"> <i class="fa-solid fa-thumbs-up"></i> </a>
-@endif
-<a href="{{ route('edit.user',$item->id) }}" class="btn btn-info" title="Edit Data"> <i class="fa fa-pencil"></i> </a>
+                </td>
+                </tr>
 
-<a href="{{ route('delete.user',$item->id) }}" class="btn btn-danger" id="delete" title="Delete Data" ><i class="fa fa-trash"></i></a>
-<button type="button" class="btn btn-warning toggle-coins-btn text-dark" data-user-id="{{ $item->id }}" title="العملات المكتسبة">
-    <i class="fa-solid fa-coins"></i>
-</button>
-
-</td>
-</tr>
-
-<!-- Coins Collapse Row -->
-<tr id="user-coins-row-{{ $item->id }}" style="display: none; background-color: #faf9fd;">
-    <td colspan="12" class="p-3">
+                <!-- Coins Collapse Row -->
+                <tr id="user-coins-row-{{ $item->id }}" style="display: none; background-color: #faf9fd;">
+                    <td colspan="11" class="p-3">
         <div class="card shadow-none border mb-0" style="overflow: hidden;">
             <div class="card-body p-2 p-md-3">
                 <!-- User Game Stats -->
+                <h6 class="mb-3 text-primary fw-bold px-2" style="font-size: 14px;">
+                    <i class="fa-solid fa-gamepad me-2"></i> معلومات لعبة الميدان
+                </h6>
                 <div class="row g-2 g-md-3 mb-4 pb-3 border-bottom text-center mx-0">
                     <div class="col-12 col-md-4">
                         <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
@@ -169,6 +175,24 @@
                             <div class="text-end w-100">
                                 <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">نقاط لعبة الميدان</span>
                                 <input type="number" id="stat-points-{{ $item->id }}" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->online_points ?? 0 }}" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Game Stats -->
+                <h6 class="mb-3 text-primary fw-bold px-2 mt-3" style="font-size: 14px;">
+                    <i class="fa-solid fa-users me-2"></i> معلومات لعبة الجلسة
+                </h6>
+                <div class="row g-2 g-md-3 mb-4 pb-3 border-bottom text-center mx-0">
+                    <div class="col-12 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0; background-color: #6f42c1;">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <div class="text-end w-100">
+                                <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">عدد مرات اللعب</span>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->games ? $item->games->count() : 0 }}" readonly>
                             </div>
                         </div>
                     </div>

@@ -501,7 +501,7 @@
 
 
 
-    @if(Auth::user()->can('عرض المستويات') || Auth::user()->can('إضافة المستويات'))
+    {{-- @if(Auth::user()->can('عرض المستويات') || Auth::user()->can('إضافة المستويات'))
 
         <li>
     <a href="javascript:;" class="has-arrow">
@@ -532,13 +532,13 @@
 
     </ul>
 </li>
-         @endif
+         @endif --}}
 
 
 
 
 
-             @if(Auth::user()->can('عرض الرتب') || Auth::user()->can('إضافة الرتب'))
+    {{-- @if(Auth::user()->can('عرض الرتب') || Auth::user()->can('إضافة الرتب'))
 
 <li>
     <a href="javascript:;" class="has-arrow">
@@ -563,11 +563,11 @@
 
     </ul>
 </li>
-         @endif
+         @endif --}}
 
 
 
-                      @if(Auth::user()->can('عرض أنواع عناصر اللعبة') || Auth::user()->can('إضافة أنواع عناصر اللعبة'))
+    {{-- @if(Auth::user()->can('عرض أنواع عناصر اللعبة') || Auth::user()->can('إضافة أنواع عناصر اللعبة'))
 
 <li>
     <a href="javascript:;" class="has-arrow">
@@ -600,12 +600,12 @@
 
     </ul>
 </li>
-         @endif
+         @endif --}}
 
 
 
 
-     @if(Auth::user()->can('عرض عناصر اللعبة') || Auth::user()->can('إضافة عناصر اللعبة'))
+    {{-- @if(Auth::user()->can('عرض عناصر اللعبة') || Auth::user()->can('إضافة عناصر اللعبة'))
 
 
 <li>
@@ -640,7 +640,7 @@
     </ul>
 </li>
 
-         @endif
+         @endif --}}
 
 
 
@@ -689,7 +689,7 @@
 
 
 
-      @if(Auth::user()->can('عرض المساعدات'))
+    {{-- @if(Auth::user()->can('عرض المساعدات'))
 
 <li>
     <a href="javascript:;" class="has-arrow">
@@ -704,15 +704,15 @@
                 <i class="bx bx-right-arrow-alt"></i>جميع المساعدات
             </a>
         </li>
-        {{-- <li>
+        <!-- <li>
             <a href="{{ route('add.game.helper') }}">
                 <i class="bx bx-right-arrow-alt"></i>إضافة مساعدة
             </a>
-        </li> --}}
+        </li> -->
     </ul>
 </li>
 
-         @endif
+         @endif --}}
 
 {{--
 <li>
@@ -741,7 +741,7 @@
 
 
 
-<!-- إدارة حزم اللعبة -->
+    {{-- <!-- إدارة حزم اللعبة -->
 
      @if(Auth::user()->can('عرض جميع الحزم') || Auth::user()->can('إضافة الحزم'))
 
@@ -778,7 +778,7 @@
     </ul>
 </li>
 
-         @endif
+         @endif --}}
 
 
 <!-- إدارة صحلاحيات اللعبة -->
@@ -918,6 +918,26 @@
     </ul>
 </li>
          @endif
+
+
+<!-- إدارة التحديات -->
+     @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض التحديات'))
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon">
+            <i class="bx bx-trophy"></i>
+        </div>
+        <div class="menu-title">التحديات</div>
+    </a>
+    <ul>
+        <li>
+            <a href="{{ route('all.challenges') }}">
+                <i class="bx bx-right-arrow-alt"></i>عرض التحديات
+            </a>
+        </li>
+    </ul>
+</li>
+     @endif
 
 
 <!-- دليل اللعبة -->

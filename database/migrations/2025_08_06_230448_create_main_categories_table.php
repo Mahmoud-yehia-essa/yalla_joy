@@ -21,8 +21,8 @@ return new class extends Migration
             $table->text('main_category_photo')->nullable();
 
             $table->text('main_category_description')->nullable();
-             $table->text('main_category_description_en')->nullable();
-
+            $table->text('main_category_description_en')->nullable();
+            $table->string('display_target')->default('both')->nullable();
 
             $table->timestamps();
         });

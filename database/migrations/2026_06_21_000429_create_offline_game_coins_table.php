@@ -17,6 +17,7 @@ return new class extends Migration
                         $table->string('name')->nullable();
             $table->foreignId('game_coin_id')->nullable()->constrained('game_coins')->cascadeOnDelete();
             $table->integer('coins_number')->nullable();
+            $table->string('type')->default('win')->nullable();
             $table->timestamps();
             
 

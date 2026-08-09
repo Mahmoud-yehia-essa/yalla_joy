@@ -26,6 +26,7 @@
                         <th>اسم البند</th>
                         <th>عملة اللعبة</th>
                         <th>عدد العملات</th>
+                        <th>حالة الحصول على الجائزة</th>
                         <th>الاجراء</th>
                     </tr>
                 </thead>
@@ -36,6 +37,13 @@
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->gameCoin->name ?? 'N/A' }}</td>
                             <td>{{ $item->coins_number ?? 0 }}</td>
+                            <td>
+                                @if($item->type == 'loss')
+                                    <span class="badge bg-danger">حالة الخسارة</span>
+                                @else
+                                    <span class="badge bg-success">حالة الفوز</span>
+                                @endif
+                            </td>
                             <td>
                                 <a href="{{ route('edit.offline.game.coins', $item->id) }}" class="btn btn-info">تعديل</a>
                                 <a href="{{ route('delete.offline.game.coins', $item->id) }}" class="btn btn-danger" id="delete">حذف</a>
@@ -49,6 +57,7 @@
                         <th>اسم البند</th>
                         <th>عملة اللعبة</th>
                         <th>عدد العملات</th>
+                        <th>حالة الحصول على الجائزة</th>
                         <th>الاجراء</th>
                     </tr>
                 </tfoot>

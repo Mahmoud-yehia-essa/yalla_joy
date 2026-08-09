@@ -77,6 +77,34 @@
                                     </div>
                                 </div>
 
+                                <!-- Order By -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">ترتيب الظهور</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" name="order_by" class="form-control" value="{{ old('order_by') }}" placeholder="أدخل رقم الترتيب (مثال: 1, 2, 3...)" min="1" />
+                                        @error('order_by')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Display Target / Game Customization -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">مكان الظهور (تخصيص اللعبة)</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="display_target" class="form-select">
+                                            <option value="both" {{ old('display_target', 'both') == 'both' ? 'selected' : '' }}>الاثنين معاً (لعبة الجلسة ولعبة الميدان)</option>
+                                            <option value="session" {{ old('display_target') == 'session' ? 'selected' : '' }}>لعبة الجلسة فقط</option>
+                                            <option value="field" {{ old('display_target') == 'field' ? 'selected' : '' }}>لعبة الميدان فقط</option>
+                                        </select>
+                                        @error('display_target') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Category Description -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">

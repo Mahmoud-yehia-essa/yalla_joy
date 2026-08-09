@@ -734,18 +734,25 @@ public function validateRegisterApi(Request $request)
 
 
 
-        if($request->password != "")
-        {
-
+        if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
-
         }
 
-
-        $user->fname = $request->fname;
-        $user->lname = $request->lname;
-        $user->phone = $request->phone;
-        $user->photo = $request->photo;
+        if ($request->has('fname')) {
+            $user->fname = $request->fname;
+        }
+        if ($request->has('lname')) {
+            $user->lname = $request->lname;
+        }
+        if ($request->has('phone')) {
+            $user->phone = $request->phone;
+        }
+        if ($request->has('photo')) {
+            $user->photo = $request->photo;
+        }
+        if ($request->has('date_of_birth')) {
+            $user->date_of_birth = $request->date_of_birth;
+        }
         if ($request->has('photo_approval_status')) {
             $user->photo_approval_status = $request->photo_approval_status;
         }

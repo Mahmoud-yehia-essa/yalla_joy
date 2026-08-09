@@ -38,6 +38,11 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
                     $query->where('issue_type', $this->request->issue_type);
                 }
 
+                // Report Type Filter
+                if ($this->request->filled('report_type') && $this->request->report_type !== 'all') {
+                    $query->where('report_type', $this->request->report_type);
+                }
+
                 // Status Filter
                 if ($this->request->filled('status') && $this->request->status !== 'all') {
                     $query->where('status', $this->request->status);
@@ -68,6 +73,7 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
             'الرقم',
             'المُبلِّغ (المستخدم)',
             'السؤال المُرتبط',
+            'مصدر المشكلة',
             'نوع المشكلة',
             'ملاحظات إضافية',
             'تاريخ الإبلاغ',
@@ -82,15 +88,21 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
     {
         $this->rowNumber++;
 
+        $getUserName = function($u) {
+            if (!$u) return 'مستخدم غير معروف';
+            $name = trim(($u->fname ?? '') . ' ' . ($u->lname ?? ''));
+            return $name !== '' ? $name : ($u->user_name ?? $u->email ?? 'مستخدم غير معروف');
+        };
+
         $user = 'مستخدم غير معروف';
         if ($item->issue_type == 'cheating') {
-            $reporter = $item->user ? $item->user->name . ($item->user->email ? " (" . $item->user->email . ")" : "") : 'مستخدم غير معروف';
-            $reported = $item->cheatingUser ? $item->cheatingUser->name . ($item->cheatingUser->email ? " (" . $item->cheatingUser->email . ")" : "") : 'غير معروف (ID: ' . $item->user_id_cheating . ')';
+            $reporter = $getUserName($item->user) . ($item->user && $item->user->email ? " (" . $item->user->email . ")" : "");
+            $reported = ($item->cheatingUser ? $getUserName($item->cheatingUser) : 'غير معروف (ID: ' . $item->user_id_cheating . ')') . ($item->cheatingUser && $item->cheatingUser->email ? " (" . $item->cheatingUser->email . ")" : "");
             $user = "المبلِّغ: " . $reporter . "\nالمبلَّغ عنه: " . $reported;
             $questionText = 'غير مرتبط بسؤال (حالة غش)';
         } else {
             if ($item->user) {
-                $user = $item->user->name;
+                $user = $getUserName($item->user);
                 if ($item->user->email) {
                     $user .= "\n(" . $item->user->email . ")";
                 }
@@ -99,6 +111,13 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
             if ($item->question) {
                 $questionText = $item->question->qu_title . "\n(ID: " . $item->question_id . ")";
             }
+        }
+
+        $reportType = 'السؤال';
+        if ($item->report_type == 'answer') {
+            $reportType = 'الإجابة';
+        } elseif ($item->report_type == 'question') {
+            $reportType = 'السؤال';
         }
 
         $issueType = 'غير معروف';
@@ -130,6 +149,7 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
             $this->rowNumber,
             $user,
             $questionText,
+            $reportType,
             $issueType,
             $notes,
             $reportDate,
@@ -146,7 +166,7 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
         $sheet->setRightToLeft(true);
 
         $totalRows = $sheet->getHighestRow();
-        $totalColumns = 'G';
+        $totalColumns = 'H';
 
         // 2. Set Row Heights
         $sheet->getRowDimension(1)->setRowHeight(35); // Header row height
@@ -155,7 +175,7 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
 
             // Alternating zebra striping
             if ($i % 2 == 0) {
-                $sheet->getStyle("A{$i}:G{$i}")->applyFromArray([
+                $sheet->getStyle("A{$i}:H{$i}")->applyFromArray([
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                         'startColor' => ['rgb' => 'F8F9FA']
@@ -169,10 +189,11 @@ class ProblemReportExport implements FromCollection, WithHeadings, WithMapping, 
             'A' => 8,   // الرقم
             'B' => 28,  // المُبلِّغ
             'C' => 35,  // السؤال المرتبط
-            'D' => 18,  // نوع المشكلة
-            'E' => 30,  // ملاحظات إضافية
-            'F' => 20,  // تاريخ الإبلاغ
-            'G' => 15,  // الحالة
+            'D' => 15,  // مصدر المشكلة
+            'E' => 18,  // نوع المشكلة
+            'F' => 30,  // ملاحظات إضافية
+            'G' => 20,  // تاريخ الإبلاغ
+            'H' => 15,  // الحالة
         ];
         foreach ($widths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);

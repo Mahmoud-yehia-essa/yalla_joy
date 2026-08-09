@@ -43,6 +43,7 @@ class CouponCompanyController extends Controller
         $request->validate([
             'coupon_name' => 'required',
             'sponsor_id' => 'required|exists:sponsors,id',
+            'coupons_count' => 'nullable|integer|min:1',
         ]);
 
         // Generate unique coupon code starting with 'F'
@@ -57,6 +58,7 @@ class CouponCompanyController extends Controller
             'coupon_description_en' => $request->coupon_description_en,
             'coupon_code' => $coupon_code,
             'valid_until' => $request->valid_until,
+            'coupons_count' => $request->coupons_count,
             'sponsor_id' => $request->sponsor_id,
             'is_scratch_coupon' => $request->has('is_scratch_coupon') ? 1 : 0,
             'is_special_coupon' => $request->has('is_special_coupon') ? 1 : 0,
@@ -94,6 +96,7 @@ class CouponCompanyController extends Controller
         $request->validate([
             'coupon_name' => 'required',
             'sponsor_id' => 'required|exists:sponsors,id',
+            'coupons_count' => 'nullable|integer|min:1',
         ]);
 
         $couponCompany->update([
@@ -102,6 +105,7 @@ class CouponCompanyController extends Controller
             'coupon_description' => $request->coupon_description,
             'coupon_description_en' => $request->coupon_description_en,
             'valid_until' => $request->valid_until,
+            'coupons_count' => $request->coupons_count,
             'sponsor_id' => $request->sponsor_id,
             'is_scratch_coupon' => $request->has('is_scratch_coupon') ? 1 : 0,
             'is_special_coupon' => $request->has('is_special_coupon') ? 1 : 0,
@@ -200,7 +204,13 @@ class CouponCompanyController extends Controller
 
         $data = $coupons->map(function ($coupon) use ($userCoupons) {
             $userRecord = $userCoupons->get($coupon->id);
-            
+            $boughtCount = \App\Models\CouponCompanyUserUsed::where('coupon_companie_id', $coupon->id)
+                ->where('is_buy', 1)
+                ->count();
+            $couponsCount = $coupon->coupons_count !== null ? (int)$coupon->coupons_count : null;
+            $remainingCoupons = $couponsCount !== null ? max(0, $couponsCount - $boughtCount) : null;
+            $isSoldOut = $couponsCount !== null && $remainingCoupons <= 0;
+
             return [
                 'id' => $coupon->id,
                 'coupon_name' => $coupon->coupon_name,
@@ -208,8 +218,12 @@ class CouponCompanyController extends Controller
                 'coupon_description' => $coupon->coupon_description,
                 'coupon_description_en' => $coupon->coupon_description_en,
                 'coupon_code' => $coupon->coupon_code,
-                'valid_until' => $coupon->valid_until ? \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d') : null,
+                'valid_until' => $coupon->valid_until ? \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d H:i:s') : null,
                 'valid_until_human' => $coupon->valid_until ? \Carbon\Carbon::parse($coupon->valid_until)->locale('ar')->diffForHumans() : 'دائم',
+                'coupons_count' => $couponsCount,
+                'bought_count' => $boughtCount,
+                'remaining_coupons' => $remainingCoupons,
+                'is_sold_out' => $isSoldOut,
                 'sponsor' => [
                     'id' => $coupon->sponsor->id ?? null,
                     'title' => $coupon->sponsor->title ?? null,
@@ -268,6 +282,19 @@ class CouponCompanyController extends Controller
                 'status' => false,
                 'message' => 'عذراً، هذا الكوبون منتهي الصلاحية'
             ], 200);
+        }
+
+        // Check if coupon is sold out
+        if ($coupon->coupons_count !== null) {
+            $boughtCount = \App\Models\CouponCompanyUserUsed::where('coupon_companie_id', $couponId)
+                ->where('is_buy', 1)
+                ->count();
+            if ($boughtCount >= $coupon->coupons_count) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'عذراً، نفدت الكمية المتاحة من هذا الكوبون'
+                ], 200);
+            }
         }
 
         // If coupon has a cost

@@ -57,7 +57,7 @@ class NotificationController extends Controller
         $descriptionHtml = $request->description ?? ''; // حفظ الوصف كـ HTML كما هو
         $descriptionPlain = strip_tags($descriptionHtml); // نسخة نصية للاستخدام الداخلي فقط
         $userId = $request->user_id;
-        $badge = (int) ($request->badge ?? 1); // رقم الـ badge على أيقونة التطبيق
+        // رقم الـ badge يُحسب تلقائياً من عدد الإشعارات غير المقروءة لكل مستخدم
 
         $sentCount = 0;
         $firebaseError = false;
@@ -102,39 +102,58 @@ class NotificationController extends Controller
                 ->toArray();
 
                 if (!empty($tokens)) {
-                    // إرسال العنوان فقط في Push، بدون body، مع صوت
-                    $notification = FirebaseNotification::create($title);
+                    // إرسال فردي لكل مستخدم مع حساب badge خاص به
+                    $allUsers = User::where(function($q) {
+                        $q->whereNotNull('fcm_token')->where('fcm_token', '!=', '')
+                          ->orWhereNotNull('firebase_token')->where('firebase_token', '!=', '');
+                    })->get();
 
-                    // إعدادات Android مع صوت
-                    $androidConfig = AndroidConfig::fromArray([
-                        'notification' => [
-                            'sound'      => 'default',
-                            'channel_id' => 'high_importance_channel',
-                        ],
-                        'priority' => 'high',
-                    ]);
+                    foreach ($allUsers as $singleUser) {
+                        $singleToken = $singleUser->fcm_token ?: $singleUser->firebase_token;
+                        if (empty($singleToken)) continue;
 
-                    // إعدادات iOS (APNS) مع صوت
-                    $apnsConfig = ApnsConfig::fromArray([
-                        'headers' => [
-                            'apns-priority' => '10',
-                        ],
-                        'payload' => [
-                            'aps' => [
-                                'sound' => 'default',
-                                'badge' => $badge,
+                        // حساب عدد الإشعارات غير المقروءة للمستخدم +1 (للإشعار الجديد)
+                        $userBadge = DB::table('notification_for_apps')
+                            ->where('user_id', $singleUser->id)
+                            ->where('user_view', 'no')
+                            ->count() + 1;
+
+                        $notification = FirebaseNotification::create($title);
+
+                        $androidConfig = AndroidConfig::fromArray([
+                            'notification' => [
+                                'sound'      => 'default',
+                                'channel_id' => 'high_importance_channel',
                             ],
-                        ],
-                    ]);
+                            'priority' => 'high',
+                        ]);
 
-                    $message = CloudMessage::new()
-                        ->withNotification($notification)
-                        ->withAndroidConfig($androidConfig)
-                        ->withApnsConfig($apnsConfig)
-                        ->withData(['badge' => (string) $badge]);
+                        $apnsConfig = ApnsConfig::fromArray([
+                            'headers' => [
+                                'apns-priority' => '10',
+                            ],
+                            'payload' => [
+                                'aps' => [
+                                    'sound' => 'default',
+                                    'badge' => $userBadge,
+                                ],
+                            ],
+                        ]);
 
-                    $messaging->sendMulticast($message, $tokens);
-                    $sentCount = count($tokens);
+                        $message = CloudMessage::new()
+                            ->withToken($singleToken)
+                            ->withNotification($notification)
+                            ->withAndroidConfig($androidConfig)
+                            ->withApnsConfig($apnsConfig)
+                            ->withData(['badge' => (string) $userBadge]);
+
+                        try {
+                            $messaging->send($message);
+                            $sentCount++;
+                        } catch (\Exception $sendEx) {
+                            \Log::warning('FCM send to user ' . $singleUser->id . ' failed: ' . $sendEx->getMessage());
+                        }
+                    }
                 }
             } else {
                 $user = User::find($userId);
@@ -146,6 +165,12 @@ class NotificationController extends Controller
                         throw new \Exception('التوكن غير صالح أو تجريبي.');
                     }
 
+                    // حساب عدد الإشعارات غير المقروءة للمستخدم +1 (للإشعار الجديد)
+                    $userBadge = DB::table('notification_for_apps')
+                        ->where('user_id', $user->id)
+                        ->where('user_view', 'no')
+                        ->count() + 1;
+
                     // إرسال العنوان فقط في Push، بدون body، مع صوت
                     $notification = FirebaseNotification::create($title);
 
@@ -158,7 +183,7 @@ class NotificationController extends Controller
                         'priority' => 'high',
                     ]);
 
-                    // إعدادات iOS (APNS) مع صوت
+                    // إعدادات iOS (APNS) مع صوت مع badge محسوب تلقائياً
                     $apnsConfig = ApnsConfig::fromArray([
                         'headers' => [
                             'apns-priority' => '10',
@@ -166,7 +191,7 @@ class NotificationController extends Controller
                         'payload' => [
                             'aps' => [
                                 'sound' => 'default',
-                                'badge' => $badge,
+                                'badge' => $userBadge,
                             ],
                         ],
                     ]);
@@ -176,7 +201,7 @@ class NotificationController extends Controller
                         ->withNotification($notification)
                         ->withAndroidConfig($androidConfig)
                         ->withApnsConfig($apnsConfig)
-                        ->withData(['badge' => (string) $badge]);
+                        ->withData(['badge' => (string) $userBadge]);
                     
                     $messaging->send($message);
                     $sentCount = 1;
