@@ -13,17 +13,15 @@ class GameHelperController extends Controller
     // 🔹 Show all game helpers
     public function allGameHelper()
     {
-        $gameHelpers = GameHelper::latest()->get();
+        $gameHelpers = GameHelper::orderBy('order_num', 'asc')->orderBy('id', 'asc')->get();
         return view('admin.game_helper.all_game_helper', compact('gameHelpers'));
     }
 
     // 🔹 Show add form
     public function addGameHelper()
     {
-
-                $levels = Levels::latest()->get();
-
-        return view('admin.game_helper.add_game_helper',compact('levels'));
+        $levels = Levels::latest()->get();
+        return view('admin.game_helper.add_game_helper', compact('levels'));
     }
 
     // 🔹 Store game helper
@@ -31,23 +29,27 @@ class GameHelperController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'name_en' => 'required|string|max:255',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tool_key' => 'nullable|string|max:100',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:4096',
         ], [
-            'name.required' => '⚠️ الرجاء اضافة اسم المساعد',
-            'name_en.required' => '⚠️ الرجاء اضافة الاسم بالانجليزية',
+            'name.required' => '⚠️ الرجاء اضافة اسم وسيلة المساعدة',
+            'photo.required' => '⚠️ الرجاء اختيار أيقونة وسيلة المساعدة',
         ]);
 
         $save_url = null;
         if ($request->hasFile('photo')) {
             $image = $request->file('photo');
-            $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
             $path = public_path('upload/game_helper/');
             if (!file_exists($path)) mkdir($path, 0777, true);
 
-            $imageManager = new ImageManager(new Driver());
-            $imageResized = $imageManager->read($image);
-            $imageResized->save($path . $name_gen);
+            try {
+                $imageManager = new ImageManager(new Driver());
+                $imageResized = $imageManager->read($image);
+                $imageResized->save($path . $name_gen);
+            } catch (\Exception $e) {
+                $image->move($path, $name_gen);
+            }
 
             $save_url = 'upload/game_helper/' . $name_gen;
         }
@@ -55,22 +57,27 @@ class GameHelperController extends Controller
         GameHelper::create([
             'name' => $request->name,
             'name_en' => $request->name_en,
+            'tool_key' => $request->tool_key ?? strtolower(str_replace(' ', '_', $request->name_en ?? $request->name)),
             'description' => $request->description,
             'description_en' => $request->description_en,
-            'level_id'=>$request->level_id,
+            'note' => $request->note,
+            'use_before_question' => $request->has('use_before_question') ? 1 : 0,
+            'order_num' => $request->order_num ?? 0,
+            'level_id' => $request->level_id,
+            'status' => 'active',
             'photo' => $save_url,
         ]);
 
-        return redirect()->route('all.game.helper')->with('success', '✅ تم إضافة المساعد بنجاح');
+        return redirect()->route('all.game.helper')->with('success', '✅ تم إضافة وسيلة المساعدة بنجاح');
     }
 
     // 🔹 Show edit form
     public function editGameHelper($id)
     {
         $gameHelper = GameHelper::findOrFail($id);
-                        $levels = Levels::latest()->get();
-
-        return view('admin.game_helper.edit_game_helper', compact('gameHelper','levels'));
+        $allHelpers = GameHelper::where('id', '!=', $id)->get(['id', 'name', 'order_num']);
+        $levels = Levels::latest()->get();
+        return view('admin.game_helper.edit_game_helper', compact('gameHelper', 'allHelpers', 'levels'));
     }
 
     // 🔹 Update game helper
@@ -79,11 +86,9 @@ class GameHelperController extends Controller
         $request->validate([
             'id' => 'required|exists:game_helpers,id',
             'name' => 'required|string|max:255',
-            'name_en' => 'required|string|max:255',
-            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:4096',
         ], [
-            'name.required' => '⚠️ الرجاء اضافة اسم المساعد',
-            'name_en.required' => '⚠️ الرجاء اضافة الاسم بالانجليزية',
+            'name.required' => '⚠️ الرجاء اضافة اسم وسيلة المساعدة',
         ]);
 
         $gameHelper = GameHelper::findOrFail($request->id);
@@ -91,91 +96,115 @@ class GameHelperController extends Controller
 
         if ($request->hasFile('photo')) {
             $image = $request->file('photo');
-            $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
             $path = public_path('upload/game_helper/');
             if (!file_exists($path)) mkdir($path, 0777, true);
 
-            $imageManager = new ImageManager(new Driver());
-            $imageResized = $imageManager->read($image);
-            $imageResized->save($path . $name_gen);
+            try {
+                $imageManager = new ImageManager(new Driver());
+                $imageResized = $imageManager->read($image);
+                $imageResized->save($path . $name_gen);
+            } catch (\Exception $e) {
+                $image->move($path, $name_gen);
+            }
 
-            if ($gameHelper->photo && file_exists($gameHelper->photo)) unlink($gameHelper->photo);
+            if ($gameHelper->photo && file_exists(public_path($gameHelper->photo))) {
+                @unlink(public_path($gameHelper->photo));
+            }
             $save_url = 'upload/game_helper/' . $name_gen;
+        }
+
+        $newOrder = $request->order_num !== null ? (int)$request->order_num : (int)$gameHelper->order_num;
+        $oldOrder = (int)$gameHelper->order_num;
+        $swapMsg = '';
+
+        if ($newOrder !== $oldOrder) {
+            $conflictingHelper = GameHelper::where('order_num', $newOrder)
+                ->where('id', '!=', $gameHelper->id)
+                ->first();
+
+            if ($conflictingHelper && $request->has('swap_order') && $request->swap_order == '1') {
+                $conflictingHelper->update(['order_num' => $oldOrder]);
+                $swapMsg = " وتم تبديل الترتيب مع وسيلة ({$conflictingHelper->name}) لتصبح بترتيب ($oldOrder)";
+            }
         }
 
         $gameHelper->update([
             'name' => $request->name,
             'name_en' => $request->name_en,
+            'tool_key' => $gameHelper->tool_key,
             'description' => $request->description,
             'description_en' => $request->description_en,
-                        'level_id'=>$request->level_id,
-
+            'note' => $gameHelper->note,
+            'use_before_question' => $gameHelper->use_before_question,
+            'order_num' => $newOrder,
+            'level_id' => $request->level_id,
             'photo' => $save_url,
         ]);
 
-        return redirect()->route('all.game.helper')->with('success', '✅ تم تعديل المساعد بنجاح');
+        return redirect()->route('all.game.helper')->with('success', '✅ تم تعديل وسيلة المساعدة بنجاح' . $swapMsg);
     }
 
     // 🔹 Delete game helper
     public function deleteGameHelper($id)
     {
         $gameHelper = GameHelper::findOrFail($id);
-        if ($gameHelper->photo && file_exists($gameHelper->photo)) unlink($gameHelper->photo);
+        if ($gameHelper->photo && file_exists(public_path($gameHelper->photo))) {
+            @unlink(public_path($gameHelper->photo));
+        }
         $gameHelper->delete();
 
-        return redirect()->route('all.game.helper')->with('success', '🗑️ تم حذف المساعد بنجاح');
+        return redirect()->route('all.game.helper')->with('success', '🗑️ تم حذف وسيلة المساعدة بنجاح');
     }
 
+    // 🔹 Make Game Helper inactive (إخفاء)
+    public function gameHelperInactive($id)
+    {
+        $helper = GameHelper::findOrFail($id);
+        $helper->status = 'inactive';
+        $helper->save();
 
-  // 🔹 Make Game Helper inactive
-public function gameHelperInactive($id)
-{
-    $helper = GameHelper::findOrFail($id);
-    $helper->status = 'inactive';
-    $helper->save();
+        return redirect()->back()->with('success', '👁️ تم إخفاء وسيلة المساعدة');
+    }
 
-    return redirect()->back()->with('success', '👁️ تم إخفاء المساعدة');
-}
+    // 🔹 Make Game Helper active (إظهار)
+    public function gameHelperActive($id)
+    {
+        $helper = GameHelper::findOrFail($id);
+        $helper->status = 'active';
+        $helper->save();
 
-// 🔹 Make Game Helper active
-public function gameHelperActive($id)
-{
-    $helper = GameHelper::findOrFail($id);
-    $helper->status = 'active';
-    $helper->save();
+        return redirect()->back()->with('success', '✅ تم إظهار وسيلة المساعدة');
+    }
 
-    return redirect()->back()->with('success', '✅ تم إظهار المساعدة');
-}
-
-
-
-
-// API
- public function getGameHelperApi() {
-
-
-        $gameHelper = GameHelper::where('status', 'active')->latest()->get()->map(function ($item) {
-            $item->game_helper_selected = false;
-            return $item;
-        });
-
-
-
-        if ($gameHelper->isNotEmpty()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'gameHelper retrieval successful',
-                'gameHelper' => $gameHelper,
-            ], 200);
-        }
+    // 🔹 API: Get all active game helpers
+    public function getGameHelperApi()
+    {
+        $gameHelper = GameHelper::where('status', 'active')
+            ->orderBy('order_num', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'name_en' => $item->name_en,
+                    'tool_key' => $item->tool_key,
+                    'description' => $item->description,
+                    'description_en' => $item->description_en,
+                    'note' => $item->note,
+                    'use_before_question' => (bool) $item->use_before_question,
+                    'photo' => $item->photo ? asset($item->photo) : null,
+                    'raw_photo' => $item->photo,
+                    'status' => $item->status,
+                    'game_helper_selected' => false,
+                ];
+            });
 
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid get gameHelper'
-        ], 401);
+            'success' => true,
+            'message' => 'gameHelper retrieval successful',
+            'gameHelper' => $gameHelper,
+        ], 200);
     }
-
-
-
-
 }

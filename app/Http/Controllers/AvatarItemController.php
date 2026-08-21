@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Models\AvatarItems;
 use App\Models\AvatarCategory;
 use App\Models\GameCoin;
@@ -33,7 +34,10 @@ class AvatarItemController extends Controller
         }
 
         $perPage = 20;
-        $avatarItems = $query->latest()->paginate($perPage);
+        $avatarItems = $query->orderByRaw('order_by IS NULL ASC')
+            ->orderBy('order_by', 'asc')
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
 
         if ($request->ajax()) {
             $categories = AvatarCategory::all();
@@ -73,10 +77,27 @@ class AvatarItemController extends Controller
     public function storeAvatarItem(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('avatar_items', 'name')->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('gender', $request->gender);
+                }),
+            ],
             'category_id' => 'required|exists:avatar_categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'gender' => 'required|in:boy,girl',
+            'order_by' => [
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::unique('avatar_items', 'order_by')->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('gender', $request->gender);
+                }),
+            ],
         ];
 
         if ($request->is_free) {
@@ -89,6 +110,7 @@ class AvatarItemController extends Controller
 
         $request->validate($rules, [
             'name.required' => '⚠️ الرجاء إدخال اسم العنصر',
+            'name.unique' => '⚠️ اسم العنصر موجود مسبقاً لهذا التصنيف والنوع، يرجى اختيار اسم آخر.',
             'category_id.required' => '⚠️ الرجاء اختيار التصنيف',
             'category_id.exists' => '⚠️ التصنيف المختار غير موجود',
             'game_coin_id.required' => '⚠️ الرجاء اختيار نوع العملة',
@@ -101,6 +123,9 @@ class AvatarItemController extends Controller
             'image.max' => '⚠️ حجم الصورة يجب ألا يتعدى 2MB',
             'gender.required' => '⚠️ الرجاء تحديد نوع الأفاتار (ولد أو بنت)',
             'gender.in' => '⚠️ القيمة المحددة للنوع غير صحيحة',
+            'order_by.integer' => '⚠️ ترتيب العنصر يجب ان يكون رقماً صحيحاً',
+            'order_by.min' => '⚠️ ترتيب العنصر يجب ان يكون أكبر من 0',
+            'order_by.unique' => '⚠️ رقم الترتيب مكرر بالفعل لهذا النوع والتصنيف، يرجى اختيار رقم ترتيب آخر.',
         ]);
 
         $avatarItem = new AvatarItems();
@@ -110,6 +135,7 @@ class AvatarItemController extends Controller
         $avatarItem->game_coin_id = $request->is_free ? null : $request->game_coin_id;
         $avatarItem->coins_number = $request->is_free ? null : $request->coins_number;
         $avatarItem->gender = $request->gender;
+        $avatarItem->order_by = $request->order_by;
 
         // Image upload
         if ($request->file('image')) {
@@ -146,10 +172,27 @@ class AvatarItemController extends Controller
     public function updateAvatarItem(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('avatar_items', 'name')->ignore($request->id)->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('gender', $request->gender);
+                }),
+            ],
             'category_id' => 'required|exists:avatar_categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'gender' => 'required|in:boy,girl',
+            'order_by' => [
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::unique('avatar_items', 'order_by')->ignore($request->id)->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('gender', $request->gender);
+                }),
+            ],
         ];
 
         if ($request->is_free) {
@@ -162,6 +205,7 @@ class AvatarItemController extends Controller
 
         $request->validate($rules, [
             'name.required' => '⚠️ الرجاء إدخال اسم العنصر',
+            'name.unique' => '⚠️ اسم العنصر موجود مسبقاً لهذا التصنيف والنوع، يرجى اختيار اسم آخر.',
             'category_id.required' => '⚠️ الرجاء اختيار التصنيف',
             'category_id.exists' => '⚠️ التصنيف المختار غير موجود',
             'game_coin_id.required' => '⚠️ الرجاء اختيار نوع العملة',
@@ -174,6 +218,9 @@ class AvatarItemController extends Controller
             'image.max' => '⚠️ حجم الصورة يجب ألا يتعدى 2MB',
             'gender.required' => '⚠️ الرجاء تحديد نوع الأفاتار (ولد أو بنت)',
             'gender.in' => '⚠️ القيمة المحددة للنوع غير صحيحة',
+            'order_by.integer' => '⚠️ ترتيب العنصر يجب ان يكون رقماً صحيحاً',
+            'order_by.min' => '⚠️ ترتيب العنصر يجب ان يكون أكبر من 0',
+            'order_by.unique' => '⚠️ رقم الترتيب مكرر بالفعل لهذا النوع والتصنيف، يرجى اختيار رقم ترتيب آخر.',
         ]);
 
         $avatarItem = AvatarItems::findOrFail($request->id);
@@ -183,6 +230,7 @@ class AvatarItemController extends Controller
         $avatarItem->game_coin_id = $request->is_free ? null : $request->game_coin_id;
         $avatarItem->coins_number = $request->is_free ? null : $request->coins_number;
         $avatarItem->gender = $request->gender;
+        $avatarItem->order_by = $request->order_by;
 
         if ($request->file('image')) {
             $file = $request->file('image');
@@ -254,10 +302,17 @@ class AvatarItemController extends Controller
                 ->toArray();
         }
 
-        $items = AvatarItems::with('coin')
+        $query = AvatarItems::with('coin')
             ->where('category_id', $request->category_id)
-            ->where('status', 'active')
-            ->latest()
+            ->where('status', 'active');
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        $items = $query->orderByRaw('order_by IS NULL ASC')
+            ->orderBy('order_by', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         $items->each(function ($item) use ($purchasedItemIds) {
@@ -388,7 +443,25 @@ class AvatarItemController extends Controller
         ]);
 
         $item = AvatarItems::findOrFail($request->id);
-        $item->name = $request->name;
+        $trimmedName = trim($request->name);
+
+        $conflicting = AvatarItems::where('category_id', $item->category_id)
+            ->where('gender', $item->gender)
+            ->where('name', $trimmedName)
+            ->where('id', '!=', $item->id)
+            ->first();
+
+        if ($conflicting) {
+            $genderName = ($item->gender == 'girl') ? 'بنت' : 'ولد';
+            $categoryName = $item->category ? $item->category->name : '';
+            return response()->json([
+                'success' => false,
+                'is_duplicate' => true,
+                'message' => '⚠️ اسم العنصر ("' . $trimmedName . '") موجود مسبقاً ضمن تصنيف (' . $categoryName . ' - ' . $genderName . ')!'
+            ], 422);
+        }
+
+        $item->name = $trimmedName;
         $item->save();
 
         return response()->json([
@@ -490,6 +563,69 @@ class AvatarItemController extends Controller
             'success' => true,
             'message' => '✅ تم تحديث سعر العنصر بنجاح',
             'coins_number' => $item->coins_number,
+        ]);
+    }
+
+    // 🔹 Update Avatar Item Order (with duplicate check & swap)
+    public function updateAvatarItemOrder(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:avatar_items,id',
+            'order_by' => 'nullable|integer|min:1',
+            'confirm_swap' => 'nullable|boolean',
+        ]);
+
+        $id = $request->id;
+        $orderBy = $request->order_by;
+        $confirmSwap = $request->boolean('confirm_swap', false);
+
+        $avatarItem = AvatarItems::findOrFail($id);
+        $oldOrder = $avatarItem->order_by;
+
+        if (!empty($orderBy)) {
+            $conflicting = AvatarItems::where('category_id', $avatarItem->category_id)
+                ->where('gender', $avatarItem->gender)
+                ->where('order_by', $orderBy)
+                ->where('id', '!=', $id)
+                ->first();
+
+            if ($conflicting) {
+                if (!$confirmSwap) {
+                    $genderName = ($avatarItem->gender == 'girl') ? 'بنت' : 'ولد';
+                    $categoryName = $avatarItem->category ? $avatarItem->category->name : '';
+                    return response()->json([
+                        'status' => false,
+                        'is_duplicate' => true,
+                        'conflicting_id' => $conflicting->id,
+                        'conflicting_name' => $conflicting->name,
+                        'message' => 'عنصر الأفاتار ("' . $conflicting->name . '") يحمل نفس رقم الترتيب (' . $orderBy . ') ضمن تصنيف (' . $categoryName . ' - ' . $genderName . '). هل تريد استبدال المراكز بينهما؟'
+                    ]);
+                } else {
+                    // Perform swap between avatar items
+                    $conflicting->order_by = $oldOrder;
+                    $conflicting->save();
+
+                    $avatarItem->order_by = $orderBy;
+                    $avatarItem->save();
+
+                    return response()->json([
+                        'status' => true,
+                        'swapped' => true,
+                        'swapped_id' => $conflicting->id,
+                        'swapped_order' => $oldOrder,
+                        'message' => 'تم استبدال المراكز بنجاح بين "' . $avatarItem->name . '" و "' . $conflicting->name . '"'
+                    ]);
+                }
+            }
+        }
+
+        $avatarItem->order_by = $orderBy;
+        $avatarItem->save();
+
+        return response()->json([
+            'status' => true,
+            'swapped' => false,
+            'message' => 'تم تحديث الترتيب بنجاح'
         ]);
     }
 }

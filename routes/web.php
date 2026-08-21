@@ -1077,6 +1077,7 @@ Route::controller(AvatarItemController::class)->middleware(['checkUserRole','aut
     Route::post('/ajax/update/avatar/item/image', 'ajaxUpdateImage')->name('ajax.update.avatar.item.image');
     Route::post('/ajax/update/avatar/item/currency', 'ajaxUpdateCurrency')->name('ajax.update.avatar.item.currency');
     Route::post('/ajax/update/avatar/item/price', 'ajaxUpdatePrice')->name('ajax.update.avatar.item.price');
+    Route::post('/update/avatar/item/order', 'updateAvatarItemOrder')->name('avatar.item.update.order');
 });
 
 Route::controller(FreePlanController::class)->middleware(['checkUserRole','auth'])->group(function(){

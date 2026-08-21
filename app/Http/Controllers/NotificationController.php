@@ -274,6 +274,14 @@ class NotificationController extends Controller
             );
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => !($firebaseError && $sentCount === 0),
+                'message' => $notificationAlert['message'],
+                'alert_type' => $notificationAlert['alert-type']
+            ]);
+        }
+
         return redirect()->route('all.notification')->with($notificationAlert);
     }
 

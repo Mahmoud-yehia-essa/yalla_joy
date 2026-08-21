@@ -52,12 +52,10 @@ Route::get('/user', function (Request $request) {
 
 // Route::post('/register',[UserController::class,'registerApi']);
 
-    Route::post('/login/email',[UserController::class,'loginApi']);
-
-
+Route::post('/login/email',[UserController::class,'loginApi']);
 Route::post('/register/email',[UserController::class,'registerApi']);
-
 Route::post('/validate/register',[UserController::class,'validateRegisterApi']);
+Route::post('/user/claim-registration-reward', [UserController::class, 'claimRegistrationRewardApi']);
 
 
 

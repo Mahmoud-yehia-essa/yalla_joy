@@ -94,6 +94,16 @@
                     @enderror
                 </div>
 
+                <!-- Order By -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">ترتيب الظهور</label>
+                    <input type="number" name="order_by" class="form-control" value="{{ old('order_by') }}" min="1" placeholder="أدخل رقم ترتيب الظهور (اختياري)">
+                    <small class="text-muted">الترتيب فريد ومستقل لكل نوع (ولد/بنت) وكل تصنيف.</small>
+                    @error('order_by')
+                        <span class="text-danger d-block">{{ $message }}</span>
+                    @enderror
+                </div>
+
             </div>
 
             <div class="mt-4">

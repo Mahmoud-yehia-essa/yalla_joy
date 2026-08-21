@@ -30,13 +30,25 @@ class DashboardController extends Controller
         $gameType = GameType::latest()->get();
         $mainCategory = MainCategory::latest()->get();
 
-                $sponsor = Sponsor::latest()->get();
-                $titlePosition = TitlePosition::latest()->get();
+        $sponsor = Sponsor::latest()->get();
+        $titlePosition = TitlePosition::latest()->get();
 
+        // 🏆 Top 10 users with highest online points
+        $topOnlineUsers = User::where('role', '!=', 'admin')
+            ->orderByDesc('online_points')
+            ->take(10)
+            ->get();
 
-
-    return view('admin.index',compact('users','category','games','questions','gameType','mainCategory','sponsor','titlePosition'));
-
-        // return view('admin.index');
+        return view('admin.index', compact(
+            'users',
+            'category',
+            'games',
+            'questions',
+            'gameType',
+            'mainCategory',
+            'sponsor',
+            'titlePosition',
+            'topOnlineUsers'
+        ));
     }
 }

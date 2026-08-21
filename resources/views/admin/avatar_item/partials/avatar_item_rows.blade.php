@@ -109,6 +109,26 @@
     </td>
 
 
+    <!-- 5. Order By -->
+    <td class="text-center" data-order="{{ $item->order_by ?? 999999 }}" style="min-width: 120px;">
+        <div class="input-group input-group-sm flex-nowrap justify-content-center">
+            <input type="number" 
+                   class="form-control form-control-sm text-center fw-bold avatar-item-order-input border-2" 
+                   id="order-input-{{ $item->id }}" 
+                   data-id="{{ $item->id }}" 
+                   value="{{ $item->order_by }}" 
+                   placeholder="-" 
+                   min="1"
+                   style="max-width: 70px;">
+            <button class="btn btn-sm btn-primary btn-save-avatar-item-order px-2" 
+                    type="button" 
+                    data-id="{{ $item->id }}" 
+                    title="حفظ الترتيب">
+                <i class="fa-solid fa-floppy-disk" style="pointer-events: none;"></i>
+            </button>
+        </div>
+    </td>
+
     <!-- Actions -->
     <td>
         @if($item->status == 'active')

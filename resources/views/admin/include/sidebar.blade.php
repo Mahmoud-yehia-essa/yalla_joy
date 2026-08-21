@@ -689,30 +689,14 @@
 
 
 
-    {{-- @if(Auth::user()->can('عرض المساعدات'))
-
 <li>
-    <a href="javascript:;" class="has-arrow">
+    <a href="{{ route('all.game.helper') }}">
         <div class="parent-icon">
             <ion-icon name="help-buoy-outline"></ion-icon>
         </div>
-        <div class="menu-title">إدارة مساعدات اللعبة</div>
+        <div class="menu-title">التحكم في وسائل المساعدة</div>
     </a>
-    <ul>
-        <li>
-            <a href="{{ route('all.game.helper') }}">
-                <i class="bx bx-right-arrow-alt"></i>جميع المساعدات
-            </a>
-        </li>
-        <!-- <li>
-            <a href="{{ route('add.game.helper') }}">
-                <i class="bx bx-right-arrow-alt"></i>إضافة مساعدة
-            </a>
-        </li> -->
-    </ul>
 </li>
-
-         @endif --}}
 
 {{--
 <li>

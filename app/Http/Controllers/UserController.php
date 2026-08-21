@@ -1130,4 +1130,58 @@ public function validateRegisterApi(Request $request)
     {
         return Excel::download(new UsersExport, 'users_' . date('Y_m_d_His') . '.xlsx');
     }
+
+    public function claimRegistrationRewardApi(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $userId = $request->user_id;
+        $user = User::findOrFail($userId);
+
+        // Check if user already claimed registration reward
+        if ($user->has_registration_reward) {
+            return response()->json([
+                'success' => false,
+                'already_claimed' => true,
+                'message' => 'تم استلام مكافأة التسجيل مسبقاً',
+                'user' => $user,
+            ], 200);
+        }
+
+        // Fetch all free plans with coins
+        $freePlans = \App\Models\CreateFreePlansTable::where('coins_number', '>', 0)->get();
+        $claimedPlans = [];
+
+        foreach ($freePlans as $plan) {
+            if ($plan->game_coin_id && $plan->coins_number > 0) {
+                \App\Models\UserCoin::create([
+                    'user_id' => $user->id,
+                    'game_coin_id' => $plan->game_coin_id,
+                    'coins_number' => $plan->coins_number,
+                    'type' => 'add',
+                ]);
+                $claimedPlans[] = [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'game_coin_id' => $plan->game_coin_id,
+                    'coins_number' => $plan->coins_number,
+                    'game_coin' => $plan->gameCoin,
+                ];
+            }
+        }
+
+        // Mark user as claimed
+        $user->has_registration_reward = 1;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'already_claimed' => false,
+            'message' => 'تم إضافة مكافأة التسجيل بنجاح',
+            'user' => $user->fresh(),
+            'data' => $claimedPlans,
+        ], 200);
+    }
 }

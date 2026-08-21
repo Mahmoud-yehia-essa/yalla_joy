@@ -26,33 +26,40 @@ public function getUserCoinsSummary(Request $request)
 
     $userId = $request->user_id;
 
-    // جلب الملخص لكل عملة بدون تكرار
-    $coins = UserCoin::where('user_id', $userId)
+    // جلب كل العملات المتاحة والمضافة في لوحة التحكم (النشطة)
+    $gameCoins = DB::table('game_coins')
+        ->where(function ($query) {
+            $query->where('status', 'active')->orWhereNull('status');
+        })
+        ->orderBy('id', 'asc')
+        ->get();
+
+    // في حال عدم وجود عملات بحالة active نجلب جميع العملات
+    if ($gameCoins->isEmpty()) {
+        $gameCoins = DB::table('game_coins')->orderBy('id', 'asc')->get();
+    }
+
+    // جلب مجموع العملات التي يمتلكها المستخدم مجمعة حسب game_coin_id
+    $userCoinsMap = UserCoin::where('user_id', $userId)
         ->select('game_coin_id', DB::raw('SUM(coins_number) as total_coins'))
         ->groupBy('game_coin_id')
-        ->get()
-        ->map(function ($item) {
-            // جلب بيانات العملة مباشرة
-            $coin = DB::table('game_coins')->where('id', $item->game_coin_id)->first();
+        ->pluck('total_coins', 'game_coin_id');
 
-            if ($coin) {
-                return [
-                    'game_coin_id' => $item->game_coin_id,
-                    'total_coins' => $item->total_coins,
-                    'name' => $coin->name,
-                    'name_en' => $coin->name_en,
-                    'photo' => $coin->photo,
-                    'status' => $coin->status,
-                    'created_at' => $coin->created_at,
-                    'updated_at' => $coin->updated_at,
-                ];
-            }
+    // تجهيز النتيجة لكل العملات بحيث تظهر العملة مع 0 إذا لم يحصل عليها المستخدم
+    $coins = $gameCoins->map(function ($coin) use ($userCoinsMap) {
+        $totalCoins = $userCoinsMap->get($coin->id, 0);
 
-            return [
-                'game_coin_id' => $item->game_coin_id,
-                'total_coins' => $item->total_coins,
-            ];
-        });
+        return [
+            'game_coin_id' => (int) $coin->id,
+            'total_coins' => (string) ($totalCoins ?? 0),
+            'name' => $coin->name,
+            'name_en' => $coin->name_en,
+            'photo' => $coin->photo,
+            'status' => $coin->status ?? 'active',
+            'created_at' => $coin->created_at,
+            'updated_at' => $coin->updated_at,
+        ];
+    });
 
     return response()->json([
         'status' => true,

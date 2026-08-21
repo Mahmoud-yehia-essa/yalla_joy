@@ -50,7 +50,10 @@ class AvatarItemsExport implements FromCollection, WithHeadings, WithMapping, Wi
                 }
             }
 
-            $this->items = $query->orderBy('id', 'desc')->get();
+            $this->items = $query->orderByRaw('order_by IS NULL ASC')
+                ->orderBy('order_by', 'asc')
+                ->orderBy('id', 'desc')
+                ->get();
         }
 
         return $this->items;

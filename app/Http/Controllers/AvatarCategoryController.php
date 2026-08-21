@@ -141,8 +141,14 @@ class AvatarCategoryController extends Controller
                 ->toArray();
         }
 
-        $categories = AvatarCategory::with(['items' => function($query) {
+        $categories = AvatarCategory::with(['items' => function($query) use ($request) {
             $query->where('status', 'active');
+            if ($request->filled('gender')) {
+                $query->where('gender', $request->gender);
+            }
+            $query->orderByRaw('order_by IS NULL ASC')
+                  ->orderBy('order_by', 'asc')
+                  ->orderBy('id', 'asc');
         }, 'items.coin'])->latest()->get();
 
         $categories->each(function ($category) use ($purchasedItemIds) {

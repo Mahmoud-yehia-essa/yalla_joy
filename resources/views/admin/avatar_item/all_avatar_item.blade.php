@@ -92,6 +92,7 @@
                         <th>النوع</th>
                         <th>نوع العملة</th>
                         <th>السعر (العملات)</th>
+                        <th>ترتيب الظهور</th>
                         <th>الإجراء</th>
                     </tr>
                 </thead>
@@ -107,6 +108,7 @@
                         <th>النوع</th>
                         <th>نوع العملة</th>
                         <th>السعر (العملات)</th>
+                        <th>ترتيب الظهور</th>
                         <th>الإجراء</th>
                     </tr>
                 </tfoot>
@@ -226,11 +228,20 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : '⚠️ حدث خطأ أثناء تحديث الاسم';
+                var msg = '⚠️ حدث خطأ أثناء تحديث الاسم';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.name) {
+                    msg = xhr.responseJSON.errors.name[0];
+                }
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'تنبيه: الاسم مكرر!',
+                    text: msg,
+                    confirmButtonText: 'حسناً'
+                });
                 if (typeof toastr !== 'undefined') {
                     toastr.error(msg);
-                } else {
-                    alert(msg);
                 }
             }
         });
@@ -424,6 +435,81 @@ $(document).ready(function() {
 
 
     // -------------------------------------------------------------
+    // 5. AVATAR ITEM ORDER AJAX UPDATE & SWAP
+    // -------------------------------------------------------------
+    function saveAvatarItemOrderAjax(itemId, orderByVal, confirmSwap) {
+        $.ajax({
+            url: "{{ route('avatar.item.update.order') }}",
+            type: "POST",
+            data: {
+                id: itemId,
+                order_by: orderByVal,
+                confirm_swap: confirmSwap ? 1 : 0
+            },
+            success: function(response) {
+                if (response.status) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم التحديث!',
+                        text: response.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else if (response.is_duplicate) {
+                    Swal.fire({
+                        title: 'تنبيه وجود عنصر بنفس الترتيب!',
+                        text: response.message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'نعم، استبدل المراكز',
+                        cancelButtonText: 'إلغاء'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            saveAvatarItemOrderAjax(itemId, orderByVal, true);
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = 'حدث خطأ أثناء حفظ الترتيب';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'تنبيه!',
+                    text: errorMsg,
+                    confirmButtonText: 'حسناً'
+                });
+            }
+        });
+    }
+
+    $(document).on('click', '.btn-save-avatar-item-order', function(e) {
+        e.preventDefault();
+        var itemId = $(this).data('id');
+        if (itemId) {
+            var orderByVal = $('#order-input-' + itemId).val();
+            saveAvatarItemOrderAjax(itemId, orderByVal, false);
+        }
+    });
+
+    $(document).on('keydown', '.avatar-item-order-input', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var itemId = $(this).data('id');
+            if (itemId) {
+                var orderByVal = $(this).val();
+                saveAvatarItemOrderAjax(itemId, orderByVal, false);
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
     // 6. LAZY LOADING / INFINITE SCROLL ON SCROLL
     // -------------------------------------------------------------
     var page = {{ $avatarItems->currentPage() }};
@@ -466,4 +552,5 @@ $(document).ready(function() {
     });
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
