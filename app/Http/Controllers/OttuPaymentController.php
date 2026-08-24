@@ -226,6 +226,23 @@ class OttuPaymentController extends Controller
     {
         Log::info('Ottu Redirect Received', $request->all());
         
-        return response('<html><body><script>window.location.href="myapp://payment-callback";</script><p>Redirecting to app...</p></body></html>');
+        $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العودة للتطبيق</title>
+</head>
+<body style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;font-family:sans-serif;text-align:center;">
+    <h3 style="color:#2c3e50;">تمت معالجة عملية الدفع</h3>
+    <p style="color:#7f8c8d;">جاري العودة إلى تطبيق فيك تحدي...</p>
+    <script>
+        setTimeout(function() {
+            window.location.href = "fiktahadiapp://payment-callback";
+        }, 100);
+    </script>
+</body>
+</html>';
+
+        return response($html);
     }
 }
