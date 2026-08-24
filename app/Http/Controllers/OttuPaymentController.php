@@ -31,10 +31,28 @@ class OttuPaymentController extends Controller
         $apiKey = config('ottu.api_key', 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL');
         $apiUrl = config('ottu.api_url', 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/');
 
+        // Resolve payment gateway codes (pg_codes)
+        $pgCodesInput = $request->input('pg_codes');
+        if (!empty($pgCodesInput)) {
+            $pgCodes = is_array($pgCodesInput) ? $pgCodesInput : explode(',', $pgCodesInput);
+        } else {
+            $configPgCodes = config('ottu.pg_codes');
+            if (!empty($configPgCodes)) {
+                $pgCodes = is_array($configPgCodes) ? $configPgCodes : explode(',', $configPgCodes);
+            } else {
+                $single = config('ottu.pg_code', 'knet');
+                $pgCodes = array_filter([$single, 'aub-test-alhil']);
+            }
+        }
+        $pgCodes = array_values(array_unique(array_filter(array_map('trim', (array)$pgCodes))));
+        if (empty($pgCodes)) {
+            $pgCodes = ['knet', 'aub-test-alhil'];
+        }
+
         // Prepare Ottu payload
         $payload = [
             'type'                => 'e_commerce',
-            'pg_codes'            => [config('ottu.pg_code', 'knet')],
+            'pg_codes'            => $pgCodes,
             'amount'              => number_format((float)$validated['amount'], 3, '.', ''),
             'currency_code'       => 'KWD',
             'disclosure_url'      => url('/api/ottu/redirect'),
