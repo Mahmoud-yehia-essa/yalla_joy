@@ -28,8 +28,8 @@ class OttuPaymentController extends Controller
         ]);
 
         $orderNo = 'ORD-' . time() . '-' . rand(1000, 9999);
-        $apiKey = config('ottu.api_key', 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL');
-        $apiUrl = config('ottu.api_url', 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/');
+        $apiKey = config('ottu.api_key', 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy');
+        $apiUrl = config('ottu.api_url', 'https://pay.pikw.com/b/checkout/v1/pymt-txn/');
 
         // Resolve payment gateway codes (pg_codes)
         $pgCodesInput = $request->input('pg_codes');
@@ -41,12 +41,12 @@ class OttuPaymentController extends Controller
                 $pgCodes = is_array($configPgCodes) ? $configPgCodes : explode(',', $configPgCodes);
             } else {
                 $single = config('ottu.pg_code', 'knet');
-                $pgCodes = array_filter([$single, 'aub-test-alhil']);
+                $pgCodes = [$single];
             }
         }
         $pgCodes = array_values(array_unique(array_filter(array_map('trim', (array)$pgCodes))));
         if (empty($pgCodes)) {
-            $pgCodes = ['knet', 'aub-test-alhil'];
+            $pgCodes = ['knet'];
         }
 
         // Prepare Ottu payload
@@ -146,8 +146,9 @@ class OttuPaymentController extends Controller
      */
     public function checkStatus($sessionId)
     {
-        $apiKey = config('ottu.api_key', 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL');
-        $apiUrl = 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/' . $sessionId . '/';
+        $apiKey = config('ottu.api_key', 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy');
+        $baseUrl = rtrim(config('ottu.api_url', 'https://pay.pikw.com/b/checkout/v1/pymt-txn/'), '/');
+        $apiUrl = $baseUrl . '/' . $sessionId . '/';
 
         try {
             $response = Http::withHeaders([
