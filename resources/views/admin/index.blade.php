@@ -620,6 +620,96 @@
       });
   </script>
 
+  <!-- ========================================================= -->
+  <!-- 💵 Financial Key Performance Indicators & Sales Overview  -->
+  <!-- ========================================================= -->
+  <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 px-1 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+              <div class="p-2 rounded-circle" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">
+                  <i class="bx bx-wallet text-success fs-4"></i>
+              </div>
+              <div>
+                  <h5 class="mb-0 text-dark fw-bold d-flex align-items-center gap-2" style="font-size: 1.15rem;">
+                      أهم التقارير والإحصائيات المالية
+                      <span class="badge bg-success text-white font-monospace" style="font-size: 11px;">LIVE PAYMENTS ⚡</span>
+                  </h5>
+                  <small class="text-muted">متابعة فورية للمبيعات، الإيرادات، وعمليات الدفع عبر Ottu</small>
+              </div>
+          </div>
+          <div>
+              <a href="{{ route('all.transactions') }}" class="btn btn-sm btn-outline-primary px-3 d-flex align-items-center gap-1 shadow-sm" style="border-radius: 10px; font-weight: 600;">
+                  <span>عرض تفاصيل العمليات المالية</span> <i class="bx bx-left-arrow-alt fs-5"></i>
+              </a>
+          </div>
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-3 g-3">
+          <!-- 1. Total Revenue -->
+          <div class="col">
+              <a href="{{ route('all.transactions', ['status' => 'paid']) }}" class="text-decoration-none">
+                  <div class="card border-0 shadow-sm text-white h-100 stat-card-link" style="border-radius: 18px; background: linear-gradient(135deg, #0b192c 0%, #1e3a8a 50%, #1d4ed8 100%);">
+                      <div class="card-body p-3">
+                          <div class="d-flex align-items-center justify-content-between">
+                              <div class="stat-icon-circle" style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 26px; border: 1px solid rgba(255, 255, 255, 0.25);">
+                                  <i class="bx bx-wallet text-white"></i>
+                              </div>
+                              <div class="text-end">
+                                  <h6 class="mb-1 text-white-50" style="font-size: 13.5px; font-weight: 500;">إجمالي الإيرادات الناجحة</h6>
+                                  <h3 class="mb-0 text-white fw-bold font-monospace" style="font-size: 1.75rem;">
+                                      {{ number_format($financialStats['total_revenue'] ?? 0, 3) }} <span style="font-size: 14px; font-family: sans-serif;">د.ك</span>
+                                  </h3>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </a>
+          </div>
+
+          <!-- 2. Successful Transactions -->
+          <div class="col">
+              <a href="{{ route('all.transactions', ['status' => 'paid']) }}" class="text-decoration-none">
+                  <div class="card border-0 shadow-sm text-white h-100 stat-card-link" style="border-radius: 18px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                      <div class="card-body p-3">
+                          <div class="d-flex align-items-center justify-content-between">
+                              <div class="stat-icon-circle" style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); display: flex; align-items: center; justify-content: center; font-size: 26px; border: 1px solid rgba(255, 255, 255, 0.3);">
+                                  <i class="bx bx-check-shield text-white"></i>
+                              </div>
+                              <div class="text-end">
+                                  <h6 class="mb-1 text-white-50" style="font-size: 13.5px; font-weight: 500;">العمليات الناجحة (مدفوعة)</h6>
+                                  <h3 class="mb-0 text-white fw-bold font-monospace" style="font-size: 1.75rem;">
+                                      {{ $financialStats['success_count'] ?? 0 }} <span style="font-size: 14px; font-family: sans-serif;">عملية</span>
+                                  </h3>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </a>
+          </div>
+
+          <!-- 3. Failed/Cancelled Transactions -->
+          <div class="col">
+              <a href="{{ route('all.transactions', ['status' => 'failed']) }}" class="text-decoration-none">
+                  <div class="card border-0 shadow-sm text-white h-100 stat-card-link" style="border-radius: 18px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                      <div class="card-body p-3">
+                          <div class="d-flex align-items-center justify-content-between">
+                              <div class="stat-icon-circle" style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); display: flex; align-items: center; justify-content: center; font-size: 26px; border: 1px solid rgba(255, 255, 255, 0.3);">
+                                  <i class="bx bx-x-circle text-white"></i>
+                              </div>
+                              <div class="text-end">
+                                  <h6 class="mb-1 text-white-50" style="font-size: 13.5px; font-weight: 500;">العمليات الفاشلة / ملغاة</h6>
+                                  <h3 class="mb-0 text-white fw-bold font-monospace" style="font-size: 1.75rem;">
+                                      {{ $financialStats['failed_count'] ?? 0 }} <span style="font-size: 14px; font-family: sans-serif;">عملية</span>
+                                  </h3>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </a>
+          </div>
+      </div>
+  </div>
+
   <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
     <div class="col">
         <a href="{{route('all.game.type')}}">

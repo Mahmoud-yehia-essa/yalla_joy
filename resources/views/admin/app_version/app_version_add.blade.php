@@ -95,6 +95,34 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">رقم الواتساب للتواصل (مع كود الدولة)</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="text" class="form-control @error('whatsapp_number') is-invalid @enderror"
+                               name="whatsapp_number" value="{{ old('whatsapp_number', $appVersion->whatsapp_number) }}"
+                               placeholder="مثال: +966500000000 أو 966500000000">
+                        @error('whatsapp_number')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">البريد الإلكتروني للتواصل</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="email" class="form-control @error('contact_email') is-invalid @enderror"
+                               name="contact_email" value="{{ old('contact_email', $appVersion->contact_email) }}"
+                               placeholder="مثال: support@fik-tahadi.com">
+                        @error('contact_email')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
 
 
                 <div class="row mb-3">

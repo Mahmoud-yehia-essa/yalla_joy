@@ -46,6 +46,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     {
         return [
             'الرقم',
+            'اسم المستخدم',
             'الاسم الأول',
             'اسم العائلة',
             'البريد الإلكتروني',
@@ -99,6 +100,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
         return [
             $this->rowNumber,
+            $item->user_name ?? '---',
             $item->fname ?? '---',
             $item->lname ?? '---',
             $item->email ?? '---',
@@ -107,7 +109,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             $registerType,
             $item->online_points_fixed ?? 0,
             $item->online_points ?? 0,
-            '', // Blank for the image overlay in Column J
+            '', // Blank for the image overlay in Column K
             $photoApproval
         ];
     }
@@ -135,10 +137,10 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 $drawing->setDescription($item->fname ?? 'User Avatar');
                 $drawing->setPath($photoPath);
                 $drawing->setHeight(35); // 35px height fits perfectly
-                $drawing->setCoordinates('J' . $row); // Column J is the image column
+                $drawing->setCoordinates('K' . $row); // Column K is the image column
 
                 // Centering offset mathematically:
-                // Column J width is locked to 16 units (approx. 112px). Image is 35px.
+                // Column K width is locked to 16 units (approx. 112px). Image is 35px.
                 // Horizontal offset: (112 - 35) / 2 = 38px.
                 // Row height is locked to 50pt (approx. 66px). Image is 35px.
                 // Vertical offset: (66 - 35) / 2 = 15px.
@@ -162,7 +164,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         $sheet->setRightToLeft(true);
 
         $totalRows = $sheet->getHighestRow();
-        $totalColumns = 'K';
+        $totalColumns = 'L';
 
         // 2. Set Row Heights
         $sheet->getRowDimension(1)->setRowHeight(35); // Header row height
@@ -171,7 +173,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
             // Alternating zebra striping
             if ($i % 2 == 0) {
-                $sheet->getStyle("A{$i}:K{$i}")->applyFromArray([
+                $sheet->getStyle("A{$i}:L{$i}")->applyFromArray([
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                         'startColor' => ['rgb' => 'F8F9FA']
@@ -183,16 +185,17 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         // 3. Set Columns Widths
         $widths = [
             'A' => 8,   // الرقم
-            'B' => 18,  // الاسم الأول
-            'C' => 18,  // الاسم العائلة
-            'D' => 28,  // البريد الإلكتروني
-            'E' => 22,  // تاريخ الميلاد
-            'F' => 22,  // تاريخ التسجيل
-            'G' => 20,  // طريقة التسجيل
-            'H' => 22,  // نقاط الاونلاين الكلية
-            'I' => 22,  // نقاط الاونلاين المتاحة
-            'J' => 16,  // الصورة (locked width)
-            'K' => 18,  // حالة الصورة
+            'B' => 20,  // اسم المستخدم
+            'C' => 18,  // الاسم الأول
+            'D' => 18,  // اسم العائلة
+            'E' => 28,  // البريد الإلكتروني
+            'F' => 22,  // تاريخ الميلاد
+            'G' => 22,  // تاريخ التسجيل
+            'H' => 20,  // طريقة التسجيل
+            'I' => 22,  // نقاط الاونلاين الكلية
+            'J' => 22,  // نقاط الاونلاين المتاحة
+            'K' => 16,  // الصورة (locked width)
+            'L' => 18,  // حالة الصورة
         ];
         foreach ($widths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);

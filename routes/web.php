@@ -49,6 +49,7 @@ use App\Http\Controllers\GamePurchaseController;
 use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\FinancialReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -834,10 +835,13 @@ Route::controller(ExcelController::class)->middleware(['checkUserRole','auth'])-
 
 Route::get('/excel', 'index')->name('excel.index');
 Route::post('/excel/import',  'import')->name('excel.import');
-
-
 Route::post('/excel/approved',  'approved')->name('excel.approved');
-
+Route::post('/excel/upload-media', 'uploadMedia')->name('excel.upload_media');
+Route::get('/excel/download-sample', 'downloadSample')->name('excel.download_sample');
+Route::get('/excel/export-category', 'exportCategory')->name('excel.export_category');
+Route::get('/excel/load-category-questions', 'loadCategoryQuestions')->name('excel.load_category_questions');
+Route::post('/excel/save-category-questions', 'saveCategoryQuestions')->name('excel.save_category_questions');
+Route::post('/excel/delete-category-question/{id}', 'deleteCategoryQuestion')->name('excel.delete_category_question');
 
 });
 
@@ -1133,6 +1137,13 @@ Route::controller(ChallengeController::class)->middleware(['checkUserRole','auth
     Route::get('/challenge/details/{id}', 'detailsChallenge')->name('details.challenge');
     Route::get('/challenge/delete/{id}', 'deleteChallenge')->name('delete.challenge');
     Route::get('/export/challenges', 'exportChallenges')->name('export.challenges');
+});
+
+Route::controller(FinancialReportController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/admin/all/transactions', 'allTransactions')->name('all.transactions');
+    Route::get('/admin/transactions/details/{id}', 'transactionDetails')->name('transaction.details');
+    Route::post('/admin/transactions/send-notification', 'sendNotificationToUser')->name('transaction.send.notification');
+    Route::get('/admin/export/transactions', 'exportTransactions')->name('export.transactions');
 });
 
 Route::get('/fix-storage', function () {

@@ -211,8 +211,16 @@
                     <div class="validity-info">
                         صلاحية القسيمة حتى: 
                         <span class="valid-date">
-                            @if($coupon->valid_until)
-                                {{ \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d') }}
+                            @if(!empty($coupon->valid_until))
+                                @php
+                                    $formattedDate = $coupon->valid_until;
+                                    try {
+                                        $formattedDate = \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d');
+                                    } catch (\Exception $e) {
+                                        $formattedDate = $coupon->valid_until;
+                                    }
+                                @endphp
+                                {{ $formattedDate }}
                             @else
                                 صلاحية دائمة
                             @endif

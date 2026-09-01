@@ -451,6 +451,27 @@
             </ul>
         </li>
 
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-credit-card-front" style="color:#10b981; font-size:1.3rem;"></i>
+                </div>
+                <div class="menu-title" style="font-weight:600;">التقارير المالية وعمليات الشراء</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('all.transactions') }}">
+                        <i class="bx bx-right-arrow-alt"></i>جميع عمليات الشراء
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('export.transactions') }}">
+                        <i class="bx bx-right-arrow-alt"></i>تصدير تقرير إكسيل
+                    </a>
+                </li>
+            </ul>
+        </li>
+
 
 
 

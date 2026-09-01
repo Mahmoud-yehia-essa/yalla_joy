@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Models\User;
+use App\Models\PaymentTransaction;
+use App\Models\Price;
+use App\Models\UserCoin;
 
 class OttuPaymentController extends Controller
 {
@@ -30,6 +33,32 @@ class OttuPaymentController extends Controller
         $orderNo = 'ORD-' . time() . '-' . rand(1000, 9999);
         $apiKey = config('ottu.api_key', 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy');
         $apiUrl = config('ottu.api_url', 'https://pay.pikw.com/b/checkout/v1/pymt-txn/');
+
+        // Resolve package details
+        $packageType = $request->input('package_type', 'games');
+        $priceId = $request->input('price_id');
+        $packageTitle = $request->input('package_title');
+        $coinsCount = (int)($request->input('coins_count') ?? 0);
+        $gameCoinId = $request->input('game_coin_id');
+
+        if (empty($packageTitle) && $priceId) {
+            $priceObj = Price::find($priceId);
+            if ($priceObj) {
+                $packageTitle = $priceObj->title;
+                if ($priceObj->coins_number && $coinsCount <= 0) {
+                    $coinsCount = $priceObj->coins_number;
+                }
+                if ($priceObj->game_coin_id && empty($gameCoinId)) {
+                    $gameCoinId = $priceObj->game_coin_id;
+                }
+            }
+        }
+
+        if (empty($packageTitle)) {
+            $packageTitle = $validated['games_count'] > 0 
+                ? "باقة {$validated['games_count']} ألعاب" 
+                : ($coinsCount > 0 ? "باقة {$coinsCount} عملة" : 'باقة شراء');
+        }
 
         // Resolve payment gateway codes (pg_codes)
         $pgCodesInput = $request->input('pg_codes');
@@ -64,8 +93,13 @@ class OttuPaymentController extends Controller
             'customer_email'      => $validated['customer_email'],
             'order_no'            => $orderNo,
             'extra'               => [
-                'user_id'     => $validated['user_id'],
-                'games_count' => $validated['games_count'],
+                'user_id'       => $validated['user_id'],
+                'games_count'   => $validated['games_count'],
+                'package_type'  => $packageType,
+                'price_id'      => $priceId,
+                'package_title' => $packageTitle,
+                'coins_count'   => $coinsCount,
+                'game_coin_id'  => $gameCoinId,
             ],
         ];
 
@@ -77,13 +111,35 @@ class OttuPaymentController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+                $sessionId = $data['session_id'] ?? '';
 
-                Log::info('Ottu Checkout Session Created', ['order_no' => $orderNo, 'session_id' => $data['session_id'] ?? '']);
+                Log::info('Ottu Checkout Session Created', ['order_no' => $orderNo, 'session_id' => $sessionId]);
+
+                // Create transaction in database
+                PaymentTransaction::create([
+                    'user_id'          => $validated['user_id'],
+                    'order_no'         => $orderNo,
+                    'session_id'       => $sessionId,
+                    'package_type'     => $packageType,
+                    'price_id'         => $priceId,
+                    'package_title'    => $packageTitle,
+                    'games_count'      => $validated['games_count'],
+                    'coins_count'      => $coinsCount,
+                    'game_coin_id'     => $gameCoinId,
+                    'amount'           => $validated['amount'],
+                    'currency'         => 'KWD',
+                    'pg_code'          => $pgCodes[0] ?? 'knet',
+                    'status'           => 'pending',
+                    'customer_name'    => trim($validated['customer_first_name'] . ' ' . $validated['customer_last_name']),
+                    'customer_email'   => $validated['customer_email'],
+                    'customer_phone'   => $validated['customer_phone'] ?? null,
+                    'gateway_response' => json_encode($data),
+                ]);
 
                 return response()->json([
                     'status'       => 'success',
                     'checkout_url' => $data['checkout_url'] ?? '',
-                    'session_id'   => $data['session_id'] ?? '',
+                    'session_id'   => $sessionId,
                     'order_no'     => $orderNo,
                     'message'      => 'Checkout created successfully',
                 ]);
@@ -116,23 +172,93 @@ class OttuPaymentController extends Controller
         $payload = $request->all();
         $state = strtolower($payload['state'] ?? ($payload['status'] ?? ''));
         $sessionId = $payload['session_id'] ?? ($payload['id'] ?? null);
+        $orderNo = $payload['order_no'] ?? null;
         $extra = $payload['extra'] ?? [];
         $userId = $extra['user_id'] ?? null;
         $gamesCount = (int)($extra['games_count'] ?? 0);
+        $coinsCount = (int)($extra['coins_count'] ?? 0);
+        $gameCoinId = $extra['game_coin_id'] ?? null;
+        $isPaid = in_array($state, ['paid', 'captured', 'success', 'completed', 'approved', 'processed']);
+
+        // Find transaction
+        $transaction = null;
+        if ($sessionId || $orderNo) {
+            $transaction = PaymentTransaction::where(function($q) use ($sessionId, $orderNo) {
+                if ($sessionId) $q->where('session_id', $sessionId);
+                if ($orderNo) $q->orWhere('order_no', $orderNo);
+            })->first();
+        }
+
+        // Extract actual pg_code
+        $actualPgCode = null;
+        if (!empty($payload['payment_methods']) && is_array($payload['payment_methods'])) {
+            foreach ($payload['payment_methods'] as $pm) {
+                $pmState = strtolower($pm['state'] ?? ($pm['status'] ?? ''));
+                if (in_array($pmState, ['paid', 'captured', 'success', 'completed', 'approved', 'processed'])) {
+                    $actualPgCode = $pm['code'] ?? ($pm['name'] ?? null);
+                    break;
+                }
+            }
+            if (!$actualPgCode && !empty($payload['payment_methods'][0]['code'])) {
+                $actualPgCode = $payload['payment_methods'][0]['code'];
+            }
+        }
 
         // Process successful payment
-        if (in_array($state, ['paid', 'captured', 'success', 'completed', 'approved', 'processed'])) {
-            if ($userId && $gamesCount > 0 && $sessionId) {
+        if ($isPaid) {
+            if ($userId && $sessionId) {
                 $processedCacheKey = 'ottu_session_processed_' . $sessionId;
                 if (!Cache::has($processedCacheKey)) {
                     $user = User::find($userId);
                     if ($user) {
-                        $user->number_of_games = ($user->number_of_games ?? 0) + $gamesCount;
-                        $user->save();
+                        if ($gamesCount > 0) {
+                            $user->number_of_games = ($user->number_of_games ?? 0) + $gamesCount;
+                            $user->save();
+                        }
+                        if ($coinsCount > 0 && $gameCoinId) {
+                            UserCoin::create([
+                                'user_id'      => $user->id,
+                                'game_coin_id' => $gameCoinId,
+                                'coins_number' => $coinsCount,
+                                'type'         => 'add',
+                            ]);
+                        }
                         Cache::put($processedCacheKey, true, now()->addDays(7));
-                        Log::info("Updated user #{$userId} games by +{$gamesCount} via webhook");
+                        Log::info("Updated user #{$userId} purchases via webhook");
                     }
                 }
+            }
+
+            if ($transaction) {
+                $updateData = [
+                    'status'           => 'paid',
+                    'paid_at'          => now(),
+                    'gateway_response' => json_encode($payload),
+                ];
+                if ($actualPgCode) {
+                    $updateData['pg_code'] = $actualPgCode;
+                }
+                $transaction->update($updateData);
+            }
+        } else {
+            if ($transaction && !in_array($transaction->status, ['paid', 'success', 'captured'])) {
+                $newStatus = 'failed';
+                if (in_array($state, ['created', 'pending', 'initiated', 'open'])) {
+                    $newStatus = 'pending';
+                } elseif (in_array($state, ['cancelled', 'canceled'])) {
+                    $newStatus = 'cancelled';
+                } elseif ($state === 'expired') {
+                    $newStatus = 'expired';
+                }
+
+                $updateData = [
+                    'status'           => $newStatus,
+                    'gateway_response' => json_encode($payload),
+                ];
+                if ($actualPgCode) {
+                    $updateData['pg_code'] = $actualPgCode;
+                }
+                $transaction->update($updateData);
             }
         }
 
@@ -160,36 +286,92 @@ class OttuPaymentController extends Controller
                 Log::info("Ottu checkStatus response for {$sessionId}:", $data ?? []);
 
                 $state = strtolower($data['state'] ?? ($data['status'] ?? 'pending'));
+                $orderNo = $data['order_no'] ?? null;
                 $isPaid = in_array($state, ['paid', 'captured', 'success', 'completed', 'processed', 'approved']);
 
-                if (!$isPaid && !empty($data['payment_methods']) && is_array($data['payment_methods'])) {
+                $actualPgCode = null;
+                if (!empty($data['payment_methods']) && is_array($data['payment_methods'])) {
                     foreach ($data['payment_methods'] as $pm) {
                         $pmState = strtolower($pm['state'] ?? ($pm['status'] ?? ''));
                         if (in_array($pmState, ['paid', 'captured', 'success', 'completed', 'approved', 'processed'])) {
                             $isPaid = true;
                             $state = $pmState;
+                            $actualPgCode = $pm['code'] ?? ($pm['name'] ?? null);
                             break;
                         }
                     }
+                    if (!$actualPgCode && !empty($data['payment_methods'][0]['code'])) {
+                        $actualPgCode = $data['payment_methods'][0]['code'];
+                    }
                 }
+
+                // Find transaction
+                $transaction = PaymentTransaction::where('session_id', $sessionId)
+                    ->orWhere('order_no', $orderNo)
+                    ->first();
 
                 $currentNumberOfGames = null;
                 if ($isPaid) {
                     $extra = $data['extra'] ?? [];
-                    $userId = $extra['user_id'] ?? null;
-                    $gamesCount = (int)($extra['games_count'] ?? 0);
-                    if ($userId && $gamesCount > 0) {
+                    $userId = $extra['user_id'] ?? ($transaction->user_id ?? null);
+                    $gamesCount = (int)($extra['games_count'] ?? ($transaction->games_count ?? 0));
+                    $coinsCount = (int)($extra['coins_count'] ?? ($transaction->coins_count ?? 0));
+                    $gameCoinId = $extra['game_coin_id'] ?? ($transaction->game_coin_id ?? null);
+
+                    if ($userId) {
                         $user = User::find($userId);
                         if ($user) {
                             $processedCacheKey = 'ottu_session_processed_' . $sessionId;
                             if (!Cache::has($processedCacheKey)) {
-                                $user->number_of_games = ($user->number_of_games ?? 0) + $gamesCount;
-                                $user->save();
+                                if ($gamesCount > 0) {
+                                    $user->number_of_games = ($user->number_of_games ?? 0) + $gamesCount;
+                                    $user->save();
+                                }
+                                if ($coinsCount > 0 && $gameCoinId) {
+                                    UserCoin::create([
+                                        'user_id'      => $user->id,
+                                        'game_coin_id' => $gameCoinId,
+                                        'coins_number' => $coinsCount,
+                                        'type'         => 'add',
+                                    ]);
+                                }
                                 Cache::put($processedCacheKey, true, now()->addDays(7));
-                                Log::info("Updated user #{$userId} games by +{$gamesCount} via checkStatus");
+                                Log::info("Updated user #{$userId} purchases via checkStatus");
                             }
                             $currentNumberOfGames = $user->number_of_games;
                         }
+                    }
+
+                    if ($transaction) {
+                        $updateData = [
+                            'status'           => 'paid',
+                            'paid_at'          => now(),
+                            'gateway_response' => json_encode($data),
+                        ];
+                        if ($actualPgCode) {
+                            $updateData['pg_code'] = $actualPgCode;
+                        }
+                        $transaction->update($updateData);
+                    }
+                } else {
+                    if ($transaction && !in_array($transaction->status, ['paid', 'success', 'captured'])) {
+                        $newStatus = 'failed';
+                        if (in_array($state, ['created', 'pending', 'initiated', 'open'])) {
+                            $newStatus = 'pending';
+                        } elseif (in_array($state, ['cancelled', 'canceled'])) {
+                            $newStatus = 'cancelled';
+                        } elseif ($state === 'expired') {
+                            $newStatus = 'expired';
+                        }
+
+                        $updateData = [
+                            'status'           => $newStatus,
+                            'gateway_response' => json_encode($data),
+                        ];
+                        if ($actualPgCode) {
+                            $updateData['pg_code'] = $actualPgCode;
+                        }
+                        $transaction->update($updateData);
                     }
                 }
 
@@ -198,7 +380,7 @@ class OttuPaymentController extends Controller
                     'paid'            => $isPaid,
                     'number_of_games' => $currentNumberOfGames,
                     'session_id'      => $sessionId,
-                    'order_no'        => $data['order_no'] ?? '',
+                    'order_no'        => $data['order_no'] ?? ($transaction->order_no ?? ''),
                     'message'         => $isPaid ? 'Payment successful' : 'Payment not completed',
                 ]);
             }

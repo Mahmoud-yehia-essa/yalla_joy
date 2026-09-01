@@ -30,6 +30,7 @@
                 <thead>
                     <tr class="text-center align-middle">
                         <th>#</th>
+                        <th>اسم المستخدم</th>
                         <th>الاسم</th>
                         <th>البريد الإلكتروني</th>
                         <th>تاريخ الميلاد</th>
@@ -46,6 +47,7 @@
                 @foreach($users as $key => $item)
                 <tr>
                 <td class="text-center"> {{ $key+1 }} </td>
+                <td class="fw-bold text-nowrap text-primary">{{ $item->user_name ?? '---' }}</td>
                 <td class="fw-bold text-nowrap">{{ $item->fname }} {{ $item->lname }}</td>
                 <td>{{ $item->email }}</td>
                 <td class="text-nowrap">
@@ -137,7 +139,7 @@
 
                 <!-- Coins Collapse Row -->
                 <tr id="user-coins-row-{{ $item->id }}" style="display: none; background-color: #faf9fd;">
-                    <td colspan="11" class="p-3">
+                    <td colspan="12" class="p-3">
         <div class="card shadow-none border mb-0" style="overflow: hidden;">
             <div class="card-body p-2 p-md-3">
                 <!-- User Game Stats -->
@@ -232,21 +234,19 @@
 
 </tbody>
 <tfoot>
-<tr>
-  <th>الرقم</th>
-<th>إسم الأول</th>
-<th>إسم العائلة</th>
-<th>البريد الإلكتروني</th>
-<th>تاريخ الميلاد</th>
-<th>تاريخ التسجيل</th>
-<th>طريقة التسجيل</th>
-
-<th>نقاط الاون لاين منذ تاريخ التسجيل</th>
-<th>نقاط الاون لاين المتاحة</th>
-
-<th> الصورة</th>
-<th>حالة الصورة</th>
-<th>الاجراء</th>
+<tr class="text-center align-middle">
+    <th>#</th>
+    <th>اسم المستخدم</th>
+    <th>الاسم</th>
+    <th>البريد الإلكتروني</th>
+    <th>تاريخ الميلاد</th>
+    <th>تاريخ التسجيل</th>
+    <th>طريقة التسجيل</th>
+    <th>نقاط الأونلاين (الكلي)</th>
+    <th>نقاط الأونلاين (المتاحة)</th>
+    <th>الصورة</th>
+    <th>حالة الصورة</th>
+    <th>الإجراءات</th>
 </tr>
 </tfoot>
 </table>

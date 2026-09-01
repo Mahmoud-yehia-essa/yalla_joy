@@ -262,21 +262,23 @@ public function addPoints(Request $request)
     ]);
 }
 
-public function topUsersByOnlinePoints(Request $request)
-{
-    $limit = $request->limit ?? 10; // افتراضي 10 مستخدمين
+    public function topUsersByOnlinePoints(Request $request)
+    {
+        $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
 
-    $users = User::where('status', 'active')
-        ->orderByDesc('online_points')
-        ->take($limit)
-        ->get();
+        $users = User::where('status', 'active')
+            ->where('online_points', '>', 0)
+            ->where('role', '!=', 'admin')
+            ->orderByDesc('online_points')
+            ->take($limit)
+            ->get();
 
-    return response()->json([
-        'status' => true,
-        'total' => $users->count(),
-        'data' => $users
-    ]);
-}
+        return response()->json([
+            'status' => true,
+            'total'  => $users->count(),
+            'data'   => $users
+        ]);
+    }
     public function addOnlineWin(Request $request)
     {
         $request->validate([

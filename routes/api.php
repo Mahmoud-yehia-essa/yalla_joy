@@ -23,6 +23,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CouponCompanyController;
 use App\Http\Controllers\AvatarCategoryController;
 use App\Http\Controllers\AvatarItemController;
+use App\Http\Controllers\OtpEmailController;
 use App\Http\Controllers\FreePlanController;
 use App\Http\Controllers\OfflineGameCoinsController;
 use App\Http\Controllers\GamePurchaseController;
@@ -264,6 +265,11 @@ Route::post('/challenge/create', [ChallengeController::class, 'sendChallengeInvi
 Route::post('/challenge/update-status', [ChallengeController::class, 'updateChallengeStatusApi']);
 Route::post('/challenge/user-challenges', [ChallengeController::class, 'getUserChallengesApi']);
 Route::post('/challenge/get-user-challenges', [ChallengeController::class, 'getUserChallengesApi']);
+
+// Backup OTP & Coupon Email API
+Route::post('send-otp-email', [OtpEmailController::class, 'sendOtpEmail']);
+Route::post('send-special-coupon-email', [OtpEmailController::class, 'sendCouponEmail']);
+
 
 
 

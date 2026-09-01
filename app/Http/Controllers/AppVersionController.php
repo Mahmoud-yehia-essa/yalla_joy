@@ -31,6 +31,8 @@ class AppVersionController extends Controller
             'ios' => 'required|url',
             'android' => 'required|url',
             'des' => 'nullable|string|max:500',
+            'whatsapp_number' => 'nullable|string|max:50',
+            'contact_email' => 'nullable|email|max:100',
         ], [
             'version.required' => 'يجب إدخال إصدار التطبيق.',
             'ios.required' => 'يجب إدخال رابط التطبيق على App Store.',
@@ -39,6 +41,7 @@ class AppVersionController extends Controller
             'android.url' => 'رابط Google Play يجب أن يكون رابطًا صحيحًا.',
             'des.string' => 'يجب أن يكون الوصف نصًا.',
             'des.max' => 'يجب ألا يتجاوز الوصف 500 حرف.',
+            'contact_email.email' => 'البريد الإلكتروني للتواصل يجب أن يكون بريداً صالحاً.',
         ]);
 
     // Save or update the version in the database (if using a Version model)
@@ -51,17 +54,12 @@ class AppVersionController extends Controller
             'des' => $request->des,
             'app_type' => $request->app_type,
             'update_required' => $request->update_required,
-
-
-                        'font_family_id' => $request->font_family_id,
+            'font_family_id' => $request->font_family_id,
             'primary_color' => $request->primary_color,
             'font_color_normal' => $request->font_color_normal,
-
             'app_name' => $request->app_name,
-
-
-
-
+            'whatsapp_number' => $request->whatsapp_number,
+            'contact_email' => $request->contact_email,
         ]
     );
     $notification = array(
