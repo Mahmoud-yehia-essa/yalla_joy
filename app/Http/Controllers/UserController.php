@@ -1126,6 +1126,56 @@ public function validateRegisterApi(Request $request)
         ]);
     }
 
+    public function resetUserStatsAndCoins(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $userId = $request->user_id;
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $user = User::findOrFail($userId);
+
+            // 1. Reset Maydan game stats (wins, play count, points)
+            $user->online_game_wins = 0;
+            $user->online_play_count = 0;
+            $user->online_points = 0;
+            $user->online_points_fixed = 0;
+            $user->save();
+
+            // 2. Reset Session games (delete user created games, cascade deletes related records)
+            \App\Models\Game::where('user_id_created', $userId)->delete();
+
+            // 3. Reset all user coins
+            \App\Models\UserCoin::where('user_id', $userId)->delete();
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تصفير جميع بيانات وإحصائيات وعملات المستخدم بنجاح.',
+                'data' => [
+                    'online_game_wins' => 0,
+                    'online_play_count' => 0,
+                    'online_points' => 0,
+                    'online_points_fixed' => 0,
+                    'session_games_count' => 0,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Error resetting user stats and coins: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تصفير البيانات: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function exportUsers()
     {
         return Excel::download(new UsersExport, 'users_' . date('Y_m_d_His') . '.xlsx');

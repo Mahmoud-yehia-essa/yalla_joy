@@ -149,6 +149,7 @@
                                     <div class="col-sm-3"><h6 class="mb-0">عدد العملات المكتسبة للمستوى</h6></div>
                                     <div class="col-sm-9 text-secondary">
                                         <input type="number" name="level_reward_amount" class="form-control" value="{{ old('level_reward_amount', $ranking->level_reward_amount) }}" />
+                                        <small class="text-muted">يتم توزيع هذا المجموع من العملات بالتساوي على عدد مرات الفوز المطلوبة للمستوى (يحصل اللاعب على نصيبه من العملات عند كل انتصار يحققه داخل المستوى).</small>
                                     </div>
                                 </div>
 

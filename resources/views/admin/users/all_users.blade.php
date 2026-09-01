@@ -80,8 +80,8 @@
                     @endif
                 </td>
 
-                <td class="text-center fw-bold">{{ $item->online_points_fixed }}</td>
-                <td class="text-center fw-bold">{{ $item->online_points }}</td>
+                <td class="text-center fw-bold user-points-fixed-{{ $item->id }}">{{ $item->online_points_fixed }}</td>
+                <td class="text-center fw-bold user-points-{{ $item->id }}">{{ $item->online_points }}</td>
 
                 <td class="text-center">
                     <img
@@ -132,6 +132,9 @@
                 <a href="{{ route('delete.user',$item->id) }}" class="btn btn-sm btn-danger" id="delete" title="Delete Data" ><i class="fa fa-trash"></i></a>
                 <button type="button" class="btn btn-sm btn-warning toggle-coins-btn text-dark" data-user-id="{{ $item->id }}" title="العملات المكتسبة">
                     <i class="fa-solid fa-coins"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger reset-user-data-btn" data-user-id="{{ $item->id }}" data-username="{{ $item->fname }} {{ $item->lname }}" title="تصفير بيانات وعملات المستخدم">
+                    <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
 
                 </td>
@@ -194,7 +197,7 @@
                             </div>
                             <div class="text-end w-100">
                                 <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">عدد مرات اللعب</span>
-                                <input type="number" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->games ? $item->games->count() : 0 }}" readonly>
+                                <input type="number" id="stat-session-games-{{ $item->id }}" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->games ? $item->games->count() : 0 }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -558,6 +561,148 @@
                     document.getElementById('modal-loading-spinner').classList.add('d-none');
                     document.getElementById('modal-no-data').innerText = 'حدث خطأ في تحميل السجل.';
                     document.getElementById('modal-no-data').classList.remove('d-none');
+                });
+            });
+        });
+
+        // Reset User Stats and Coins Confirmation
+        document.querySelectorAll('.reset-user-data-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username') || '';
+
+                Swal.fire({
+                    title: '<span style="font-size: 20px; font-weight: bold; color: #d33;">تصفير بيانات وعملات المستخدم</span>',
+                    html: `
+                        <div style="direction: rtl; text-align: right; font-size: 14px; font-family: 'Cairo', sans-serif;">
+                            <div class="mb-2 text-dark">المستخدم: <strong>${username}</strong></div>
+                            <div class="alert alert-warning border-0 p-2 mb-3" style="background-color: #fff3cd; color: #856404; font-size: 12px; border-radius: 6px;">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                <strong>تنبيه:</strong> سيتم تصفير البيانات التالية لهذا المستخدم بشكل كامل:
+                            </div>
+                            <ul class="list-group list-group-flush mb-3 p-0" style="font-size: 13px; border-radius: 6px; overflow: hidden; border: 1px solid #eee;">
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-trophy text-success me-2"></i> عدد مرات الفوز المحققة في لعبة الميدان</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-gamepad text-info me-2"></i> عدد مرات اللعب الميدان</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-star text-warning me-2"></i> نقاط لعبة الميدان (الكلي والمتاحة)</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-users text-primary me-2"></i> عدد مرات اللعب لعبة الجلسة</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-coins text-warning me-2"></i> تصفير جميع العملات المكتسبة للمستخدم</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                            </ul>
+                            <div class="text-center fw-bold text-dark mt-2" style="font-size: 14px;">
+                                سوف يتم تصفير قيم البيانات السابقة، هل أنت متأكد؟
+                            </div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fa-solid fa-check me-1"></i> نعم، تصفير البيانات',
+                    cancelButtonText: '<i class="fa-solid fa-xmark me-1"></i> إلغاء',
+                    reverseButtons: true,
+                    focusCancel: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'جاري تصفير البيانات...',
+                            html: '<div class="spinner-border text-danger my-3" role="status"><span class="visually-hidden">جاري المعالجة...</span></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        });
+
+                        fetch('/user/reset-stats-and-coins', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ user_id: userId })
+                        })
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'تم التصفير بنجاح!',
+                                    text: res.message,
+                                    confirmButtonColor: '#0d6efd',
+                                    confirmButtonText: 'حسناً',
+                                    timer: 2500
+                                });
+
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success(res.message);
+                                }
+
+                                // Update main table cells
+                                document.querySelectorAll(`.user-points-fixed-${userId}`).forEach(el => el.innerText = '0');
+                                document.querySelectorAll(`.user-points-${userId}`).forEach(el => el.innerText = '0');
+
+                                // Update collapse inputs
+                                const winsInput = document.getElementById(`stat-wins-${userId}`);
+                                if (winsInput) winsInput.value = 0;
+
+                                const playInput = document.getElementById(`stat-play-${userId}`);
+                                if (playInput) playInput.value = 0;
+
+                                const pointsInput = document.getElementById(`stat-points-${userId}`);
+                                if (pointsInput) pointsInput.value = 0;
+
+                                const sessionInput = document.getElementById(`stat-session-games-${userId}`);
+                                if (sessionInput) sessionInput.value = 0;
+
+                                // Update loaded coin inputs to 0
+                                document.querySelectorAll(`.coin-input-field-${userId}`).forEach(input => {
+                                    input.value = 0;
+                                });
+
+                                // Reset loaded state so it fetches fresh coins summary if reopened
+                                const collapseRow = document.getElementById(`user-coins-row-${userId}`);
+                                if (collapseRow) {
+                                    collapseRow.removeAttribute('data-loaded');
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'خطأ!',
+                                    text: res.message || 'حدث خطأ أثناء تصفير البيانات.',
+                                    confirmButtonColor: '#d33',
+                                    confirmButtonText: 'حسناً'
+                                });
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.error(res.message || 'حدث خطأ أثناء تصفير البيانات.');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'خطأ في الاتصال!',
+                                text: 'حدث خطأ أثناء الاتصال بالخادم. الرجاء المحاولة مرة أخرى.',
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'حسناً'
+                            });
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error('حدث خطأ أثناء الاتصال بالخادم.');
+                            }
+                        });
+                    }
                 });
             });
         });

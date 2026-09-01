@@ -287,111 +287,173 @@ public function addPoints(Request $request)
 
         $user = User::findOrFail($request->user_id);
 
+        $previousWins = (int) $user->online_game_wins;
         // إضافة فوز جديد
         $user->increment('online_game_wins');
-        $wins = $user->online_game_wins;
+        $wins = (int) $user->online_game_wins;
 
-        // جلب الرتب مع العلاقات
-        $rankings = \App\Models\RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])->orderBy('rank_order', 'asc')->get();
+        // إضافة نقاط الفوز المحددة في الإعدادات للفائز في لعبة الميدان كبديل لنقاط الأسئلة
+        $appSetting = \App\Models\AppVersion::first();
+        $winPoints = $appSetting && isset($appSetting->online_game_win_points)
+            ? (int) $appSetting->online_game_win_points
+            : 6;
 
+        if ($winPoints > 0) {
+            $user->increment('online_points', $winPoints);
+            $user->increment('online_points_fixed', $winPoints);
+        }
+
+        // جلب الرتب مع العلاقات مرتبة تصاعدياً
+        $rankings = \App\Models\RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])
+            ->orderBy('rank_order', 'asc')
+            ->get();
+
+        if ($rankings->isEmpty()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Online win added successfully',
+                'online_game_wins' => $wins,
+                'upgrade_type' => 'none',
+                'current_rank' => null,
+                'current_level' => null,
+                'rewards_received' => []
+            ]);
+        }
+
+        // تحديد الرتبة التي كان فيها المستخدم قبل هذا الفوز (الرتبة التي ساهم هذا الفوز فيها)
+        $activeRank = null;
+        $activeRankBaselineWins = 0;
+
+        foreach ($rankings as $rank) {
+            if ($previousWins < $rank->total_wins_to_next_rank) {
+                $activeRank = $rank;
+                break;
+            }
+            $activeRankBaselineWins = $rank->total_wins_to_next_rank;
+        }
+
+        if (!$activeRank) {
+            $activeRank = $rankings->last();
+            if ($rankings->count() > 1) {
+                $activeRankBaselineWins = $rankings[$rankings->count() - 2]->total_wins_to_next_rank;
+            } else {
+                $activeRankBaselineWins = 0;
+            }
+        }
+
+        // حساب التقدم داخل الرتبة
+        $winsToNextLevel = max(1, (int) $activeRank->wins_to_next_level);
+        $levelRewardAmount = (int) $activeRank->level_reward_amount;
+        $levelsCount = max(1, (int) $activeRank->levels_count);
+
+        $winsInRankBefore = $previousWins - $activeRankBaselineWins;
+        $levelNumberBefore = (int) floor($winsInRankBefore / $winsToNextLevel) + 1;
+        if ($levelNumberBefore > $levelsCount) {
+            $levelNumberBefore = $levelsCount;
+        }
+
+        // ترتيب هذا الفوز داخل المستوى الحالي (من 1 إلى $winsToNextLevel)
+        $winInCurrentLevel = ($winsInRankBefore % $winsToNextLevel) + 1;
+
+        // حساب نصيب هذا الفوز من عملات المستوى بالتوزيع الدقيق والعادل
+        $cumulativeBefore = (int) floor(($levelRewardAmount * ($winInCurrentLevel - 1)) / $winsToNextLevel);
+        $cumulativeAfter = (int) floor(($levelRewardAmount * $winInCurrentLevel) / $winsToNextLevel);
+        $coinsForThisWin = max(0, $cumulativeAfter - $cumulativeBefore);
+
+        $isLevelCompleted = ($winInCurrentLevel == $winsToNextLevel);
+
+        $responseMessage = 'Online win added successfully';
+        $rewardsReceived = [];
+        $upgradeType = 'none';
+
+        // 1. إضافة عملات الفوز الحالي للمستوى
+        if ($coinsForThisWin > 0 && $activeRank->level_reward_coin_id) {
+            \App\Models\UserCoin::create([
+                'user_id' => $user->id,
+                'game_coin_id' => $activeRank->level_reward_coin_id,
+                'coins_number' => $coinsForThisWin,
+                'type' => 'add'
+            ]);
+
+            $rewardsReceived[] = [
+                'reward_type' => $isLevelCompleted ? 'level_upgrade' : 'level_reward',
+                'amount' => $coinsForThisWin,
+                'coin_info' => $activeRank->levelRewardCoin
+            ];
+        }
+
+        // 2. التحقق من اكتمال المستوى أو اكتمال الرتبة
+        if ($isLevelCompleted) {
+            if ($levelNumberBefore < $levelsCount) {
+                // ترقية لمستوى جديد داخل نفس الرتبة
+                $upgradeType = 'level_upgrade';
+                $nextLevelNum = $levelNumberBefore + 1;
+                $responseMessage = 'مبروك! لقد انتقلت إلى المستوى ' . $nextLevelNum . ' في رتبة ' . $activeRank->rank_name;
+            } else {
+                // إتمام آخر مستوى في الرتبة والانتقال للرتبة التالية
+                $nextRank = $rankings->where('rank_order', '>', $activeRank->rank_order)->first();
+
+                if ($nextRank) {
+                    $upgradeType = 'rank_upgrade';
+                    $responseMessage = 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $nextRank->rank_name;
+
+                    // مكافأة الوصول للرتبة الجديدة (العملات / النقاط المقررة للرتبة)
+                    if ($nextRank->rank_reward_amount > 0 && $nextRank->rank_reward_coin_id) {
+                        \App\Models\UserCoin::create([
+                            'user_id' => $user->id,
+                            'game_coin_id' => $nextRank->rank_reward_coin_id,
+                            'coins_number' => $nextRank->rank_reward_amount,
+                            'type' => 'add'
+                        ]);
+
+                        $rewardsReceived[] = [
+                            'reward_type' => 'rank_upgrade',
+                            'amount' => $nextRank->rank_reward_amount,
+                            'coin_info' => $nextRank->rankRewardCoin
+                        ];
+                    }
+                } else {
+                    $upgradeType = 'level_upgrade';
+                    $responseMessage = 'مبروك! لقد أتممت جميع المستويات في رتبة ' . $activeRank->rank_name;
+                }
+            }
+        } else {
+            // فوز مرحلي داخل المستوى
+            $responseMessage = 'مبروك! فوز جديد وحصلت على ' . $coinsForThisWin . ' عملة';
+        }
+
+        // 3. حساب الرتبة والمستوى الحالي بعد الفوز
         $currentRank = null;
-        $previousRank = null;
-        $baselineWins = 0;
-
+        $baselineWinsAfter = 0;
         foreach ($rankings as $rank) {
             if ($wins < $rank->total_wins_to_next_rank) {
                 $currentRank = $rank;
                 break;
             }
-            $previousRank = $rank;
-            $baselineWins = $rank->total_wins_to_next_rank;
+            $baselineWinsAfter = $rank->total_wins_to_next_rank;
         }
 
         if (!$currentRank) {
             $currentRank = $rankings->last();
+            if ($rankings->count() > 1) {
+                $baselineWinsAfter = $rankings[$rankings->count() - 2]->total_wins_to_next_rank;
+            } else {
+                $baselineWinsAfter = 0;
+            }
         }
 
-        $winsInCurrentRank = $wins - $baselineWins;
-
-        $responseMessage = 'Online win added successfully';
-        $rewardsReceived = [];
-        $currentLevelNum = 1;
-        $upgradeType = 'none';
-
-        // تحقق من الترقية لرتبة جديدة أو مستوى جديد
-        if ($winsInCurrentRank == 0 && $baselineWins > 0) {
-            // ترقية رتبة: أتم الرتبة السابقة للتو ووصل للرتبة الحالية
-            $currentLevelNum = 1;
-            $upgradeType = 'rank_upgrade';
-            
-            if ($previousRank) {
-                // مكافأة إتمام المستوى الأخير في الرتبة السابقة
-                if ($previousRank->level_reward_amount > 0 && $previousRank->level_reward_coin_id) {
-                    $rewardsReceived[] = [
-                        'reward_type' => 'level_upgrade',
-                        'amount' => $previousRank->level_reward_amount,
-                        'coin_info' => $previousRank->levelRewardCoin
-                    ];
-                    
-                    \App\Models\UserCoin::create([
-                        'user_id' => $user->id,
-                        'game_coin_id' => $previousRank->level_reward_coin_id,
-                        'coins_number' => $previousRank->level_reward_amount,
-                        'type' => 'add'
-                    ]);
-                }
-            }
-
-            // مكافأة الوصول للرتبة الجديدة
-            if ($currentRank->rank_reward_amount > 0 && $currentRank->rank_reward_coin_id) {
-                $rewardsReceived[] = [
-                    'reward_type' => 'rank_upgrade',
-                    'amount' => $currentRank->rank_reward_amount,
-                    'coin_info' => $currentRank->rankRewardCoin
-                ];
-                
-                \App\Models\UserCoin::create([
-                    'user_id' => $user->id,
-                    'game_coin_id' => $currentRank->rank_reward_coin_id,
-                    'coins_number' => $currentRank->rank_reward_amount,
-                    'type' => 'add'
-                ]);
-            }
-            
-            $responseMessage = 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $currentRank->rank_name;
-            
-        } else {
-            // في نفس الرتبة
-            $winsToNextLevel = max(1, $currentRank->wins_to_next_level);
-            $currentLevelNum = floor($winsInCurrentRank / $winsToNextLevel) + 1;
-
-            if ($winsInCurrentRank > 0 && ($winsInCurrentRank % $winsToNextLevel) == 0) {
-                // ترقية مستوى داخل الرتبة
-                $upgradeType = 'level_upgrade';
-
-                if ($currentRank->level_reward_amount > 0 && $currentRank->level_reward_coin_id) {
-                    $rewardsReceived[] = [
-                        'reward_type' => 'level_upgrade',
-                        'amount' => $currentRank->level_reward_amount,
-                        'coin_info' => $currentRank->levelRewardCoin
-                    ];
-                    
-                    \App\Models\UserCoin::create([
-                        'user_id' => $user->id,
-                        'game_coin_id' => $currentRank->level_reward_coin_id,
-                        'coins_number' => $currentRank->level_reward_amount,
-                        'type' => 'add'
-                    ]);
-                }
-                
-                $responseMessage = 'مبروك! لقد انتقلت إلى المستوى ' . $currentLevelNum . ' في رتبة ' . $currentRank->rank_name;
-            }
+        $winsInCurrentRankAfter = $wins - $baselineWinsAfter;
+        $winsPerLevelAfter = max(1, (int) $currentRank->wins_to_next_level);
+        $currentLevelNum = (int) floor($winsInCurrentRankAfter / $winsPerLevelAfter) + 1;
+        if ($currentLevelNum > $currentRank->levels_count) {
+            $currentLevelNum = $currentRank->levels_count;
         }
 
         return response()->json([
             'status' => true,
             'message' => $responseMessage,
             'online_game_wins' => $wins,
+            'points_awarded' => $winPoints,
             'upgrade_type' => $upgradeType,
             'current_rank' => $currentRank,
             'current_level' => [

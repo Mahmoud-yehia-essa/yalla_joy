@@ -348,6 +348,7 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 Route::controller(UserController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/users/all', 'getAllUsers')->name('all.users');
     Route::post('/user/update-collapse-details', 'updateUserCollapseDetails')->name('user.update.collapse.details');
+    Route::post('/user/reset-stats-and-coins', 'resetUserStatsAndCoins')->name('user.reset.stats.coins');
     Route::get('/export/users', 'exportUsers')->name('export.users');
 
     Route::get('/user/add', 'addUser')->name('add.user');

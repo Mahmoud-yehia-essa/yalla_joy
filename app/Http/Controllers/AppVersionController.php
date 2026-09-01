@@ -33,6 +33,7 @@ class AppVersionController extends Controller
             'des' => 'nullable|string|max:500',
             'whatsapp_number' => 'nullable|string|max:50',
             'contact_email' => 'nullable|email|max:100',
+            'online_game_win_points' => 'nullable|integer|min:0',
         ], [
             'version.required' => 'يجب إدخال إصدار التطبيق.',
             'ios.required' => 'يجب إدخال رابط التطبيق على App Store.',
@@ -42,6 +43,7 @@ class AppVersionController extends Controller
             'des.string' => 'يجب أن يكون الوصف نصًا.',
             'des.max' => 'يجب ألا يتجاوز الوصف 500 حرف.',
             'contact_email.email' => 'البريد الإلكتروني للتواصل يجب أن يكون بريداً صالحاً.',
+            'online_game_win_points.integer' => 'نقاط الفائز في لعبة الميدان يجب أن تكون رقماً صحيحاً.',
         ]);
 
     // Save or update the version in the database (if using a Version model)
@@ -60,6 +62,7 @@ class AppVersionController extends Controller
             'app_name' => $request->app_name,
             'whatsapp_number' => $request->whatsapp_number,
             'contact_email' => $request->contact_email,
+            'online_game_win_points' => $request->online_game_win_points ?? 6,
         ]
     );
     $notification = array(
