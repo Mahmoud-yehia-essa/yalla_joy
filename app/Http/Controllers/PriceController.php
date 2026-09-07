@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\price;
+use App\Models\Price;
 use App\Models\GameCoin;
 
 use Illuminate\Http\Request;

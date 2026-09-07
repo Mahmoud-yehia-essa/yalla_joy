@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\coupon;
+use App\Models\Coupon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Exports\CouponExport;
