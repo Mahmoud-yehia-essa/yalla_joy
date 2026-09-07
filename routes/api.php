@@ -32,6 +32,7 @@ use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OttuPaymentController;
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\GameInstructionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +73,8 @@ Route::post('/main/category',[MainCategoryController::class,'getMainCategoryApi'
 
 Route::post('/categories',[CategoryController::class,'getCategoryApi']);
 Route::post('/categories/repetition-status', [CategoryController::class, 'getCategoryRepetitionStatusApi']);
+
+Route::match(['get', 'post'], '/game/instructions', [GameInstructionController::class, 'getGameInstructionsApi']);
 
 Route::post('/avatar/categories', [AvatarCategoryController::class, 'getAvatarCategoriesApi']);
 

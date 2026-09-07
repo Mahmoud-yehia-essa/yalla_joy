@@ -109,6 +109,7 @@ class CategoryController extends Controller
             'category_name_en' => 'required|string|max:255',
             'category_description' => 'nullable|string',
             'category_description_en' => 'nullable|string',
+            'display_target' => 'nullable|in:both,session,field',
             'category_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'order_by' => [
                 'nullable',
@@ -163,6 +164,7 @@ class CategoryController extends Controller
             'category_name_en' => $request->category_name_en,
             'category_description' => $request->category_description,
             'category_description_en' => $request->category_description_en,
+            'display_target' => $request->display_target ?? 'both',
             'category_photo' => $save_url ?? null,
             'special' => $request->special,
             'order_by' => $request->order_by,
@@ -207,6 +209,7 @@ class CategoryController extends Controller
             'category_name_en' => 'required|string|max:255',
             'category_description' => 'nullable|string',
             'category_description_en' => 'nullable|string',
+            'display_target' => 'nullable|in:both,session,field',
             'category_photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'order_by' => [
                 'nullable',
@@ -256,6 +259,7 @@ class CategoryController extends Controller
                 'category_name' => $request->category_name,
                 'category_name_en' => $request->category_name_en,
                 'category_description_en' => $request->category_description_en,
+                'display_target' => $request->display_target ?? 'both',
                 'category_photo' => $save_url,
                 'special'  => $request->special,
                 'order_by' => $request->order_by,
@@ -268,6 +272,7 @@ class CategoryController extends Controller
                 'category_name_en' => $request->category_name_en,
                 'category_description_en' => $request->category_description_en,
                 'category_description' => $request->category_description,
+                'display_target' => $request->display_target ?? 'both',
                 'special'  => $request->special,
                 'order_by' => $request->order_by,
             ]);
@@ -375,10 +380,21 @@ class CategoryController extends Controller
         $game_type_id = $request->game_type_id;
         $main_category_id = $request->main_category_id;
         $userId = $request->user_id ?? ($request->user() ? $request->user()->id : null);
+        $game_target = $request->game_target ?? $request->display_target;
 
-        $categoriesQuery = Category::where('game_type_id', $game_type_id)
+        $categoriesQueryBuilder = Category::where('game_type_id', $game_type_id)
             ->where('main_category_id', $main_category_id)
-            ->where('status', 'active')
+            ->where('status', 'active');
+
+        if (!empty($game_target)) {
+            $categoriesQueryBuilder->where(function ($q) use ($game_target) {
+                $q->where('display_target', 'both')
+                  ->orWhere('display_target', $game_target)
+                  ->orWhereNull('display_target');
+            });
+        }
+
+        $categoriesQuery = $categoriesQueryBuilder
             ->whereHas('questions', function ($q) {
                 // عدد الأسئلة لا يقل عن 6
             }, '>=', 6)

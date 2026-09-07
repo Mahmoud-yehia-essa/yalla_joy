@@ -34,8 +34,8 @@
                             <th>الكوبون</th>
                             <th>كود الكوبون</th>
                             <th>الشركة</th>
-                            <th>حالة الشراء</th>
-                            <th>تاريخ الشراء</th>
+                            <th>حالة الاستبدال</th>
+                            <th>تاريخ الاستبدال</th>
                             <th>حالة الاستخدام</th>
                             <th>تاريخ الاستخدام</th>
                             <th>الإجراء</th>
@@ -63,9 +63,9 @@
                             <td> {{ $item->couponCompany->sponsor->title ?? 'N/A' }} </td>
                             <td>
                                 @if($item->is_buy)
-                                    <span class="badge bg-success">تم الشراء</span>
+                                    <span class="badge bg-success">تم الاستبدال</span>
                                 @else
-                                    <span class="badge bg-secondary">لم يتم الشراء</span>
+                                    <span class="badge bg-secondary">لم يتم الاستبدال</span>
                                 @endif
                             </td>
                             <td> {{ $item->created_at->format('Y-m-d H:i:s') }} </td>

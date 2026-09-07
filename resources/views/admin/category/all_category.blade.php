@@ -37,6 +37,7 @@
                         <th>نوع اللعبة</th>
                         <th>الفئة الرئيسية</th>
                         <th>إسم الفئة</th>
+                        <th>تخصيص اللعبة</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الأسئلة في الفئة</th>
                         <th>عدد مرات الإستخدام</th>
@@ -52,6 +53,15 @@
                         <td>{{ $item->gameType ? $item->gameType->type_name : '-' }} - {{ $item->game_type_id }}</td>
                         <td>{{ $item->mainCategory ? $item->mainCategory->main_category_name : '-' }} - {{ $item->main_category_id }}</td>
                         <td class="fw-bold">{{ $item->category_name }} - {{ $item->id }}</td>
+                        <td class="text-center">
+                            @if($item->display_target == 'session')
+                                <span class="badge bg-info text-dark">لعبة الجلسة</span>
+                            @elseif($item->display_target == 'field')
+                                <span class="badge bg-warning text-dark">لعبة الميدان</span>
+                            @else
+                                <span class="badge bg-secondary">الاثنين معاً</span>
+                            @endif
+                        </td>
                         <td class="text-center" style="min-width: 130px;">
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-center fw-bold category-order-input"
@@ -109,6 +119,7 @@
                         <th>نوع اللعبة</th>
                         <th>الفئة الرئيسية</th>
                         <th>إسم الفئة</th>
+                        <th>تخصيص اللعبة</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الأسئلة في الفئة</th>
                         <th>عدد مرات الإستخدام</th>

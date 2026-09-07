@@ -983,6 +983,27 @@
 </li>
          @endif
 
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon">
+            <i class="bx bx-info-circle"></i>
+        </div>
+        <div class="menu-title">وصف وتعريف الألعاب</div>
+    </a>
+    <ul>
+        <li>
+            <a href="{{ route('all.game.instructions') }}">
+                <i class="bx bx-right-arrow-alt"></i>جميع بطاقات الوصف
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('add.game.instruction') }}">
+                <i class="bx bx-right-arrow-alt"></i>إضافة وصف جديد
+            </a>
+        </li>
+    </ul>
+</li>
+
 
 
 

@@ -636,6 +636,7 @@ public function validateRegisterApi(Request $request)
             'password' => $passwordToSave,
             'photo' => $request->photo,
             'is_game_free' => 'paid',
+            'number_of_games' => 0,
             'provider' => $request->filled('provider') ? $request->provider : null,
             'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
             'date_of_birth' => $request->date_of_birth,
@@ -978,10 +979,10 @@ public function validateRegisterApi(Request $request)
     {
         $checkForIncrementGameOrDecrement = $request->checkForIncrementGameOrDecrement;
         $user_id = $request->user_id;
-        $numberRequestGame = $request->numberRequestGame;
+        $numberRequestGame = (int)($request->numberRequestGame ?? 0);
 
         $user = User::findOrFail($user_id);
-        $numberOfGames = $user->number_of_games;
+        $numberOfGames = (int)($user->number_of_games ?? 0);
 
         if ($checkForIncrementGameOrDecrement == 'increment') {
             $numberOfGames += $numberRequestGame;
@@ -991,19 +992,17 @@ public function validateRegisterApi(Request $request)
             return response()->json([
                 'success' => true,
                 'message' => 'increment games successful',
-                'numberOfGames'=>$user->number_of_games,
-
+                'numberOfGames' => (int)$user->number_of_games,
             ], 200);
         } elseif ($checkForIncrementGameOrDecrement == 'decrement') {
-            $numberOfGames -= $numberRequestGame;
+            $numberOfGames = max(0, $numberOfGames - $numberRequestGame);
             $user->number_of_games = $numberOfGames;
             $user->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'decrement games successful',
-                'numberOfGames'=>$user->number_of_games,
-
+                'numberOfGames' => (int)$user->number_of_games,
             ], 200);
         }
 

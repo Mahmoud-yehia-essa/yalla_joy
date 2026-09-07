@@ -36,14 +36,11 @@
 <th>الرقم</th>
 <th> نوع اللعبة</th>
 <th>  الفئة الرئيسية</th>
-
 <th>إسم الفئة</th>
-
+<th>تخصيص اللعبة</th>
 <th>عدد الأسئلة في الفئة</th>
 <th>عدد مرات  الإستخدام</th>
-
 <th>التاريخ</th>
-
 <th> الصورة</th>
 <th>الاجراء</th>
 </tr>
@@ -52,10 +49,18 @@
 @foreach($category as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
-<td>{{ $item->gameType->type_name }} - {{$item->gameType->id}} </td>
-<td>{{ $item->mainCategory->main_category_name }} - {{ $item->mainCategory->id }} </td>
-
+<td>{{ $item->gameType ? $item->gameType->type_name : '-' }} - {{ $item->gameType ? $item->gameType->id : '' }} </td>
+<td>{{ $item->mainCategory ? $item->mainCategory->main_category_name : '-' }} - {{ $item->mainCategory ? $item->mainCategory->id : '' }} </td>
 <td>{{ $item->category_name }} -  {{ $item->id }}</td>
+<td class="text-center">
+    @if($item->display_target == 'session')
+        <span class="badge bg-info text-dark">لعبة الجلسة</span>
+    @elseif($item->display_target == 'field')
+        <span class="badge bg-warning text-dark">لعبة الميدان</span>
+    @else
+        <span class="badge bg-secondary">الاثنين معاً</span>
+    @endif
+</td>
 <td style="width: 50px; font-size: 1.1rem;"><span class="badge  bg-dark">
     {{count($item->questions)}}
 </span></td>
@@ -109,14 +114,11 @@
 <th>الرقم</th>
 <th> نوع اللعبة</th>
 <th>  الفئة الرئيسية</th>
-
 <th>إسم الفئة</th>
-
+<th>تخصيص اللعبة</th>
 <th>عدد الأسئلة في الفئة</th>
 <th>عدد مرات  الإستخدام</th>
-
 <th>التاريخ</th>
-
 <th> الصورة</th>
 <th>الاجراء</th>
 </tr>

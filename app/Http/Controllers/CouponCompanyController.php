@@ -272,7 +272,7 @@ class CouponCompanyController extends Controller
         if ($alreadyBought) {
             return response()->json([
                 'status' => false,
-                'message' => 'لقد قمت بشراء هذا الكوبون مسبقاً'
+                'message' => 'لقد قمت باستبدال هذا الكوبون مسبقاً'
             ], 200);
         }
 
@@ -318,7 +318,7 @@ class CouponCompanyController extends Controller
             if ($balance < $cost) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'عذراً، رصيدك من العملات غير كافٍ لشراء هذا الكوبون'
+                    'message' => 'عذراً، رصيدك من العملات غير كافٍ لاستبدال هذا الكوبون'
                 ], 200);
             }
 
@@ -340,19 +340,19 @@ class CouponCompanyController extends Controller
         ]);
 
         $user = User::findOrFail($userId);
-        $message = 'تم شراء الكوبون بنجاح';
+        $message = 'تم استبدال الكوبون بنجاح';
 
         if ($coupon->is_special_coupon) {
             try {
                 if ($user->email) {
                     Mail::to($user->email)->send(new SpecialCouponMail($coupon, $user));
-                    $message = 'تم شراء الكوبون بنجاح، وتم إرسال تفاصيل القسيمة والرمز الخاص بها إلى بريدك الإلكتروني بنجاح.';
+                    $message = 'تم استبدال الكوبون بنجاح، وتم إرسال تفاصيل القسيمة والرمز الخاص بها إلى بريدك الإلكتروني بنجاح.';
                 } else {
-                    $message = 'تم شراء الكوبون بنجاح، ولكن لم نتمكن من إرسال البريد الإلكتروني لعدم توفر عنوان بريدي للمستخدم.';
+                    $message = 'تم استبدال الكوبون بنجاح، ولكن لم نتمكن من إرسال البريد الإلكتروني لعدم توفر عنوان بريدي للمستخدم.';
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to send special coupon email: " . $e->getMessage());
-                $message = 'تم شراء الكوبون بنجاح، ولكن حدث خطأ أثناء إرسال البريد الإلكتروني بالتفاصيل.';
+                $message = 'تم استبدال الكوبون بنجاح، ولكن حدث خطأ أثناء إرسال البريد الإلكتروني بالتفاصيل.';
             }
         }
 
@@ -379,7 +379,7 @@ class CouponCompanyController extends Controller
         if (!$record) {
             return response()->json([
                 'status' => false,
-                'message' => 'عذراً، لم تقم بشراء هذا الكوبون بعد'
+                'message' => 'عذراً، لم تقم باستبدال هذا الكوبون بعد'
             ], 200);
         }
 

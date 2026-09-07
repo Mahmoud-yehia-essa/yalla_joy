@@ -50,6 +50,7 @@ use App\Http\Controllers\GameCouponController;
 use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\FinancialReportController;
+use App\Http\Controllers\GameInstructionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -1040,6 +1041,18 @@ Route::controller(LevelController::class)->middleware(['checkUserRole','auth'])-
     Route::get('/edit/{id}', [App\Http\Controllers\GameGuideController::class, 'EditGameGuide'])->name('edit.game.guide');
     Route::post('/update', [App\Http\Controllers\GameGuideController::class, 'UpdateGameGuide'])->name('update.game.guide');
     Route::get('/delete/{id}', [App\Http\Controllers\GameGuideController::class, 'DeleteGameGuide'])->name('delete.game.guide');
+});
+
+Route::controller(GameInstructionController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/game-instructions', 'allGameInstructions')->name('all.game.instructions');
+    Route::get('/admin/add/game-instruction', 'addGameInstruction')->name('add.game.instruction');
+    Route::post('/admin/add/game-instruction', 'storeGameInstruction')->name('add.game.instruction.store');
+    Route::get('/admin/edit/game-instruction/{id}', 'editGameInstruction')->name('edit.game.instruction');
+    Route::post('/admin/edit/game-instruction', 'updateGameInstruction')->name('edit.game.instruction.store');
+    Route::get('/admin/delete/game-instruction/{id}', 'deleteGameInstruction')->name('delete.game.instruction');
+    Route::get('/admin/game-instruction/inactive/{id}', 'gameInstructionInactive')->name('inactive.game.instruction');
+    Route::get('/admin/game-instruction/active/{id}', 'gameInstructionActive')->name('active.game.instruction');
+    Route::post('/admin/game-instruction/update-order', 'updateOrder')->name('game.instruction.update.order');
 });
 
 

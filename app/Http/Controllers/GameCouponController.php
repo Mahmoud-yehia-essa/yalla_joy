@@ -216,9 +216,16 @@ class GameCouponController extends Controller
 
         $user = User::find($user_id);
 
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ هذا المستخدم غير موجود في النظام'
+            ], 200);
+        }
+
         if ($coupon->type === 'free_games') {
             $added_games = (int)($coupon->free_games_count ?? 0);
-            $user->number_of_games = ($user->number_of_games ?? 0) + $added_games;
+            $user->number_of_games = (int)($user->number_of_games ?? 0) + $added_games;
             $user->save();
 
             $coupon->increment('used_count');
@@ -228,7 +235,7 @@ class GameCouponController extends Controller
                 'message' => '🎉 تم تطبيق الكوبون بنجاح وتم إضافة ' . $added_games . ' من الألعاب إلى حسابك.',
                 'coupon_type' => 'free_games',
                 'added_games' => $added_games,
-                'current_games' => $user->number_of_games,
+                'current_games' => (int)$user->number_of_games,
                 'coupon' => $coupon
             ], 200);
 
@@ -246,7 +253,7 @@ class GameCouponController extends Controller
             $bonus_games = (int)($coupon->free_games_count ?? 0);
             $added_games = $package_games + $bonus_games;
 
-            $user->number_of_games = ($user->number_of_games ?? 0) + $added_games;
+            $user->number_of_games = (int)($user->number_of_games ?? 0) + $added_games;
             $user->save();
 
             $coupon->increment('used_count');
@@ -258,7 +265,7 @@ class GameCouponController extends Controller
                 'added_games' => $added_games,
                 'package_games' => $package_games,
                 'bonus_games' => $bonus_games,
-                'current_games' => $user->number_of_games,
+                'current_games' => (int)$user->number_of_games,
                 'coupon' => $coupon
             ], 200);
 
@@ -272,6 +279,7 @@ class GameCouponController extends Controller
                 'message' => '🎉 تم تطبيق نسبة خصم الكوبون بنجاح بقيمة ' . $discount_percentage . '%.',
                 'coupon_type' => 'percentage',
                 'discount_percentage' => $discount_percentage,
+                'current_games' => (int)($user->number_of_games ?? 0),
                 'coupon' => $coupon
             ], 200);
         }

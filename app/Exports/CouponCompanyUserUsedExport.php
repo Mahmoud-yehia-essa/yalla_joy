@@ -49,8 +49,8 @@ class CouponCompanyUserUsedExport implements FromCollection, WithHeadings, WithM
             'الكوبون',
             'كود الكوبون',
             'الشركة',
-            'حالة الشراء',
-            'تاريخ الشراء',
+            'حالة الاستبدال',
+            'تاريخ الاستبدال',
             'حالة الاستخدام',
             'تاريخ الاستخدام'
         ];
@@ -76,7 +76,7 @@ class CouponCompanyUserUsedExport implements FromCollection, WithHeadings, WithM
         $code = $item->couponCompany->coupon_code ?? 'N/A';
         $sponsor = $item->couponCompany->sponsor->title ?? 'N/A';
         
-        $isBuy = $item->is_buy ? 'تم الشراء' : 'لم يتم الشراء';
+        $isBuy = $item->is_buy ? 'تم الاستبدال' : 'لم يتم الاستبدال';
         $buyDate = $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : '---';
         
         $isUsed = $item->is_used ? 'تم الاستخدام' : 'غير مستخدم';
@@ -131,8 +131,8 @@ class CouponCompanyUserUsedExport implements FromCollection, WithHeadings, WithM
             'D' => 22,  // الكوبون
             'E' => 15,  // كود الكوبون
             'F' => 20,  // الشركة
-            'G' => 15,  // حالة الشراء
-            'H' => 22,  // تاريخ الشراء
+            'G' => 15,  // حالة الاستبدال
+            'H' => 22,  // تاريخ الاستبدال
             'I' => 15,  // حالة الاستخدام
             'J' => 22,  // تاريخ الاستخدام
         ];

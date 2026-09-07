@@ -103,6 +103,7 @@ class SocialLoginController extends Controller
                 'status' => 'active',
                 'role' => 'user',
                 'points' => 0,
+                'number_of_games' => 0,
             ]);
         }
 

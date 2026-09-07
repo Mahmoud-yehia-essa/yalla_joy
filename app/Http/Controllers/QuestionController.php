@@ -2297,11 +2297,12 @@ public function getQuestionApi(Request $request, $id)
         $query_600->where('term', $term);
     }
 
-    $questions_200 = $query_200->inRandomOrder()->take(2)->get();
-    $questions_400 = $query_400->inRandomOrder()->take(2)->get();
-    $questions_600 = $query_600->inRandomOrder()->take(2)->get();
+    // Fetch 4 random questions for each qu_points category (2 active board questions + 2 hidden backup questions)
+    $questions_200 = $query_200->inRandomOrder()->take(4)->get();
+    $questions_400 = $query_400->inRandomOrder()->take(4)->get();
+    $questions_600 = $query_600->inRandomOrder()->take(4)->get();
 
-    // Merge in the required order: 200, 200, 400, 400, 600, 600
+    // Merge in the required order: 4x 200, 4x 400, 4x 600 (Total 12 questions: 6 active + 6 backup)
     $qu = $questions_200->merge($questions_400)->merge($questions_600);
 
     // If less than 6 questions, fill missing ones from other available questions

@@ -111,7 +111,7 @@
                                 </div>
 
                                 <hr>
-                                <h5 class="mb-3">سعر شراء الكوبون</h5>
+                                <h5 class="mb-3">سعر استبدال الكوبون</h5>
 
                                 <div class="row mb-3">
                                     <div class="col-sm-3">

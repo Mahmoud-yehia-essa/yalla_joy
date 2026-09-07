@@ -124,6 +124,21 @@
                                     </div>
                                 </div>
 
+                                <!-- Display Target / Game Customization -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">مكان الظهور (تخصيص اللعبة)</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="display_target" class="form-select">
+                                            <option value="both" {{ old('display_target', $category->display_target ?? 'both') == 'both' ? 'selected' : '' }}>الاثنين معاً (لعبة الجلسة ولعبة الميدان)</option>
+                                            <option value="session" {{ old('display_target', $category->display_target) == 'session' ? 'selected' : '' }}>لعبة الجلسة فقط</option>
+                                            <option value="field" {{ old('display_target', $category->display_target) == 'field' ? 'selected' : '' }}>لعبة الميدان فقط</option>
+                                        </select>
+                                        @error('display_target') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Category Description -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
