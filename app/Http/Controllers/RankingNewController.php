@@ -215,8 +215,21 @@ class RankingNewController extends Controller
             $winsToNextRank = 0;
         }
 
-        // ترتيب المستخدم بناءً على النقاط
-        $userPosition = User::where('online_points_fixed', '>', (int)$user->online_points_fixed)->count() + 1;
+        // ترتيب المستخدم بناءً على النقاط (المطابق تماماً لشاشة متصدري الترتيب العام)
+        $userPoints = (int) $user->online_points;
+        if ($userPoints > 0) {
+            $userPosition = User::where('status', 'active')
+                ->where('role', '!=', 'admin')
+                ->where('online_points', '>', $userPoints)
+                ->distinct()
+                ->count('online_points') + 1;
+        } else {
+            $userPosition = User::where('status', 'active')
+                ->where('role', '!=', 'admin')
+                ->where('online_points', '>', 0)
+                ->distinct()
+                ->count('online_points') + 1;
+        }
 
         return response()->json([
             'success'               => true,
