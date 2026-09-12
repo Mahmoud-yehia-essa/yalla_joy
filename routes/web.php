@@ -51,6 +51,7 @@ use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\GameInstructionController;
+use App\Http\Controllers\TermsAndConditionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -1053,6 +1054,18 @@ Route::controller(GameInstructionController::class)->middleware(['checkUserRole'
     Route::get('/admin/game-instruction/inactive/{id}', 'gameInstructionInactive')->name('inactive.game.instruction');
     Route::get('/admin/game-instruction/active/{id}', 'gameInstructionActive')->name('active.game.instruction');
     Route::post('/admin/game-instruction/update-order', 'updateOrder')->name('game.instruction.update.order');
+});
+
+Route::controller(TermsAndConditionsController::class)->middleware(['checkUserRole','auth'])->group(function () {
+    Route::get('/admin/terms-and-conditions', 'allTerms')->name('all.terms.and.conditions');
+    Route::get('/admin/add/terms-and-conditions', 'addTerm')->name('add.terms.and.conditions');
+    Route::post('/admin/add/terms-and-conditions', 'storeTerm')->name('add.terms.and.conditions.store');
+    Route::get('/admin/edit/terms-and-conditions/{id}', 'editTerm')->name('edit.terms.and.conditions');
+    Route::post('/admin/edit/terms-and-conditions', 'updateTerm')->name('edit.terms.and.conditions.store');
+    Route::get('/admin/delete/terms-and-conditions/{id}', 'deleteTerm')->name('delete.terms.and.conditions');
+    Route::get('/admin/terms-and-conditions/inactive/{id}', 'termInactive')->name('inactive.terms.and.conditions');
+    Route::get('/admin/terms-and-conditions/active/{id}', 'termActive')->name('active.terms.and.conditions');
+    Route::post('/admin/terms-and-conditions/update-order', 'updateOrder')->name('terms.and.conditions.update.order');
 });
 
 

@@ -279,6 +279,25 @@ public function addPoints(Request $request)
             'data'   => $users
         ]);
     }
+
+    public function topUsersByOfflinePoints(Request $request)
+    {
+        $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
+
+        $users = User::where('status', 'active')
+            ->where('offline_points', '>', 0)
+            ->where('role', '!=', 'admin')
+            ->orderByDesc('offline_points')
+            ->take($limit)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'total'  => $users->count(),
+            'data'   => $users
+        ]);
+    }
+
     public function addOnlineWin(Request $request)
     {
         $request->validate([

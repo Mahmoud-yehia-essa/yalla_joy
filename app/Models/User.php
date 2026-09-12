@@ -32,6 +32,12 @@ class User extends Authenticatable
     // ];
     protected $guarded = [];
 
+    protected $attributes = [
+        'number_of_games' => 1,
+        'is_game_free' => 'paid',
+        'offline_points' => 0,
+    ];
+
 
     /**
      * The attributes that should be hidden for serialization.

@@ -201,6 +201,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-12 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
+                                <i class="fa-solid fa-dice"></i>
+                            </div>
+                            <div class="text-end w-100">
+                                <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">الألعاب المتبقية</span>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->number_of_games ?? 0 }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <div class="text-end w-100">
+                                <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">نقاط لعبة الجلسة</span>
+                                <input type="number" id="stat-offline-points-{{ $item->id }}" class="form-control form-control-sm text-center fw-bold fs-6 border-2" value="{{ $item->offline_points ?? 0 }}" min="0">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 border-bottom pb-2 gap-2 mx-0 px-2">
@@ -426,6 +448,7 @@
                 const wins = document.getElementById(`stat-wins-${userId}`).value;
                 const play = document.getElementById(`stat-play-${userId}`).value;
                 const points = document.getElementById(`stat-points-${userId}`).value;
+                const offlinePoints = document.getElementById(`stat-offline-points-${userId}`) ? document.getElementById(`stat-offline-points-${userId}`).value : 0;
 
                 // Collect coin inputs
                 const coins = {};
@@ -453,6 +476,7 @@
                         online_game_wins: wins,
                         online_play_count: play,
                         online_points: points,
+                        offline_points: offlinePoints,
                         coins: coins
                     })
                 })

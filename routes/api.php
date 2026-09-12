@@ -33,6 +33,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OttuPaymentController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\GameInstructionController;
+use App\Http\Controllers\TermsAndConditionsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -75,6 +76,7 @@ Route::post('/categories',[CategoryController::class,'getCategoryApi']);
 Route::post('/categories/repetition-status', [CategoryController::class, 'getCategoryRepetitionStatusApi']);
 
 Route::match(['get', 'post'], '/game/instructions', [GameInstructionController::class, 'getGameInstructionsApi']);
+Route::match(['get', 'post'], '/terms-and-conditions', [TermsAndConditionsController::class, 'getTermsApi']);
 
 Route::post('/avatar/categories', [AvatarCategoryController::class, 'getAvatarCategoriesApi']);
 
@@ -178,6 +180,7 @@ Route::post('user/coins-details', [UserCoinController::class, 'getUserCoinDetail
 
 
 Route::post('update/user/online-points', [UserController::class, 'updateOnlineUserPoints']);
+Route::post('update/user/offline-points', [UserController::class, 'updateUserOfflinePoints']);
 
 // Ranking by user wins
 Route::post('user/rank', [RankingNewController::class, 'getUserRankApi']);
@@ -236,6 +239,7 @@ Route::post('get/game/session/question/online',[QuestionController::class,'getGa
 
 Route::post('add/online/game/points',[OnlineGameController::class,'addPoints']);
 Route::post('top/online/users/points',[OnlineGameController::class,'topUsersByOnlinePoints']);
+Route::post('top/offline/users/points',[OnlineGameController::class,'topUsersByOfflinePoints']);
 Route::post('add/online/game/win', [OnlineGameController::class, 'addOnlineWin']);
 Route::post('add/online/game/play-count', [OnlineGameController::class, 'addOnlinePlayCount']);
 

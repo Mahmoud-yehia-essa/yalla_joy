@@ -100,16 +100,18 @@
                                 {{ Str::limit($item->content, 90) }}
                             </div>
                         </td>
-                        <td class="text-center" style="min-width: 110px;">
-                            <div class="input-group input-group-sm">
-                                <input type="number" class="form-control text-center fw-bold instruction-order-input"
+                        <td class="text-center" style="min-width: 140px; width: 140px;">
+                            <div class="d-flex align-items-center justify-content-center gap-1" style="margin: 0 auto; width: 120px;">
+                                <input type="number" class="form-control form-control-sm text-center fw-bold instruction-order-input"
                                        id="order-input-{{ $item->id }}"
                                        data-id="{{ $item->id }}"
                                        value="{{ $item->order_by }}"
-                                       min="1">
-                                <button class="btn btn-primary btn-save-instruction-order"
+                                       min="1"
+                                       style="width: 65px; height: 36px; font-size: 15px; border-radius: 6px; border: 1.5px solid #0d6efd; background-color: #fff;">
+                                <button class="btn btn-sm btn-primary btn-save-instruction-order d-flex align-items-center justify-content-center"
                                         type="button"
                                         onclick="saveInstructionOrder({{ $item->id }})"
+                                        style="width: 40px; height: 36px; border-radius: 6px; flex-shrink: 0;"
                                         title="حفظ الترتيب">
                                     <i class="fa-solid fa-floppy-disk"></i>
                                 </button>
@@ -193,6 +195,14 @@
             }
         });
     }
+
+    $(document).on('keydown', '.instruction-order-input', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            saveInstructionOrder(id);
+        }
+    });
 </script>
 
 @endsection

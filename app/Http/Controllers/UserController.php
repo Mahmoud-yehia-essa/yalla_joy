@@ -101,8 +101,8 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'photo' => $filename,
             'date_of_birth' => $request->date_of_birth,
-
-
+            'number_of_games' => 1,
+            'is_game_free' => 'paid',
         ]);
 
         $notification = array(
@@ -636,7 +636,7 @@ public function validateRegisterApi(Request $request)
             'password' => $passwordToSave,
             'photo' => $request->photo,
             'is_game_free' => 'paid',
-            'number_of_games' => 0,
+            'number_of_games' => 1,
             'provider' => $request->filled('provider') ? $request->provider : null,
             'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
             'date_of_birth' => $request->date_of_birth,
@@ -1049,23 +1049,14 @@ public function validateRegisterApi(Request $request)
     }// End Method
 
 
-   public function updateOnlineUserPoints(Request $request)
+    public function updateOnlineUserPoints(Request $request)
     {
-                    $user_id = $request->user_id;
+        $user_id = $request->user_id;
+        $newPoints = $request->new_points;
+        $user = User::findOrFail($user_id);
 
-            $newPoints = $request->new_points;
-
-                    $user = User::findOrFail($user_id);
-
-
-  $user->online_points = $newPoints;
-
-        // $user->address = $request->address;
+        $user->online_points = $newPoints;
         $user->save();
-
-
-
-
 
         $token = "Non";
 
@@ -1077,6 +1068,34 @@ public function validateRegisterApi(Request $request)
         ], 200);
     }
 
+    public function updateUserOfflinePoints(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'points' => 'required|integer|min:0',
+            'type' => 'nullable|string|in:add,set',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $points = (int) $request->points;
+        $type = $request->type ?? 'add';
+
+        if ($type === 'set') {
+            $user->offline_points = $points;
+            $user->save();
+        } else {
+            $user->increment('offline_points', $points);
+            $user->refresh();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث نقاط لعبة الجلسة بنجاح',
+            'user' => $user,
+            'offline_points' => (int) $user->offline_points,
+        ], 200);
+    }
+
     public function updateUserCollapseDetails(Request $request)
     {
         $request->validate([
@@ -1084,6 +1103,7 @@ public function validateRegisterApi(Request $request)
             'online_game_wins' => 'required|integer|min:0',
             'online_play_count' => 'required|integer|min:0',
             'online_points' => 'required|integer|min:0',
+            'offline_points' => 'nullable|integer|min:0',
             'coins' => 'nullable|array',
         ]);
 
@@ -1091,11 +1111,15 @@ public function validateRegisterApi(Request $request)
         $user = User::findOrFail($userId);
 
         // 1. Update stats
-        $user->update([
+        $updateData = [
             'online_game_wins' => $request->online_game_wins,
             'online_play_count' => $request->online_play_count,
             'online_points' => $request->online_points,
-        ]);
+        ];
+        if ($request->has('offline_points')) {
+            $updateData['offline_points'] = $request->offline_points;
+        }
+        $user->update($updateData);
 
         // 2. Adjust coins if provided
         if ($request->filled('coins') && is_array($request->coins)) {

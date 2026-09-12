@@ -215,7 +215,7 @@ class RankingNewController extends Controller
             $winsToNextRank = 0;
         }
 
-        // ترتيب المستخدم بناءً على النقاط (المطابق تماماً لشاشة متصدري الترتيب العام)
+        // ترتيب المستخدم بناءً على نقاط لعبة الميدان (المطابق تماماً لشاشة متصدري الترتيب العام)
         $userPoints = (int) $user->online_points;
         if ($userPoints > 0) {
             $userPosition = User::where('status', 'active')
@@ -231,6 +231,22 @@ class RankingNewController extends Controller
                 ->count('online_points') + 1;
         }
 
+        // ترتيب المستخدم بناءً على نقاط لعبة الجلسة
+        $userOfflinePoints = (int) ($user->offline_points ?? 0);
+        if ($userOfflinePoints > 0) {
+            $offlineUserPosition = User::where('status', 'active')
+                ->where('role', '!=', 'admin')
+                ->where('offline_points', '>', $userOfflinePoints)
+                ->distinct()
+                ->count('offline_points') + 1;
+        } else {
+            $offlineUserPosition = User::where('status', 'active')
+                ->where('role', '!=', 'admin')
+                ->where('offline_points', '>', 0)
+                ->distinct()
+                ->count('offline_points') + 1;
+        }
+
         return response()->json([
             'success'               => true,
             'user_id'               => $user->id,
@@ -244,6 +260,8 @@ class RankingNewController extends Controller
             'online_play_count'     => (int) $user->online_play_count,
             'online_game_wins'      => (int) $user->online_game_wins,
             'user_position'         => $userPosition,
+            'offline_user_position' => $offlineUserPosition,
+            'offline_points'        => (int) ($user->offline_points ?? 0),
         ], 200);
     }
 

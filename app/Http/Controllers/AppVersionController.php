@@ -34,6 +34,13 @@ class AppVersionController extends Controller
             'whatsapp_number' => 'nullable|string|max:50',
             'contact_email' => 'nullable|email|max:100',
             'online_game_win_points' => 'nullable|integer|min:0',
+            'payment_mode'           => 'nullable|in:sandbox,live',
+            'ottu_live_api_url'      => 'nullable|string',
+            'ottu_live_api_key'      => 'nullable|string',
+            'ottu_live_pg_codes'     => 'nullable|string',
+            'ottu_sandbox_api_url'   => 'nullable|string',
+            'ottu_sandbox_api_key'   => 'nullable|string',
+            'ottu_sandbox_pg_codes'  => 'nullable|string',
         ], [
             'version.required' => 'يجب إدخال إصدار التطبيق.',
             'ios.required' => 'يجب إدخال رابط التطبيق على App Store.',
@@ -44,6 +51,7 @@ class AppVersionController extends Controller
             'des.max' => 'يجب ألا يتجاوز الوصف 500 حرف.',
             'contact_email.email' => 'البريد الإلكتروني للتواصل يجب أن يكون بريداً صالحاً.',
             'online_game_win_points.integer' => 'نقاط الفائز في لعبة الميدان يجب أن تكون رقماً صحيحاً.',
+            'payment_mode.in' => 'بيئة الدفع يجب أن تكون إما تجريبية (sandbox) أو حقيقية (live).',
         ]);
 
     // Save or update the version in the database (if using a Version model)
@@ -63,6 +71,13 @@ class AppVersionController extends Controller
             'whatsapp_number' => $request->whatsapp_number,
             'contact_email' => $request->contact_email,
             'online_game_win_points' => $request->online_game_win_points ?? 6,
+            'payment_mode' => $request->payment_mode ?? 'sandbox',
+            'ottu_live_api_url' => $request->ottu_live_api_url ?: 'https://pay.pikw.com/b/checkout/v1/pymt-txn/',
+            'ottu_live_api_key' => $request->ottu_live_api_key ?: 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy',
+            'ottu_live_pg_codes' => $request->ottu_live_pg_codes ?: 'knet',
+            'ottu_sandbox_api_url' => $request->ottu_sandbox_api_url ?: 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/',
+            'ottu_sandbox_api_key' => $request->ottu_sandbox_api_key ?: 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL',
+            'ottu_sandbox_pg_codes' => $request->ottu_sandbox_pg_codes ?: 'knet',
         ]
     );
     $notification = array(

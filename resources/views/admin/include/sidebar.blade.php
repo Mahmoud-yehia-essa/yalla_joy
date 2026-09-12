@@ -1004,6 +1004,33 @@
     </ul>
 </li>
 
+@if(Auth::user()->role === 'admin' || Auth::user()->can('عرض الشروط والأحكام') || Auth::user()->can('إضافة الشروط والأحكام'))
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon">
+            <i class="bx bx-book-open"></i>
+        </div>
+        <div class="menu-title">الشروط والأحكام</div>
+    </a>
+    <ul>
+        @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض الشروط والأحكام'))
+        <li>
+            <a href="{{ route('all.terms.and.conditions') }}">
+                <i class="bx bx-right-arrow-alt"></i>جميع الشروط والأحكام
+            </a>
+        </li>
+        @endif
+        @if(Auth::user()->role === 'admin' || Auth::user()->can('إضافة الشروط والأحكام'))
+        <li>
+            <a href="{{ route('add.terms.and.conditions') }}">
+                <i class="bx bx-right-arrow-alt"></i>إضافة بند جديد
+            </a>
+        </li>
+        @endif
+    </ul>
+</li>
+@endif
+
 
 
 

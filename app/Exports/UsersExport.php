@@ -55,6 +55,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             'طريقة التسجيل',
             'نقاط الاونلاين الكلية',
             'نقاط الاونلاين المتاحة',
+            'نقاط لعبة الجلسة',
             'الصورة',
             'حالة الصورة'
         ];
@@ -109,7 +110,8 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             $registerType,
             $item->online_points_fixed ?? 0,
             $item->online_points ?? 0,
-            '', // Blank for the image overlay in Column K
+            $item->offline_points ?? 0,
+            '', // Blank for the image overlay
             $photoApproval
         ];
     }
