@@ -34,6 +34,7 @@ class AppVersionController extends Controller
             'whatsapp_number' => 'nullable|string|max:50',
             'contact_email' => 'nullable|email|max:100',
             'online_game_win_points' => 'nullable|integer|min:0',
+            'offline_game_win_points' => 'nullable|integer|min:0',
             'payment_mode'           => 'nullable|in:sandbox,live',
             'ottu_live_api_url'      => 'nullable|string',
             'ottu_live_api_key'      => 'nullable|string',
@@ -51,6 +52,7 @@ class AppVersionController extends Controller
             'des.max' => 'يجب ألا يتجاوز الوصف 500 حرف.',
             'contact_email.email' => 'البريد الإلكتروني للتواصل يجب أن يكون بريداً صالحاً.',
             'online_game_win_points.integer' => 'نقاط الفائز في لعبة الميدان يجب أن تكون رقماً صحيحاً.',
+            'offline_game_win_points.integer' => 'نقاط الفريق المرشح الفائز في لعبة الجلسة يجب أن تكون رقماً صحيحاً.',
             'payment_mode.in' => 'بيئة الدفع يجب أن تكون إما تجريبية (sandbox) أو حقيقية (live).',
         ]);
 
@@ -71,6 +73,7 @@ class AppVersionController extends Controller
             'whatsapp_number' => $request->whatsapp_number,
             'contact_email' => $request->contact_email,
             'online_game_win_points' => $request->online_game_win_points ?? 6,
+            'offline_game_win_points' => $request->offline_game_win_points ?? 6,
             'payment_mode' => $request->payment_mode ?? 'sandbox',
             'ottu_live_api_url' => $request->ottu_live_api_url ?: 'https://pay.pikw.com/b/checkout/v1/pymt-txn/',
             'ottu_live_api_key' => $request->ottu_live_api_key ?: 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy',

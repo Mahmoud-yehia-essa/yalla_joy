@@ -1072,20 +1072,31 @@ public function validateRegisterApi(Request $request)
     {
         $request->validate([
             'user_id' => 'required|integer|exists:users,id',
-            'points' => 'required|integer|min:0',
+            'points' => 'nullable|integer|min:0',
             'type' => 'nullable|string|in:add,set',
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $points = (int) $request->points;
+
+        if ($request->has('points') && $request->points !== null) {
+            $points = (int) $request->points;
+        } else {
+            $appSetting = \App\Models\AppVersion::first();
+            $points = $appSetting && isset($appSetting->offline_game_win_points)
+                ? (int) $appSetting->offline_game_win_points
+                : 6;
+        }
+
         $type = $request->type ?? 'add';
 
         if ($type === 'set') {
             $user->offline_points = $points;
             $user->save();
         } else {
-            $user->increment('offline_points', $points);
-            $user->refresh();
+            if ($points > 0) {
+                $user->increment('offline_points', $points);
+                $user->refresh();
+            }
         }
 
         return response()->json([
@@ -1093,6 +1104,7 @@ public function validateRegisterApi(Request $request)
             'message' => 'تم تحديث نقاط لعبة الجلسة بنجاح',
             'user' => $user,
             'offline_points' => (int) $user->offline_points,
+            'points_added' => $points,
         ], 200);
     }
 

@@ -138,6 +138,21 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">نقاط الفريق المرشح الفائز في لعبة الجلسة (الاوف لاين)</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                        <input type="number" min="0" class="form-control @error('offline_game_win_points') is-invalid @enderror"
+                               name="offline_game_win_points" value="{{ old('offline_game_win_points', $appVersion->offline_game_win_points ?? 6) }}"
+                               placeholder="مثال: 6">
+                        <small class="text-muted">عدد النقاط الثابتة التي يحصل عليها المستخدم في حالة فوز الفريق الذي قام بترشيحه في بداية لعبة الجلسة كبديل عن مجموع درجات الأسئلة الصحيحة.</small>
+                        @error('offline_game_win_points')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
 
 
                 <div class="row mb-3">
