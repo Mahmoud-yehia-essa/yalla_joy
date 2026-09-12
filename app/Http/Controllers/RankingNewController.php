@@ -224,11 +224,7 @@ class RankingNewController extends Controller
                 ->distinct()
                 ->count('online_points') + 1;
         } else {
-            $userPosition = User::where('status', 'active')
-                ->where('role', '!=', 'admin')
-                ->where('online_points', '>', 0)
-                ->distinct()
-                ->count('online_points') + 1;
+            $userPosition = null;
         }
 
         // ترتيب المستخدم بناءً على نقاط لعبة الجلسة
@@ -240,11 +236,7 @@ class RankingNewController extends Controller
                 ->distinct()
                 ->count('offline_points') + 1;
         } else {
-            $offlineUserPosition = User::where('status', 'active')
-                ->where('role', '!=', 'admin')
-                ->where('offline_points', '>', 0)
-                ->distinct()
-                ->count('offline_points') + 1;
+            $offlineUserPosition = null;
         }
 
         return response()->json([
