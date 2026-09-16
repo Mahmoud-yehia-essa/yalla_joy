@@ -44,6 +44,7 @@ class CouponCompanyController extends Controller
             'coupon_name' => 'required',
             'sponsor_id' => 'required|exists:sponsors,id',
             'coupons_count' => 'nullable|integer|min:1',
+            'special_coupon_message' => 'nullable|string',
         ]);
 
         // Generate unique coupon code starting with 'F'
@@ -62,6 +63,7 @@ class CouponCompanyController extends Controller
             'sponsor_id' => $request->sponsor_id,
             'is_scratch_coupon' => $request->has('is_scratch_coupon') ? 1 : 0,
             'is_special_coupon' => $request->has('is_special_coupon') ? 1 : 0,
+            'special_coupon_message' => $request->special_coupon_message,
             'game_coin_id' => $request->game_coin_id,
             'game_coins_count' => $request->game_coins_count ?? 0,
         ]);
@@ -97,6 +99,7 @@ class CouponCompanyController extends Controller
             'coupon_name' => 'required',
             'sponsor_id' => 'required|exists:sponsors,id',
             'coupons_count' => 'nullable|integer|min:1',
+            'special_coupon_message' => 'nullable|string',
         ]);
 
         $couponCompany->update([
@@ -109,6 +112,7 @@ class CouponCompanyController extends Controller
             'sponsor_id' => $request->sponsor_id,
             'is_scratch_coupon' => $request->has('is_scratch_coupon') ? 1 : 0,
             'is_special_coupon' => $request->has('is_special_coupon') ? 1 : 0,
+            'special_coupon_message' => $request->special_coupon_message,
             'game_coin_id' => $request->game_coin_id,
             'game_coins_count' => $request->game_coins_count ?? 0,
         ]);
@@ -231,6 +235,7 @@ class CouponCompanyController extends Controller
                 ],
                 'is_scratch_coupon' => (bool)$coupon->is_scratch_coupon,
                 'is_special_coupon' => (bool)$coupon->is_special_coupon,
+                'special_coupon_message' => $coupon->special_coupon_message,
                 'cost' => [
                     'coin_id' => $coupon->game_coin_id,
                     'coin_name' => $coupon->gameCoin->name ?? null,
@@ -406,5 +411,29 @@ class CouponCompanyController extends Controller
     public function exportCouponCompany()
     {
         return Excel::download(new CouponCompanyExport, 'coupon_companies_' . date('Y_m_d_His') . '.xlsx');
+    }
+
+    /**
+     * Upload media (image/video) from TinyMCE editor.
+     */
+    public function uploadEditorMedia(Request $request)
+    {
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+            $filename = hexdec(uniqid()) . '.' . $extension;
+            $uploadPath = public_path('upload/coupon_media');
+
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0777, true);
+            }
+
+            $file->move($uploadPath, $filename);
+            $location = asset('upload/coupon_media/' . $filename);
+
+            return response()->json(['location' => $location]);
+        }
+
+        return response()->json(['error' => 'No file uploaded'], 400);
     }
 }

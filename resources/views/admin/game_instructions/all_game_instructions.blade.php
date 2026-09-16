@@ -41,6 +41,14 @@
                            class="btn {{ $target == 'field' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-dark' }}">
                             <i class="bx bx-globe"></i> لعبة الميدان (وضع اللعب أونلاين)
                         </a>
+                        <a href="{{ route('all.game.instructions', ['target' => 'kids_entertainment']) }}"
+                           class="btn {{ $target == 'kids_entertainment' ? 'btn-success text-white fw-bold' : 'btn-outline-success' }}">
+                            <i class="bx bx-smile"></i> ترفيهي أطفال
+                        </a>
+                        <a href="{{ route('all.game.instructions', ['target' => 'kids_education']) }}"
+                           class="btn {{ $target == 'kids_education' ? 'btn-primary text-white fw-bold' : 'btn-outline-primary' }}">
+                            <i class="bx bx-book-open"></i> تعليم و تسلية
+                        </a>
                     </div>
                 </div>
             </div>
@@ -72,8 +80,14 @@
                         <td class="text-center">
                             @if($item->game_target == 'session')
                                 <span class="badge bg-info text-dark fs-6"><i class="bx bx-joystick me-1"></i>لعبة الجلسة</span>
-                            @else
+                            @elseif($item->game_target == 'field')
                                 <span class="badge bg-warning text-dark fs-6"><i class="bx bx-globe me-1"></i>لعبة الميدان</span>
+                            @elseif($item->game_target == 'kids_entertainment')
+                                <span class="badge bg-success text-white fs-6"><i class="bx bx-smile me-1"></i>ترفيهي أطفال</span>
+                            @elseif($item->game_target == 'kids_education')
+                                <span class="badge bg-primary text-white fs-6"><i class="bx bx-book-open me-1"></i>تعليم و تسلية</span>
+                            @else
+                                <span class="badge bg-secondary fs-6">{{ $item->game_target }}</span>
                             @endif
                         </td>
                         <td class="text-center">

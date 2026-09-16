@@ -137,6 +137,20 @@
                                 </div>
                             </div>
 
+                             <div class="row mb-3">
+                                 <div class="col-sm-3">
+                                     <h6 class="mb-0">الفصل الدراسي</h6>
+                                 </div>
+                                 <div class="col-sm-9 text-secondary">
+                                     <select name="term" class="form-select" aria-label="اختر الفصل الدراسي">
+                                         <option value="non" {{ old('term', $question->term) === null || old('term', $question->term) === 'non' || old('term', $question->term) === '' ? 'selected' : '' }}>بدون فصل دراسي</option>
+                                         <option value="1" {{ old('term', $question->term) == '1' ? 'selected' : '' }}>الفصل الدراسي الأول</option>
+                                         <option value="2" {{ old('term', $question->term) == '2' ? 'selected' : '' }}>الفصل الدراسي الثاني</option>
+                                     </select>
+                                     @error('term') <span class="text-danger">{{ $message }}</span> @enderror
+                                 </div>
+                             </div>
+
 
                                 {{-- <div class="row mb-3">
                                     <div class="col-sm-3">

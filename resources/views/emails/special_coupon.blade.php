@@ -153,6 +153,46 @@
             line-height: 1.5;
             margin: 0;
         }
+        /* ===== CONTENT & HTML STYLING ===== */
+        .content img {
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 12px auto;
+        }
+        .content video,
+        .content iframe {
+            max-width: 100% !important;
+            border-radius: 8px;
+            display: block;
+            margin: 12px auto;
+        }
+        .content a {
+            color: #ffd700;
+            text-decoration: underline;
+        }
+        .content p {
+            margin: 0 0 12px 0;
+            line-height: 1.8;
+        }
+        .content ul,
+        .content ol {
+            padding-right: 20px;
+            margin: 10px 0;
+        }
+        .content table {
+            width: 100% !important;
+            border-collapse: collapse;
+            margin: 15px 0;
+            color: #ffffff;
+        }
+        .content table th,
+        .content table td {
+            border: 1px solid rgba(218, 165, 32, 0.4);
+            padding: 8px 12px;
+            text-align: right;
+        }
         /* ===== FOOTER ===== */
         .footer {
             background-color: #0d1627;
@@ -183,55 +223,87 @@
 
             <!-- Content -->
             <div class="content">
-                <div class="congratulations-title">مبروك! قسيمتك المميزة جاهزة 🌟</div>
-                <div class="welcome-text">مرحباً يا {{ $user->fname }}،</div>
-                
-                <p class="desc-text">
-                    لقد قمت بنجاح باستبدال عملاتك الافتراضية للحصول على القسيمة المميزة التالية من <b>{{ $coupon->sponsor->title ?? 'شريكنا المتميز' }}</b>.
-                </p>
+                @if(!empty($coupon->special_coupon_message))
+                    @php
+                        $customHtml = $coupon->special_coupon_message;
 
-                <!-- Voucher Design -->
-                <div class="voucher-card">
-                    <div class="sponsor-sec">
-                        @if(!empty($coupon->sponsor->photo) && file_exists(public_path($coupon->sponsor->photo)))
-                            <img src="{{ $message->embed(public_path($coupon->sponsor->photo)) }}" alt="{{ $coupon->sponsor->title ?? 'Sponsor' }}" class="sponsor-logo">
-                        @endif
-                        <div class="sponsor-name">{{ $coupon->sponsor->title ?? 'شريك التحدي' }}</div>
+                        $formattedDate = 'صلاحية دائمة';
+                        if (!empty($coupon->valid_until)) {
+                            try {
+                                $formattedDate = \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d');
+                            } catch (\Exception $e) {
+                                $formattedDate = $coupon->valid_until;
+                            }
+                        }
+
+                        // Replace placeholders
+                        $placeholders = [
+                            '{user_name}' => $user->fname ?? 'بطل التحدي',
+                            '{coupon_code}' => $coupon->coupon_code ?? '',
+                            '{coupon_name}' => $coupon->coupon_name ?? '',
+                            '{sponsor_name}' => $coupon->sponsor->title ?? 'شريكنا المتميز',
+                            '{valid_until}' => $formattedDate,
+                        ];
+                        $customHtml = str_replace(array_keys($placeholders), array_values($placeholders), $customHtml);
+
+                        // Convert relative URLs for images/media to absolute URLs for email clients
+                        $baseUrl = rtrim(config('app.url') ?? url('/'), '/');
+                        $customHtml = preg_replace('/src=["\']\/(?!\/)/i', 'src="' . $baseUrl . '/', $customHtml);
+                    @endphp
+                    {!! $customHtml !!}
+                @else
+                    <div style="text-align: center;">
+                        <div class="congratulations-title">مبروك! قسيمتك المميزة جاهزة 🌟</div>
+                        <div class="welcome-text">مرحباً يا {{ $user->fname }}،</div>
+                        
+                        <p class="desc-text">
+                            لقد قمت بنجاح باستبدال عملاتك الافتراضية للحصول على القسيمة المميزة التالية من <b>{{ $coupon->sponsor->title ?? 'شريكنا المتميز' }}</b>.
+                        </p>
+
+                        <!-- Voucher Design -->
+                        <div class="voucher-card">
+                            <div class="sponsor-sec">
+                                @if(!empty($coupon->sponsor->photo) && file_exists(public_path($coupon->sponsor->photo)))
+                                    <img src="{{ $message->embed(public_path($coupon->sponsor->photo)) }}" alt="{{ $coupon->sponsor->title ?? 'Sponsor' }}" class="sponsor-logo">
+                                @endif
+                                <div class="sponsor-name">{{ $coupon->sponsor->title ?? 'شريك التحدي' }}</div>
+                            </div>
+
+                            <div class="coupon-title">{{ $coupon->coupon_name }}</div>
+                            <div class="coupon-desc">{{ $coupon->coupon_description }}</div>
+
+                            <!-- Code Container -->
+                            <div class="coupon-code-container">
+                                <div class="code-label">رمز القسيمة الخاص بك</div>
+                                <div class="code-val">{{ $coupon->coupon_code }}</div>
+                            </div>
+
+                            <div class="validity-info">
+                                صلاحية القسيمة حتى: 
+                                <span class="valid-date">
+                                    @if(!empty($coupon->valid_until))
+                                        @php
+                                            $formattedDate = $coupon->valid_until;
+                                            try {
+                                                $formattedDate = \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d');
+                                            } catch (\Exception $e) {
+                                                $formattedDate = $coupon->valid_until;
+                                            }
+                                        @endphp
+                                        {{ $formattedDate }}
+                                    @else
+                                        صلاحية دائمة
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Special Instructions Note -->
+                        <div class="special-note" style="text-align: center;">
+                            <div class="note-title" style="font-size: 15px; margin-bottom: 0;">💡 للاستفادة من الكوبون الرجاء زيارة مقر الإدارة لتعبئة استمارة / كوبون الجائزة</div>
+                        </div>
                     </div>
-
-                    <div class="coupon-title">{{ $coupon->coupon_name }}</div>
-                    <div class="coupon-desc">{{ $coupon->coupon_description }}</div>
-
-                    <!-- Code Container -->
-                    <div class="coupon-code-container">
-                        <div class="code-label">رمز القسيمة الخاص بك</div>
-                        <div class="code-val">{{ $coupon->coupon_code }}</div>
-                    </div>
-
-                    <div class="validity-info">
-                        صلاحية القسيمة حتى: 
-                        <span class="valid-date">
-                            @if(!empty($coupon->valid_until))
-                                @php
-                                    $formattedDate = $coupon->valid_until;
-                                    try {
-                                        $formattedDate = \Carbon\Carbon::parse($coupon->valid_until)->format('Y-m-d');
-                                    } catch (\Exception $e) {
-                                        $formattedDate = $coupon->valid_until;
-                                    }
-                                @endphp
-                                {{ $formattedDate }}
-                            @else
-                                صلاحية دائمة
-                            @endif
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Special Instructions Note -->
-                <div class="special-note" style="text-align: center;">
-                    <div class="note-title" style="font-size: 15px; margin-bottom: 0;">💡 للاستفادة من الكوبون الرجاء زيارة مقر الإدارة لتعبئة استمارة / كوبون الجائزة</div>
-                </div>
+                @endif
             </div>
 
             <!-- Footer -->

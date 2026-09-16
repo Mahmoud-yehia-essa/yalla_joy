@@ -13,7 +13,7 @@ class GameInstructionController extends Controller
         $target = $request->query('target');
 
         $query = GameInstruction::query();
-        if (!empty($target) && in_array($target, ['session', 'field'])) {
+        if (!empty($target) && in_array($target, ['session', 'field', 'kids_entertainment', 'kids_education'])) {
             $query->where('game_target', $target);
         }
 
@@ -36,7 +36,7 @@ class GameInstructionController extends Controller
     public function storeGameInstruction(Request $request)
     {
         $request->validate([
-            'game_target' => 'required|in:session,field',
+            'game_target' => 'required|in:session,field,kids_entertainment,kids_education',
             'section_type' => 'required|in:intro,section',
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
@@ -46,7 +46,7 @@ class GameInstructionController extends Controller
             'content_en' => 'nullable|string',
             'order_by' => 'nullable|integer|min:1',
         ], [
-            'game_target.required' => '⚠️ الرجاء تحديد نوع اللعبة (الجلسة أو الميدان)',
+            'game_target.required' => '⚠️ الرجاء تحديد نوع اللعبة (الجلسة، الميدان، ترفيهي أطفال، تعليم وتسلية)',
             'game_target.in' => '⚠️ نوع اللعبة غير صحيح',
             'section_type.required' => '⚠️ الرجاء تحديد نوع البطاقة',
             'title.required' => '⚠️ الرجاء كتابة عنوان القسم',
@@ -55,12 +55,25 @@ class GameInstructionController extends Controller
             'order_by.integer' => '⚠️ رقم الترتيب يجب أن يكون رقماً صحيحاً',
         ]);
 
+        $defaultIcon = 'settings';
+        if ($request->section_type === 'intro') {
+            if ($request->game_target === 'session') {
+                $defaultIcon = 'sports_esports';
+            } elseif ($request->game_target === 'field') {
+                $defaultIcon = 'globe';
+            } elseif ($request->game_target === 'kids_entertainment') {
+                $defaultIcon = 'sentiment_very_satisfied';
+            } elseif ($request->game_target === 'kids_education') {
+                $defaultIcon = 'school';
+            }
+        }
+
         GameInstruction::create([
             'game_target' => $request->game_target,
             'section_type' => $request->section_type,
             'title' => $request->title,
             'title_en' => $request->title_en,
-            'icon' => $request->icon ?? ($request->section_type === 'intro' ? ($request->game_target === 'session' ? 'sports_esports' : 'globe') : 'settings'),
+            'icon' => $request->icon ?? $defaultIcon,
             'intro' => $request->intro,
             'content' => $request->content,
             'content_en' => $request->content_en,
@@ -90,7 +103,7 @@ class GameInstructionController extends Controller
         $instruction = GameInstruction::findOrFail($id);
 
         $request->validate([
-            'game_target' => 'required|in:session,field',
+            'game_target' => 'required|in:session,field,kids_entertainment,kids_education',
             'section_type' => 'required|in:intro,section',
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
@@ -100,7 +113,7 @@ class GameInstructionController extends Controller
             'content_en' => 'nullable|string',
             'order_by' => 'nullable|integer|min:1',
         ], [
-            'game_target.required' => '⚠️ الرجاء تحديد نوع اللعبة (الجلسة أو الميدان)',
+            'game_target.required' => '⚠️ الرجاء تحديد نوع اللعبة (الجلسة، الميدان، ترفيهي أطفال، تعليم وتسلية)',
             'title.required' => '⚠️ الرجاء كتابة عنوان القسم',
             'content.required' => '⚠️ الرجاء كتابة محتوى أو بنود القسم',
         ]);
@@ -195,7 +208,7 @@ class GameInstructionController extends Controller
             ->orderBy('order_by', 'asc')
             ->orderBy('id', 'asc');
 
-        if (!empty($game_target) && in_array($game_target, ['session', 'field'])) {
+        if (!empty($game_target) && in_array($game_target, ['session', 'field', 'kids_entertainment', 'kids_education'])) {
             $query->where('game_target', $game_target);
         }
 
@@ -204,6 +217,8 @@ class GameInstructionController extends Controller
         // Separate by game_target if not filtered
         $sessionInstructions = $instructions->where('game_target', 'session')->values();
         $fieldInstructions = $instructions->where('game_target', 'field')->values();
+        $kidsEntertainmentInstructions = $instructions->where('game_target', 'kids_entertainment')->values();
+        $kidsEducationInstructions = $instructions->where('game_target', 'kids_education')->values();
 
         return response()->json([
             'success' => true,
@@ -211,6 +226,8 @@ class GameInstructionController extends Controller
             'data' => [
                 'session' => $sessionInstructions,
                 'field' => $fieldInstructions,
+                'kids_entertainment' => $kidsEntertainmentInstructions,
+                'kids_education' => $kidsEducationInstructions,
                 'all' => $instructions,
             ]
         ], 200);

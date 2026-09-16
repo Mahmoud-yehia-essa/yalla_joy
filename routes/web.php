@@ -500,6 +500,7 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
         Route::get('/edit/coupon-companies/{id}', 'editCouponCompany')->name('edit.coupon_companies');
         Route::post('/update/coupon-companies', 'updateCouponCompany')->name('update.coupon_companies');
         Route::get('/delete/coupon-companies/{id}', 'deleteCouponCompany')->name('delete.coupon_companies');
+        Route::post('/coupon-companies/upload-media', 'uploadEditorMedia')->name('coupon_companies.upload_media');
 
 
 });

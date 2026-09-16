@@ -116,7 +116,7 @@
                                             <option selected="" value="non">الكل</option>
                                             <option  value="1">الأول</option>
                                             <option  value="2">الثاني</option>
-
+                                            <option  value="none">بدون فصل دراسي</option>
                                         </select>
 
                                         @error('term') <span class="text-danger">{{ $message }}</span> @enderror

@@ -94,7 +94,7 @@
                     <option value="video">إجابة فيديو</option>
                 </select>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+            <div class="col-lg-1 col-md-4 col-sm-6 mb-2">
                 <select id="points-select" class="form-select">
                     <option value="all" selected>كل النقاط</option>
                     <option value="200">200 نقطة</option>
@@ -102,7 +102,15 @@
                     <option value="600">600 نقطة</option>
                 </select>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                <select id="term-select" class="form-select">
+                    <option value="all" {{ request('term') == 'all' || !request()->has('term') ? 'selected' : '' }}>كل الفصول</option>
+                    <option value="1" {{ request('term') === '1' ? 'selected' : '' }}>الفصل الدراسي الأول</option>
+                    <option value="2" {{ request('term') === '2' ? 'selected' : '' }}>الفصل الدراسي الثاني</option>
+                    <option value="none" {{ request('term') === 'none' ? 'selected' : '' }}>بدون فصل دراسي</option>
+                </select>
+            </div>
+            <div class="col-lg-12 col-xl-12 col-md-12 col-sm-12 mb-2">
                 <select id="category-select" class="form-select">
                     <option value="all" selected>كل الفئات الفرعية</option>
                     @foreach($categories as $item)
@@ -277,6 +285,7 @@
             let questionsType = $('#type-select').val();
             let answerType = $('#answer-type-select').val();
             let points = $('#points-select').val();
+            let term = $('#term-select').val();
             $('#loading-spinner').show();
 
             $.ajax({
@@ -289,7 +298,8 @@
                     sort_by: sortBy,
                     questions_type: questionsType,
                     answer_type: answerType,
-                    points: points
+                    points: points,
+                    term: term
                 },
                 success: function(response) {
                     $('#questions-tbody').append(response.html);
@@ -350,7 +360,7 @@
             }, 500);
         });
 
-        $('#sort-by-select, #type-select, #answer-type-select, #category-select, #points-select').on('change', function() {
+        $('#sort-by-select, #type-select, #answer-type-select, #category-select, #points-select, #term-select').on('change', function() {
             fetchQuestions(true);
         });
 

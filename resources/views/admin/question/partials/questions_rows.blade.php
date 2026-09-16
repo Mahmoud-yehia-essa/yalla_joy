@@ -40,7 +40,16 @@
 <td>{{ $item->qu_points_online ?: 'بدون' }}</td>
 <td>{{ $item->time_counter ?: 'بدون' }} {{ $item->time_counter ? 'ثانية' : '' }}</td>
 <td>{{ $item->time_counter_online ?: '10' }} ثانية</td>
-<td>{{ $item->category ? $item->category->category_name : 'بدون فئة' }}</td>
+<td>
+    <div>{{ $item->category ? $item->category->category_name : 'بدون فئة' }}</div>
+    @if($item->term == 1)
+        <span class="badge bg-primary mt-1" style="font-size: 0.75rem;">الفصل الأول</span>
+    @elseif($item->term == 2)
+        <span class="badge bg-success mt-1" style="font-size: 0.75rem;">الفصل الثاني</span>
+    @else
+        <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.75rem;">بدون فصل</span>
+    @endif
+</td>
 
 <td class="text-wrap">
     @php
@@ -75,17 +84,23 @@
 <!-- Hidden details div -->
 <div class="d-none question-details-data" id="details-{{ $item->id }}">
     <div class="row mb-3 border-bottom pb-2">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <strong class="text-dark">نوع اللعبة</strong><br>
-            <span class="text-muted">{{ $item->gameType->game_type_name ?? 'غير محدد' }}</span>
+            <span class="text-muted">{{ $item->gameType->type_name ?? ($item->gameType->game_type_name ?? 'غير محدد') }}</span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <strong class="text-dark">الفئة الرئيسية</strong><br>
             <span class="text-muted">{{ $item->mainCategory->main_category_name ?? 'غير محدد' }}</span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <strong class="text-dark">الفئة الفرعية</strong><br>
             <span class="text-muted">{{ $item->category->category_name ?? 'غير محدد' }}</span>
+        </div>
+        <div class="col-md-3">
+            <strong class="text-dark">الفصل الدراسي</strong><br>
+            <span class="badge {{ $item->term == 1 ? 'bg-primary' : ($item->term == 2 ? 'bg-success' : 'bg-secondary') }} mt-1">
+                {{ $item->term == 1 ? 'الفصل الدراسي الأول' : ($item->term == 2 ? 'الفصل الدراسي الثاني' : 'بدون فصل دراسي') }}
+            </span>
         </div>
     </div>
     

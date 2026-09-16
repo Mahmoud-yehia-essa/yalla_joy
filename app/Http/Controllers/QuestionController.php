@@ -41,7 +41,15 @@ class QuestionController extends Controller
 
     // فلترة الفصل الدراسي term
     if ($request->term !== "non") {
-        $query->where('term', $request->term);
+        if ($request->term === "none" || $request->term === "null" || $request->term === "0") {
+            $query->where(function($q) {
+                $q->whereNull('term')
+                  ->orWhere('term', '')
+                  ->orWhere('term', 0);
+            });
+        } else {
+            $query->where('term', $request->term);
+        }
     }
 
         // 🔥 فلترة بالسنة (created_at)
@@ -553,6 +561,7 @@ public function addQuestionStore(Request $request)
 
               'qu_hint' => $request->qu_hint,
             'qu_hint_en' => $request->qu_hint_en,
+            'term' => ($request->filled('term') && $request->term !== 'non') ? $request->term : null,
             'user_id' => Auth::user()->id,
 
 
@@ -1146,6 +1155,19 @@ foreach ($answersData as $ans) {
             // Filter by Points
             if ($request->filled('points') && $request->points !== 'all') {
                 $query->where('qu_points', $request->points);
+            }
+
+            // Filter by Term
+            if ($request->filled('term') && $request->term !== 'all') {
+                if ($request->term === 'none' || $request->term === 'null' || $request->term === '0') {
+                    $query->where(function($q) {
+                        $q->whereNull('term')
+                          ->orWhere('term', '')
+                          ->orWhere('term', 0);
+                    });
+                } else {
+                    $query->where('term', $request->term);
+                }
             }
 
             // Search
@@ -1916,6 +1938,7 @@ public function editQuestionStore(Request $request)
 
               'qu_hint' => $request->qu_hint,
             'qu_hint_en' => $request->qu_hint_en,
+            'term' => ($request->filled('term') && $request->term !== 'non') ? $request->term : null,
         ]);
 
         // ملفات السؤال

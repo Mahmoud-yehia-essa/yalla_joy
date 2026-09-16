@@ -85,6 +85,7 @@ class OtpEmailController extends Controller
                 'coupon_description' => $request->coupon_description ?? '',
                 'coupon_code'        => $request->coupon_code,
                 'valid_until'        => $request->valid_until,
+                'special_coupon_message' => $request->special_coupon_message ?? null,
                 'sponsor'            => $sponsorObj,
             ];
 

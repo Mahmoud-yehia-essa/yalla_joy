@@ -60,6 +60,8 @@
 
 <!-- DataTable -->
 <link href="{{ asset('backend/assets/plugins/datatable/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet" />
+<!-- Table Sticky & Top Horizontal Scrollbar -->
+<link href="{{ asset('backend/assets/css/table-sticky-scrollbar.css') }}" rel="stylesheet" />
 <!-- DataTable-->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -217,6 +219,8 @@
 			$('#example').DataTable();
 		  } );
 	</script>
+<!-- Table Sticky & Top Horizontal Scrollbar Script -->
+<script src="{{ asset('backend/assets/js/table-sticky-scrollbar.js') }}"></script>
 <!--Datatable-->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
  <script src="{{ asset('backend/assets/js/code.js') }}"></script>

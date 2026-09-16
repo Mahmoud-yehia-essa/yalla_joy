@@ -71,10 +71,82 @@ class CategoryController extends Controller
     }
 
 
-    public function category()
+    public function category(Request $request)
     {
-        $category = Category::orderByRaw('order_by IS NULL ASC')->orderBy('order_by', 'asc')->orderBy('id', 'desc')->get();
-        return view('admin.category.all_category',compact('category'));
+        $query = Category::with(['gameType', 'mainCategory'])->withCount('questions');
+
+        // Filter by game_type_id
+        if ($request->filled('game_type_id') && $request->game_type_id !== 'all' && $request->game_type_id !== 'non') {
+            $query->where('game_type_id', $request->game_type_id);
+        }
+
+        // Filter by main_category_id
+        if ($request->filled('main_category_id') && $request->main_category_id !== 'all' && $request->main_category_id !== 'non') {
+            $query->where('main_category_id', $request->main_category_id);
+        }
+
+        // Filter by category name / search
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function($q) use ($search) {
+                $q->where('category_name', 'LIKE', "%{$search}%")
+                  ->orWhere('category_name_en', 'LIKE', "%{$search}%")
+                  ->orWhere('id', $search);
+            });
+        }
+
+        // Filter by display_target (Game customization)
+        if ($request->filled('display_target') && $request->display_target !== 'all') {
+            if ($request->display_target === 'session') {
+                $query->where('display_target', 'session');
+            } elseif ($request->display_target === 'field') {
+                $query->where('display_target', 'field');
+            } elseif ($request->display_target === 'both') {
+                $query->where(function($q) {
+                    $q->where('display_target', 'both')
+                      ->orWhereNull('display_target')
+                      ->orWhere('display_target', 'all');
+                });
+            }
+        }
+
+        // Sorting by Questions count or Date added or default order_by
+        if ($request->filled('questions_sort') && $request->questions_sort === 'most') {
+            $query->orderBy('questions_count', 'desc')->orderBy('id', 'desc');
+        } elseif ($request->filled('questions_sort') && $request->questions_sort === 'least') {
+            $query->orderBy('questions_count', 'asc')->orderBy('id', 'desc');
+        } elseif ($request->filled('date_sort') && $request->date_sort === 'newest') {
+            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+        } elseif ($request->filled('date_sort') && $request->date_sort === 'oldest') {
+            $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+        } else {
+            $query->orderByRaw('order_by IS NULL ASC')->orderBy('order_by', 'asc')->orderBy('id', 'desc');
+        }
+
+        $perPage = 25;
+        $categories = $query->paginate($perPage);
+
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $html = view('admin.category.partials.category_rows', [
+                'category' => $categories,
+                'page' => $categories->currentPage(),
+                'perPage' => $perPage
+            ])->render();
+
+            return response()->json([
+                'html' => $html,
+                'has_more' => $categories->hasMorePages(),
+                'total' => $categories->total(),
+                'count' => $categories->count(),
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+            ]);
+        }
+
+        $gameTypes = GameType::latest()->get();
+        $mainCategories = MainCategory::latest()->get();
+
+        return view('admin.category.all_category', compact('categories', 'gameTypes', 'mainCategories'));
     }
 
     public function addCategory()
@@ -167,6 +239,7 @@ class CategoryController extends Controller
             'display_target' => $request->display_target ?? 'both',
             'category_photo' => $save_url ?? null,
             'special' => $request->special,
+            'is_soon' => $request->is_soon ?? 'no',
             'order_by' => $request->order_by,
             'user_id' => Auth::user()->id,
         ]);
@@ -262,6 +335,7 @@ class CategoryController extends Controller
                 'display_target' => $request->display_target ?? 'both',
                 'category_photo' => $save_url,
                 'special'  => $request->special,
+                'is_soon'  => $request->is_soon ?? 'no',
                 'order_by' => $request->order_by,
             ]);
         } else {
@@ -274,6 +348,7 @@ class CategoryController extends Controller
                 'category_description' => $request->category_description,
                 'display_target' => $request->display_target ?? 'both',
                 'special'  => $request->special,
+                'is_soon'  => $request->is_soon ?? 'no',
                 'order_by' => $request->order_by,
             ]);
         }
@@ -395,9 +470,12 @@ class CategoryController extends Controller
         }
 
         $categoriesQuery = $categoriesQueryBuilder
-            ->whereHas('questions', function ($q) {
-                // عدد الأسئلة لا يقل عن 6
-            }, '>=', 6)
+            ->where(function ($q) {
+                $q->whereHas('questions', function ($q2) {
+                    // عدد الأسئلة لا يقل عن 6
+                }, '>=', 6)
+                ->orWhere('is_soon', 'yes');
+            })
             ->orderByRaw('order_by IS NULL ASC')
             ->orderBy('order_by', 'asc')
             ->orderBy('id', 'asc')

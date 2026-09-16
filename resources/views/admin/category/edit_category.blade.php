@@ -210,6 +210,19 @@
                                     </div>
                                 </div>
 
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">هل الفئة قريبا ؟</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="is_soon" class="form-select" aria-label="هل الفئة قريبا ؟">
+                                            <option value="no" {{ old('is_soon', $category->is_soon ?? 'no') == 'no' ? 'selected' : '' }}>لا</option>
+                                            <option value="yes" {{ old('is_soon', $category->is_soon ?? 'no') == 'yes' ? 'selected' : '' }}>نعم</option>
+                                        </select>
+                                        @error('is_soon') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Submit Button -->
                                 <div class="row">
                                     <div class="col-sm-3"></div>

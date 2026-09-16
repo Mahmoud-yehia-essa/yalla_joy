@@ -45,6 +45,8 @@
                                         <select name="game_target" class="form-select">
                                             <option value="session" {{ old('game_target') == 'session' ? 'selected' : '' }}>لعبة الجلسة (وضع اللعب المحلي)</option>
                                             <option value="field" {{ old('game_target') == 'field' ? 'selected' : '' }}>لعبة الميدان (وضع اللعب أونلاين)</option>
+                                            <option value="kids_entertainment" {{ old('game_target') == 'kids_entertainment' ? 'selected' : '' }}>ترفيهي أطفال (ألعاب ترفيهية للأطفال)</option>
+                                            <option value="kids_education" {{ old('game_target') == 'kids_education' ? 'selected' : '' }}>تعليم و تسلية (ألعاب تعليمية وترفيهية للأطفال)</option>
                                         </select>
                                         @error('game_target') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
@@ -102,6 +104,13 @@
                                             <option value="sort" {{ old('icon') == 'sort' ? 'selected' : '' }}>🔀 Sort (ترتيب وعرض الأسئلة)</option>
                                             <option value="emoji_events" {{ old('icon') == 'emoji_events' ? 'selected' : '' }}>🏆 Trophy (نهاية اللعبة والجوائز)</option>
                                             <option value="globe" {{ old('icon') == 'globe' ? 'selected' : '' }}>🌐 Globe (العالم / أونلاين)</option>
+                                            <option value="sentiment_very_satisfied" {{ old('icon') == 'sentiment_very_satisfied' ? 'selected' : '' }}>😄 Smile / Fun (ترفيه ومرح للأطفال)</option>
+                                            <option value="school" {{ old('icon') == 'school' ? 'selected' : '' }}>🎓 School (تعليم ودراسة)</option>
+                                            <option value="menu_book" {{ old('icon') == 'menu_book' ? 'selected' : '' }}>📖 Book (قراءة ومناهج تعليمية)</option>
+                                            <option value="psychology" {{ old('icon') == 'psychology' ? 'selected' : '' }}>🧠 Brain (تنمية الذكاء والقدرات)</option>
+                                            <option value="celebration" {{ old('icon') == 'celebration' ? 'selected' : '' }}>🎉 Celebration (مكافآت واحتفال)</option>
+                                            <option value="toys" {{ old('icon') == 'toys' ? 'selected' : '' }}>🧸 Toys (ألعاب وأنشطة أطفال)</option>
+                                            <option value="lightbulb" {{ old('icon') == 'lightbulb' ? 'selected' : '' }}>💡 Lightbulb (أفكار ومعلومات عامة)</option>
                                             <option value="info" {{ old('icon') == 'info' ? 'selected' : '' }}>ℹ️ Info (معلومات عامة)</option>
                                         </select>
                                         <small class="text-muted">اختر الأيقونة التي ستظهر بجانب عنوان البطاقة في التطبيق.</small>
