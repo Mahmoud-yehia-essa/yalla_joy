@@ -54,12 +54,7 @@ use App\Http\Controllers\GameInstructionController;
 use App\Http\Controllers\TermsAndConditionsController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    // return view('welcome');
-        return redirect()->route('coming.soon');
-
-    // return redirect()->route('dashboard');
-});
+Route::get('/', [LandPageController::class, 'landingPage'])->name('landing.page');
 
 // Public coupon display page (no auth required)
 Route::get('/coupon', [CouponCompanyController::class, 'showCouponPage'])->name('coupon.show');

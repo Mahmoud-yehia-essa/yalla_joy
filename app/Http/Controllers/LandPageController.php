@@ -7,7 +7,12 @@ use Illuminate\Http\Request;
 class LandPageController extends Controller
 {
     //
-     public function comingSoon()
+     public function landingPage()
+    {
+        return view('frontend.landing.land_page');
+    }
+
+    public function comingSoon()
     {
         return view('frontend.landing.land_page');
     }

@@ -267,9 +267,11 @@ public function addPoints(Request $request)
         $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
 
         $users = User::where('status', 'active')
+            ->whereNotNull('online_points')
             ->where('online_points', '>', 0)
             ->where('role', '!=', 'admin')
             ->orderByDesc('online_points')
+            ->orderBy('id', 'asc')
             ->take($limit)
             ->get();
 
@@ -285,9 +287,11 @@ public function addPoints(Request $request)
         $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
 
         $users = User::where('status', 'active')
+            ->whereNotNull('offline_points')
             ->where('offline_points', '>', 0)
             ->where('role', '!=', 'admin')
             ->orderByDesc('offline_points')
+            ->orderBy('id', 'asc')
             ->take($limit)
             ->get();
 
@@ -311,16 +315,9 @@ public function addPoints(Request $request)
         $user->increment('online_game_wins');
         $wins = (int) $user->online_game_wins;
 
-        // إضافة نقاط الفوز المحددة في الإعدادات للفائز في لعبة الميدان كبديل لنقاط الأسئلة
-        $appSetting = \App\Models\AppVersion::first();
-        $winPoints = $appSetting && isset($appSetting->online_game_win_points)
-            ? (int) $appSetting->online_game_win_points
-            : 6;
-
-        if ($winPoints > 0) {
-            $user->increment('online_points', $winPoints);
-            $user->increment('online_points_fixed', $winPoints);
-        }
+        // Note: Points for Maydan are added via addPoints (add/online/game/points),
+        // and points for Jalsa are added via updateUserOfflinePoints (update/user/offline-points).
+        // addOnlineWin only handles win counts, ranks, levels, and coin rewards.
 
         // جلب الرتب مع العلاقات مرتبة تصاعدياً
         $rankings = \App\Models\RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])
@@ -472,7 +469,7 @@ public function addPoints(Request $request)
             'status' => true,
             'message' => $responseMessage,
             'online_game_wins' => $wins,
-            'points_awarded' => $winPoints,
+            'points_awarded' => 0,
             'upgrade_type' => $upgradeType,
             'current_rank' => $currentRank,
             'current_level' => [
