@@ -497,13 +497,17 @@
                             <div class="accordion-body p-3 bg-white">
                                 <h6 class="text-success font-weight-bold mb-3"><i class="bx bx-check-shield"></i> بيانات البيئة الحقيقية (Live)</h6>
                                 <div class="row mb-2">
-                                    <div class="col-md-6 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <label class="form-label small text-muted">Live API Key</label>
                                         <input type="text" name="ottu_live_api_key" class="form-control form-control-sm" value="{{ old('ottu_live_api_key', $appVersion->ottu_live_api_key ?? 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy') }}">
                                     </div>
-                                    <div class="col-md-6 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <label class="form-label small text-muted">Live API URL</label>
                                         <input type="text" name="ottu_live_api_url" class="form-control form-control-sm" value="{{ old('ottu_live_api_url', $appVersion->ottu_live_api_url ?? 'https://pay.pikw.com/b/checkout/v1/pymt-txn/') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label small text-muted">Live PG Codes (بوابات الدفع)</label>
+                                        <input type="text" name="ottu_live_pg_codes" class="form-control form-control-sm" value="{{ old('ottu_live_pg_codes', $appVersion->ottu_live_pg_codes ?? 'knet,credit-card') }}" placeholder="knet,credit-card">
                                     </div>
                                 </div>
 
@@ -511,13 +515,17 @@
 
                                 <h6 class="text-warning font-weight-bold mb-3"><i class="bx bx-test-tube"></i> بيانات البيئة التجريبية (Sandbox)</h6>
                                 <div class="row mb-2">
-                                    <div class="col-md-6 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <label class="form-label small text-muted">Sandbox API Key</label>
                                         <input type="text" name="ottu_sandbox_api_key" class="form-control form-control-sm" value="{{ old('ottu_sandbox_api_key', $appVersion->ottu_sandbox_api_key ?? 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL') }}">
                                     </div>
-                                    <div class="col-md-6 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <label class="form-label small text-muted">Sandbox API URL</label>
                                         <input type="text" name="ottu_sandbox_api_url" class="form-control form-control-sm" value="{{ old('ottu_sandbox_api_url', $appVersion->ottu_sandbox_api_url ?? 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label small text-muted">Sandbox PG Codes (بوابات الدفع)</label>
+                                        <input type="text" name="ottu_sandbox_pg_codes" class="form-control form-control-sm" value="{{ old('ottu_sandbox_pg_codes', $appVersion->ottu_sandbox_pg_codes ?? 'knet,credit-card') }}" placeholder="knet,credit-card">
                                     </div>
                                 </div>
                             </div>

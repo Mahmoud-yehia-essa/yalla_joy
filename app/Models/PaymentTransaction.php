@@ -201,7 +201,7 @@ class PaymentTransaction extends Model
         if ($code === 'knet') {
             return 'KNET (كي نت)';
         }
-        if (in_array($code, ['credit_card', 'mpgs', 'cybersource', 'card', 'cc', 'debit_card'])) {
+        if (in_array($code, ['credit_card', 'credit-card', 'mpgs', 'cybersource', 'card', 'cc', 'debit_card'])) {
             return 'بطاقة ائتمان (Credit Card)';
         }
         if ($code === 'visa') {

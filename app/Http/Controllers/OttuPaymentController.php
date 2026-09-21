@@ -75,7 +75,7 @@ class OttuPaymentController extends Controller
         }
         $pgCodes = array_values(array_unique(array_filter(array_map('trim', (array)$pgCodes))));
         if (empty($pgCodes)) {
-            $pgCodes = ['knet'];
+            $pgCodes = ['knet', 'credit-card'];
         }
 
         // Prepare Ottu payload
@@ -947,16 +947,16 @@ HTML;
             if ($mode === 'live') {
                 $apiKey = !empty($appVersion->ottu_live_api_key) ? $appVersion->ottu_live_api_key : config('ottu.api_key', 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy');
                 $apiUrl = !empty($appVersion->ottu_live_api_url) ? $appVersion->ottu_live_api_url : config('ottu.api_url', 'https://pay.pikw.com/b/checkout/v1/pymt-txn/');
-                $pgCodesStr = !empty($appVersion->ottu_live_pg_codes) ? $appVersion->ottu_live_pg_codes : config('ottu.pg_codes', 'knet');
+                $pgCodesStr = !empty($appVersion->ottu_live_pg_codes) ? $appVersion->ottu_live_pg_codes : config('ottu.pg_codes', 'knet,credit-card');
             } else {
                 $apiKey = !empty($appVersion->ottu_sandbox_api_key) ? $appVersion->ottu_sandbox_api_key : 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL';
                 $apiUrl = !empty($appVersion->ottu_sandbox_api_url) ? $appVersion->ottu_sandbox_api_url : 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/';
-                $pgCodesStr = !empty($appVersion->ottu_sandbox_pg_codes) ? $appVersion->ottu_sandbox_pg_codes : 'knet';
+                $pgCodesStr = !empty($appVersion->ottu_sandbox_pg_codes) ? $appVersion->ottu_sandbox_pg_codes : 'knet,credit-card';
             }
 
             $pgCodes = array_values(array_unique(array_filter(array_map('trim', explode(',', (string)$pgCodesStr)))));
             if (empty($pgCodes)) {
-                $pgCodes = ['knet'];
+                $pgCodes = ['knet', 'credit-card'];
             }
 
             return [
@@ -971,7 +971,7 @@ HTML;
                 'mode'     => 'sandbox',
                 'api_key'  => 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL',
                 'api_url'  => 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/',
-                'pg_codes' => ['knet'],
+                'pg_codes' => ['knet', 'credit-card'],
             ];
         }
     }

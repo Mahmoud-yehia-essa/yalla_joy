@@ -77,10 +77,10 @@ class AppVersionController extends Controller
             'payment_mode' => $request->payment_mode ?? 'sandbox',
             'ottu_live_api_url' => $request->ottu_live_api_url ?: 'https://pay.pikw.com/b/checkout/v1/pymt-txn/',
             'ottu_live_api_key' => $request->ottu_live_api_key ?: 'KSK2Iuqw.mowuSwOTIq6ZDT48FvQvW0GaaQPwFjIy',
-            'ottu_live_pg_codes' => $request->ottu_live_pg_codes ?: 'knet',
+            'ottu_live_pg_codes' => $request->ottu_live_pg_codes ?: 'knet,credit-card',
             'ottu_sandbox_api_url' => $request->ottu_sandbox_api_url ?: 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/',
             'ottu_sandbox_api_key' => $request->ottu_sandbox_api_key ?: 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL',
-            'ottu_sandbox_pg_codes' => $request->ottu_sandbox_pg_codes ?: 'knet',
+            'ottu_sandbox_pg_codes' => $request->ottu_sandbox_pg_codes ?: 'knet,credit-card',
         ]
     );
     $notification = array(
