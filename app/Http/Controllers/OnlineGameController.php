@@ -266,10 +266,8 @@ public function addPoints(Request $request)
     {
         $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
 
-        $users = User::where('status', 'active')
-            ->whereNotNull('online_points')
+        $users = User::where('role', '!=', 'admin')
             ->where('online_points', '>', 0)
-            ->where('role', '!=', 'admin')
             ->orderByDesc('online_points')
             ->orderBy('id', 'asc')
             ->take($limit)
@@ -286,10 +284,8 @@ public function addPoints(Request $request)
     {
         $limit = min((int)($request->limit ?? 100), 100); // حد أقصى 100 متصدر
 
-        $users = User::where('status', 'active')
-            ->whereNotNull('offline_points')
+        $users = User::where('role', '!=', 'admin')
             ->where('offline_points', '>', 0)
-            ->where('role', '!=', 'admin')
             ->orderByDesc('offline_points')
             ->orderBy('id', 'asc')
             ->take($limit)

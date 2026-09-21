@@ -29,7 +29,9 @@ class DashboardController extends Controller
 
         // 🏆 Top 10 users with highest online points
         $topOnlineUsers = User::where('role', '!=', 'admin')
+            ->where('online_points', '>', 0)
             ->orderByDesc('online_points')
+            ->orderBy('id', 'asc')
             ->take(10)
             ->get();
 

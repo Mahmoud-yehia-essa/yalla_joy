@@ -215,28 +215,36 @@ class RankingNewController extends Controller
             $winsToNextRank = 0;
         }
 
-        // ترتيب المستخدم بناءً على نقاط لعبة الميدان (المطابق تماماً لشاشة متصدري الترتيب العام للميدان)
+        // ترتيب المستخدم بناءً على نقاط لعبة الميدان (مطابق تماماً لترتيب لوحة التحكم والمتصدرين)
         $userPoints = (int) ($user->online_points ?? 0);
         if ($userPoints > 0) {
-            $userPosition = User::where('status', 'active')
-                ->where('role', '!=', 'admin')
-                ->whereNotNull('online_points')
+            $higherOnlineCount = User::where('role', '!=', 'admin')
                 ->where('online_points', '>', $userPoints)
-                ->distinct()
-                ->count('online_points') + 1;
+                ->count();
+
+            $sameOnlineHigherCount = User::where('role', '!=', 'admin')
+                ->where('online_points', '=', $userPoints)
+                ->where('id', '<', $user->id)
+                ->count();
+
+            $userPosition = $higherOnlineCount + $sameOnlineHigherCount + 1;
         } else {
             $userPosition = null;
         }
 
-        // ترتيب المستخدم بناءً على نقاط لعبة الجلسة (المطابق تماماً لشاشة متصدري الترتيب العام للجلسة)
+        // ترتيب المستخدم بناءً على نقاط لعبة الجلسة (مطابق تماماً لترتيب متصدري لعبة الجلسة)
         $userOfflinePoints = (int) ($user->offline_points ?? 0);
         if ($userOfflinePoints > 0) {
-            $offlineUserPosition = User::where('status', 'active')
-                ->where('role', '!=', 'admin')
-                ->whereNotNull('offline_points')
+            $higherOfflineCount = User::where('role', '!=', 'admin')
                 ->where('offline_points', '>', $userOfflinePoints)
-                ->distinct()
-                ->count('offline_points') + 1;
+                ->count();
+
+            $sameOfflineHigherCount = User::where('role', '!=', 'admin')
+                ->where('offline_points', '=', $userOfflinePoints)
+                ->where('id', '<', $user->id)
+                ->count();
+
+            $offlineUserPosition = $higherOfflineCount + $sameOfflineHigherCount + 1;
         } else {
             $offlineUserPosition = null;
         }
