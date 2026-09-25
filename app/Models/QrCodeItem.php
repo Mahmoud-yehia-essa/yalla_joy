@@ -80,12 +80,12 @@ class QrCodeItem extends Model
             ->backgroundColor(255, 255, 255)
             ->generate($url);
 
-        $logoPath = public_path('backend/assets/images/logo-icon.png');
+        $logoPath = public_path('assets/images/logo_tahadi.png');
         if (!file_exists($logoPath)) {
-            $logoPath = public_path('assets/images/1024.png');
+            $logoPath = public_path('backend/assets/images/logo-icon.png');
         }
         if (!file_exists($logoPath)) {
-            $logoPath = public_path('assets/images/logo_tahadi.png');
+            $logoPath = public_path('assets/images/1024.png');
         }
 
         if (file_exists($logoPath)) {
