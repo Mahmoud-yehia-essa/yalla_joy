@@ -33,7 +33,7 @@ class User extends Authenticatable
     protected $guarded = [];
 
     protected $attributes = [
-        'number_of_games' => 1,
+        'number_of_games' => 0,
         'is_game_free' => 'paid',
         'offline_points' => 0,
     ];
@@ -132,4 +132,91 @@ class User extends Authenticatable
                         ->get();
         return $permissions;
     }// End Method
+
+    /**
+     * Get user rank and level information based on online_game_wins.
+     *
+     * @param \Illuminate\Support\Collection|null $rankings Pre-fetched rankings to prevent N+1 queries.
+     * @return array
+     */
+    public function getRankAndLevel($rankings = null)
+    {
+        if (!$rankings) {
+            $rankings = \App\Models\RankingNew::where('rank_order', '>', 0)
+                ->orderBy('rank_order', 'asc')
+                ->get();
+        } else {
+            if ($rankings instanceof \Illuminate\Support\Collection) {
+                $rankings = $rankings->where('rank_order', '>', 0)->sortBy('rank_order')->values();
+            }
+        }
+
+        if ($rankings->isEmpty()) {
+            return [
+                'rank' => null,
+                'rank_name' => 'لا توجد رتب',
+                'rank_name_en' => 'No Ranks',
+                'level' => 1,
+                'levels_count' => 0,
+                'wins' => (int) ($this->online_game_wins ?? 0),
+                'wins_in_current_level' => 0,
+                'wins_to_next_level' => 0,
+                'display' => 'لا توجد رتب',
+            ];
+        }
+
+        $wins = (int) ($this->online_game_wins ?? 0);
+
+        $currentRank = null;
+        $previousRankTotalWins = 0;
+
+        foreach ($rankings as $rank) {
+            if ($wins < $rank->total_wins_to_next_rank) {
+                $currentRank = $rank;
+                break;
+            }
+            $previousRankTotalWins = $rank->total_wins_to_next_rank;
+        }
+
+        if (!$currentRank) {
+            $currentRank = $rankings->last();
+            if ($rankings->count() > 1) {
+                $previousRankTotalWins = $rankings[$rankings->count() - 2]->total_wins_to_next_rank;
+            } else {
+                $previousRankTotalWins = 0;
+            }
+        }
+
+        $userWinsInRank = max(0, $wins - $previousRankTotalWins);
+        $winsPerLevel = (int) $currentRank->wins_to_next_level;
+
+        $currentLevel = 1;
+        $winsInCurrentLevel = 0;
+        $winsToNextLevelInCurrentLevel = 0;
+
+        if ($winsPerLevel > 0) {
+            $currentLevel = (int) floor($userWinsInRank / $winsPerLevel) + 1;
+
+            if ($currentRank->levels_count > 0 && $currentLevel > $currentRank->levels_count) {
+                $currentLevel = (int) $currentRank->levels_count;
+                $winsInCurrentLevel = $winsPerLevel;
+                $winsToNextLevelInCurrentLevel = 0;
+            } else {
+                $winsInCurrentLevel = $userWinsInRank % $winsPerLevel;
+                $winsToNextLevelInCurrentLevel = $winsPerLevel - $winsInCurrentLevel;
+            }
+        }
+
+        return [
+            'rank' => $currentRank,
+            'rank_name' => $currentRank->rank_name,
+            'rank_name_en' => $currentRank->rank_name_en,
+            'level' => $currentLevel,
+            'levels_count' => (int) $currentRank->levels_count,
+            'wins' => $wins,
+            'wins_in_current_level' => $winsInCurrentLevel,
+            'wins_to_next_level' => $winsToNextLevelInCurrentLevel,
+            'display' => $currentRank->rank_name . ' (المستوى ' . $currentLevel . ' من ' . $currentRank->levels_count . ')',
+        ];
+    }
 }

@@ -18,13 +18,10 @@ class UserController extends Controller
 {
     public function getAllUsers()
     {
-        // $users = User::latest()->get();
         $users = User::where('role', '!=', 'admin')->latest()->get();
+        $rankings = \App\Models\RankingNew::where('rank_order', '>', 0)->orderBy('rank_order', 'asc')->get();
 
-
-        return view('admin.users.all_users',compact('users'));
-
-
+        return view('admin.users.all_users', compact('users', 'rankings'));
     }
 
 
@@ -101,7 +98,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'photo' => $filename,
             'date_of_birth' => $request->date_of_birth,
-            'number_of_games' => 1,
+            'number_of_games' => 0,
             'is_game_free' => 'paid',
         ]);
 
@@ -636,7 +633,7 @@ public function validateRegisterApi(Request $request)
             'password' => $passwordToSave,
             'photo' => $request->photo,
             'is_game_free' => 'paid',
-            'number_of_games' => 1,
+            'number_of_games' => 0,
             'provider' => $request->filled('provider') ? $request->provider : null,
             'firebase_token' => $request->filled('firebase_token') ? $request->firebase_token : null,
             'date_of_birth' => $request->date_of_birth,
@@ -1155,10 +1152,46 @@ public function validateRegisterApi(Request $request)
             }
         }
 
+        $freshRankInfo = $user->fresh()->getRankAndLevel();
+
         return response()->json([
             'success' => true,
             'message' => 'تم حفظ التعديلات بنجاح',
+            'rank_info' => $freshRankInfo,
         ]);
+    }
+
+    public function resetUserRank(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $userId = $request->user_id;
+
+        try {
+            $user = User::findOrFail($userId);
+            $user->online_game_wins = 0;
+            $user->save();
+
+            $rankInfo = $user->getRankAndLevel();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إعادة تعيين رتبة ومستوى المستخدم إلى البداية بنجاح.',
+                'rank_info' => $rankInfo,
+                'data' => [
+                    'online_game_wins' => 0,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error resetting user rank: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء إعادة تعيين الرتبة: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function resetUserStatsAndCoins(Request $request)
@@ -1189,9 +1222,12 @@ public function validateRegisterApi(Request $request)
 
             \Illuminate\Support\Facades\DB::commit();
 
+            $rankInfo = $user->fresh()->getRankAndLevel();
+
             return response()->json([
                 'success' => true,
-                'message' => 'تم تصفير جميع بيانات وإحصائيات وعملات المستخدم بنجاح.',
+                'message' => 'تم تصفير جميع بيانات وإحصائيات وعملات ورتبة المستخدم بنجاح.',
+                'rank_info' => $rankInfo,
                 'data' => [
                     'online_game_wins' => 0,
                     'online_play_count' => 0,

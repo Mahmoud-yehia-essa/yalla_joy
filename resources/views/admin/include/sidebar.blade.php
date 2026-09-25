@@ -1317,7 +1317,29 @@
         </li>
         @endif
 
+        @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض QR Code') || Auth::user()->can('إضافة QR Code'))
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-qr-scan"></i>
+                </div>
+                <div class="menu-title">إدارة الـ QR Code</div>
+            </a>
+            <ul>
+                @if(Auth::user()->role === 'admin' || Auth::user()->can('إضافة QR Code'))
+                <li> <a href="{{ route('add.qr.code') }}"><i class='bx bx-radio-circle'></i>إنشاء QR Code</a>
+                </li>
+                @endif
+                @if(Auth::user()->role === 'admin' || Auth::user()->can('عرض QR Code'))
+                <li> <a href="{{ route('all.qr.code') }}"><i class='bx bx-radio-circle'></i>عرض QR Code المنشأة</a>
+                </li>
+                @endif
+            </ul>
+        </li>
+        @endif
+
     </ul>
     <!--end navigation-->
 </div>
+
 

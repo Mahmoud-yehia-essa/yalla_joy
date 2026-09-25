@@ -33,6 +33,7 @@
                         <th>اسم المستخدم</th>
                         <th>الاسم</th>
                         <th>البريد الإلكتروني</th>
+                        <th>الرتبة والمستوى</th>
                         <th>تاريخ الميلاد</th>
                         <th>تاريخ التسجيل</th>
                         <th>طريقة التسجيل</th>
@@ -45,11 +46,28 @@
                 </thead>
                 <tbody>
                 @foreach($users as $key => $item)
+                @php
+                    $rankInfo = $item->getRankAndLevel($rankings ?? null);
+                @endphp
                 <tr>
                 <td class="text-center"> {{ $key+1 }} </td>
                 <td class="fw-bold text-nowrap text-primary">{{ $item->user_name ?? '---' }}</td>
                 <td class="fw-bold text-nowrap">{{ $item->fname }} {{ $item->lname }}</td>
                 <td>{{ $item->email }}</td>
+                <td class="text-center text-nowrap user-rank-cell-{{ $item->id }}">
+                    @if($rankInfo['rank'])
+                        <div class="d-flex flex-column align-items-center gap-1">
+                            <span class="badge bg-primary px-2 py-1 shadow-sm" style="font-size: 12px; font-weight: 600;">
+                                <i class="fa-solid fa-medal me-1 text-warning"></i> {{ $rankInfo['rank_name'] }}
+                            </span>
+                            <span class="badge bg-light text-dark border fw-semibold" style="font-size: 11px;">
+                                المستوى {{ $rankInfo['level'] }} من {{ $rankInfo['levels_count'] }}
+                            </span>
+                        </div>
+                    @else
+                        <span class="text-muted small">---</span>
+                    @endif
+                </td>
                 <td class="text-nowrap">
                     @if($item->date_of_birth)
                         {{ $item->date_of_birth }} <span class="text-muted">({{ \Carbon\Carbon::parse($item->date_of_birth)->age }} سنة)</span>
@@ -133,6 +151,9 @@
                 <button type="button" class="btn btn-sm btn-warning toggle-coins-btn text-dark" data-user-id="{{ $item->id }}" title="العملات المكتسبة">
                     <i class="fa-solid fa-coins"></i>
                 </button>
+                <button type="button" class="btn btn-sm btn-outline-warning reset-user-rank-btn text-dark" data-user-id="{{ $item->id }}" data-username="{{ $item->fname }} {{ $item->lname }}" title="تصفير الرتبة والمستوى (العودة لأول رتبة ومستوى)">
+                    <i class="fa-solid fa-ranking-star"></i>
+                </button>
                 <button type="button" class="btn btn-sm btn-outline-danger reset-user-data-btn" data-user-id="{{ $item->id }}" data-username="{{ $item->fname }} {{ $item->lname }}" title="تصفير بيانات وعملات المستخدم">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
@@ -142,7 +163,7 @@
 
                 <!-- Coins Collapse Row -->
                 <tr id="user-coins-row-{{ $item->id }}" style="display: none; background-color: #faf9fd;">
-                    <td colspan="12" class="p-3">
+                    <td colspan="13" class="p-3">
         <div class="card shadow-none border mb-0" style="overflow: hidden;">
             <div class="card-body p-2 p-md-3">
                 <!-- User Game Stats -->
@@ -150,8 +171,24 @@
                     <i class="fa-solid fa-gamepad me-2"></i> معلومات لعبة الميدان
                 </h6>
                 <div class="row g-2 g-md-3 mb-4 pb-3 border-bottom text-center mx-0">
-                    <div class="col-12 col-md-4">
-                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border h-100">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
+                                <i class="fa-solid fa-medal text-warning"></i>
+                            </div>
+                            <div class="text-end w-100">
+                                <span class="text-muted d-block small fw-bold mb-1" style="font-size: 11px;">الرتبة والمستوى الحالي</span>
+                                <div id="stat-rank-name-{{ $item->id }}" class="fw-bold text-primary" style="font-size: 13px;">
+                                    {{ $rankInfo['rank_name'] }}
+                                </div>
+                                <span id="stat-rank-level-{{ $item->id }}" class="badge bg-light text-dark border mt-1" style="font-size: 10px;">
+                                    المستوى {{ $rankInfo['level'] }} من {{ $rankInfo['levels_count'] }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border h-100">
                             <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
                                 <i class="fa-solid fa-trophy"></i>
                             </div>
@@ -161,8 +198,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-4">
-                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border h-100">
                             <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
                                 <i class="fa-solid fa-gamepad"></i>
                             </div>
@@ -172,8 +209,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-4">
-                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border h-100">
                             <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
                                 <i class="fa-solid fa-star"></i>
                             </div>
@@ -264,6 +301,7 @@
     <th>اسم المستخدم</th>
     <th>الاسم</th>
     <th>البريد الإلكتروني</th>
+    <th>الرتبة والمستوى</th>
     <th>تاريخ الميلاد</th>
     <th>تاريخ التسجيل</th>
     <th>طريقة التسجيل</th>
@@ -487,6 +525,10 @@
                     if (res.success) {
                         toastr.success(res.message);
                         
+                        if (res.rank_info) {
+                            updateRankDisplay(userId, res.rank_info);
+                        }
+
                         // Force reload of summary if user collapses and opens again
                         const row = document.getElementById(`user-coins-row-${userId}`);
                         row.removeAttribute('data-loaded');
@@ -498,6 +540,148 @@
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalHtml;
                     toastr.error('حدث خطأ أثناء الاتصال بالخادم.');
+                });
+            });
+        });
+
+        // Helper to update Rank and Level display in table and collapse
+        function updateRankDisplay(userId, rankInfo) {
+            if (!rankInfo) return;
+
+            const rankCells = document.querySelectorAll(`.user-rank-cell-${userId}`);
+            rankCells.forEach(cell => {
+                if (rankInfo.rank) {
+                    cell.innerHTML = `
+                        <div class="d-flex flex-column align-items-center gap-1">
+                            <span class="badge bg-primary px-2 py-1 shadow-sm" style="font-size: 12px; font-weight: 600;">
+                                <i class="fa-solid fa-medal me-1 text-warning"></i> ${rankInfo.rank_name}
+                            </span>
+                            <span class="badge bg-light text-dark border fw-semibold" style="font-size: 11px;">
+                                المستوى ${rankInfo.level} من ${rankInfo.levels_count}
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    cell.innerHTML = '<span class="text-muted small">---</span>';
+                }
+            });
+
+            const rankNameEl = document.getElementById(`stat-rank-name-${userId}`);
+            if (rankNameEl) {
+                rankNameEl.innerText = rankInfo.rank_name || '---';
+            }
+            const rankLevelEl = document.getElementById(`stat-rank-level-${userId}`);
+            if (rankLevelEl) {
+                rankLevelEl.innerText = `المستوى ${rankInfo.level} من ${rankInfo.levels_count}`;
+            }
+        }
+
+        // Reset User Rank & Level Confirmation
+        document.querySelectorAll('.reset-user-rank-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username') || '';
+
+                Swal.fire({
+                    title: '<span style="font-size: 20px; font-weight: bold; color: #ffc107;"><i class="fa-solid fa-ranking-star me-2"></i> إعادة تعيين رتبة ومستوى المستخدم</span>',
+                    html: `
+                        <div style="direction: rtl; text-align: right; font-size: 14px; font-family: 'Cairo', sans-serif;">
+                            <div class="mb-2 text-dark">المستخدم: <strong>${username}</strong></div>
+                            <div class="alert alert-warning border-0 p-2 mb-3" style="background-color: #fff3cd; color: #856404; font-size: 12px; border-radius: 6px;">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                <strong>تنبيه:</strong> سيتم تصفير عدد انتصارات الميدان (الفوز) وإعادة المستخدم إلى <strong>أول مستوى في أول رتبة</strong> (المتعلم - المستوى 1).
+                            </div>
+                            <ul class="list-group list-group-flush mb-3 p-0" style="font-size: 13px; border-radius: 6px; overflow: hidden; border: 1px solid #eee;">
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-medal text-warning me-2"></i> الرتبة والمستوى الجديد</span>
+                                    <span class="badge bg-primary">المتعلم (المستوى 1)</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                                    <span><i class="fa-solid fa-trophy text-success me-2"></i> عدد مرات الفوز المحققة</span>
+                                    <span class="badge bg-danger rounded-pill">0</span>
+                                </li>
+                            </ul>
+                            <div class="text-center fw-bold text-dark mt-2" style="font-size: 14px;">
+                                هل أنت متأكد من إعادة تعيين رتبة ومستوى هذا المستخدم؟
+                            </div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonTextColor: '#000',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fa-solid fa-check me-1"></i> نعم، إعادة التعيين للبداية',
+                    cancelButtonText: '<i class="fa-solid fa-xmark me-1"></i> إلغاء',
+                    reverseButtons: true,
+                    focusCancel: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'جاري إعادة التعيين...',
+                            html: '<div class="spinner-border text-warning my-3" role="status"><span class="visually-hidden">جاري المعالجة...</span></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        });
+
+                        fetch('/user/reset-rank', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ user_id: userId })
+                        })
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'تمت إعادة التعيين بنجاح!',
+                                    text: res.message,
+                                    confirmButtonColor: '#0d6efd',
+                                    confirmButtonText: 'حسناً',
+                                    timer: 2500
+                                });
+
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success(res.message);
+                                }
+
+                                // Update rank display in table & collapse
+                                updateRankDisplay(userId, res.rank_info);
+
+                                // Update collapse wins input
+                                const winsInput = document.getElementById(`stat-wins-${userId}`);
+                                if (winsInput) winsInput.value = 0;
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'خطأ!',
+                                    text: res.message || 'حدث خطأ أثناء إعادة التعيين.',
+                                    confirmButtonColor: '#d33',
+                                    confirmButtonText: 'حسناً'
+                                });
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.error(res.message || 'حدث خطأ أثناء إعادة التعيين.');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'خطأ في الاتصال!',
+                                text: 'حدث خطأ أثناء الاتصال بالخادم. الرجاء المحاولة مرة أخرى.',
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'حسناً'
+                            });
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error('حدث خطأ أثناء الاتصال بالخادم.');
+                            }
+                        });
+                    }
                 });
             });
         });
@@ -672,6 +856,10 @@
 
                                 if (typeof toastr !== 'undefined') {
                                     toastr.success(res.message);
+                                }
+
+                                if (res.rank_info) {
+                                    updateRankDisplay(userId, res.rank_info);
                                 }
 
                                 // Update main table cells

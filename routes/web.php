@@ -52,12 +52,16 @@ use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\GameInstructionController;
 use App\Http\Controllers\TermsAndConditionsController;
+use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandPageController::class, 'landingPage'])->name('landing.page');
 
 // Public coupon display page (no auth required)
 Route::get('/coupon', [CouponCompanyController::class, 'showCouponPage'])->name('coupon.show');
+
+// Public QR Code landing page (no auth required)
+Route::get('/qr/{code}', [QrCodeController::class, 'showPublicQr'])->name('qr.public.show');
 
 
 // Route::get('/dashboard', function () {
@@ -345,6 +349,7 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
 Route::controller(UserController::class)->middleware(['checkUserRole','auth'])->group(function () {
     Route::get('/users/all', 'getAllUsers')->name('all.users');
     Route::post('/user/update-collapse-details', 'updateUserCollapseDetails')->name('user.update.collapse.details');
+    Route::post('/user/reset-rank', 'resetUserRank')->name('user.reset.rank');
     Route::post('/user/reset-stats-and-coins', 'resetUserStatsAndCoins')->name('user.reset.stats.coins');
     Route::get('/export/users', 'exportUsers')->name('export.users');
 
@@ -1167,6 +1172,17 @@ Route::controller(FinancialReportController::class)->middleware(['checkUserRole'
     Route::get('/admin/transactions/details/{id}', 'transactionDetails')->name('transaction.details');
     Route::post('/admin/transactions/send-notification', 'sendNotificationToUser')->name('transaction.send.notification');
     Route::get('/admin/export/transactions', 'exportTransactions')->name('export.transactions');
+});
+
+Route::controller(QrCodeController::class)->middleware(['checkUserRole','auth'])->group(function(){
+    Route::get('/qr-codes/all', 'allQrCodes')->name('all.qr.code');
+    Route::get('/qr-code/add', 'addQrCode')->name('add.qr.code');
+    Route::post('/qr-code/store', 'storeQrCode')->name('store.qr.code');
+    Route::get('/qr-code/edit/{id}', 'editQrCode')->name('edit.qr.code');
+    Route::post('/qr-code/update/{id}', 'updateQrCode')->name('update.qr.code');
+    Route::get('/qr-code/delete/{id}', 'deleteQrCode')->name('delete.qr.code');
+    Route::get('/qr-code/status/{id}', 'toggleStatus')->name('status.qr.code');
+    Route::get('/qr-code/download/{id}', 'downloadQr')->name('download.qr.code');
 });
 
 Route::get('/fix-storage', function () {

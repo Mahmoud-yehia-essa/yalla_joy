@@ -322,18 +322,18 @@
 
     <!-- Stores Preview -->
     <div class="stores-preview">
-      <div class="store-badge">
+      <a href="https://apps.apple.com/us/app/feek-tahadi-%D9%81%D9%8A%D9%83-%D8%AA%D8%AD%D8%AF%D9%8A/id6780262870" target="_blank" class="store-badge" style="text-decoration: none;">
         <i class="fa-brands fa-apple"></i>
         <span>App Store</span>
-      </div>
-      <div class="store-badge">
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=net.fiktahadi.fiktahadi_app" target="_blank" class="store-badge" style="text-decoration: none;">
         <i class="fa-brands fa-google-play"></i>
         <span>Google Play</span>
-      </div>
+      </a>
     </div>
 
     <div class="footer-text">
-      جميع الحقوق محفوظة &copy; {{ date('Y') }} لعبة فيك تحدي
+      &copy; 2026 جميع الحقوق محفوظة لـ شركة برفورمانس انك كويت للاستشارات د.م.م — Performance Inc Kuwait consulting w.L.L
     </div>
 
   </div>
