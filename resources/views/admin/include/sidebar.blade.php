@@ -258,6 +258,22 @@
 
  @endif
 
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon">
+                    <i class="bx bx-qr-scan" style="color: #6366f1;"></i>
+                </div>
+                <div class="menu-title">إدارة الـ QR Code</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('add.qr.code') }}"><i class='bx bx-radio-circle'></i>إنشاء QR Code</a>
+                </li>
+                <li>
+                    <a href="{{ route('all.qr.code') }}"><i class='bx bx-radio-circle'></i>عرض QR Code المنشأة</a>
+                </li>
+            </ul>
+        </li>
 
         @if(Auth::user()->can('عرض الألعاب المسجلة'))
 
@@ -1316,21 +1332,6 @@
             </ul>
         </li>
         @endif
-
-        <li>
-            <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon">
-                    <i class="bx bx-qr-scan"></i>
-                </div>
-                <div class="menu-title">إدارة الـ QR Code</div>
-            </a>
-            <ul>
-                <li> <a href="{{ route('add.qr.code') }}"><i class='bx bx-radio-circle'></i>إنشاء QR Code</a>
-                </li>
-                <li> <a href="{{ route('all.qr.code') }}"><i class='bx bx-radio-circle'></i>عرض QR Code المنشأة</a>
-                </li>
-            </ul>
-        </li>
 
     </ul>
     <!--end navigation-->
