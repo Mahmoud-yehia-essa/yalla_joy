@@ -46,61 +46,42 @@ $price = Price::latest('id')->get();
 
           $request->validate([
             'title' => 'required',
+            'description' => 'nullable|string',
             'price' => 'required|numeric',
-            //             'points_number_offline' => 'required|numeric',
-            // 'points_number_online' => 'required|numeric',
-
             'coins_number' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
             'game_coin_id'  => 'required|exists:game_coins,id',
-
-
         ], [
-            'title.required' => 'الرجاء اضافة الوصف',
+            'title.required' => 'الرجاء اضافة عنوان الباقة',
             'price.required' => 'الرجاء اضافة السعر',
-                        'price.numeric' => 'الرجاء اضافة السعر رقما',
-
-                          'coins_number.required' => 'الرجاء اضافة عدد الألعاب',
-                        'coins_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
-
-
-
-                        //                         'points_number_offline.numeric' => 'الرجاء اضافة عدد النقاط رقما',
-                        // 'points_number_online.numeric' => 'الرجاء اضافة عدد النقاط رقما',
-
-
+            'price.numeric' => 'الرجاء اضافة السعر رقما',
+            'coins_number.required' => 'الرجاء اضافة عدد العملات',
+            'coins_number.numeric' => 'الرجاء اضافة عدد العملات رقما',
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
-                        'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
-
+            'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
         ]);
 
             // Convert colors
     $color1 = $this->convertColorToFlutter($request->color1);
     $color2 = $this->convertColorToFlutter($request->color2);
 
-
         // Example return (just for checking)
     Price::insert([
-
             'title' => $request->title,
+            'description' => $request->description,
             'price' => $request->price,
-
             'color1' => $color1,
             'color2' => $color2,
             'coins_number' => $request->coins_number,
             'game_coin_id' => $request->game_coin_id,
-
             'points_number_online' => $request->points_number_online,
             'points_number_offline' => $request->points_number_offline,
-
-
-            'created_at' =>Carbon::now()
-
-
+            'status' => 'active',
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
         ]);
-
 
         $notification = array(
             'message' => 'تم اضافة سعر جديد',
@@ -108,11 +89,7 @@ $price = Price::latest('id')->get();
         );
 
         return redirect()->route('all.price')->with($notification);
-
-
-
     }
-
 
    public function editPrice($id)
 {
@@ -122,38 +99,29 @@ $price = Price::latest('id')->get();
     $price->color1 = $this->convertFlutterToHex($price->color1);
     $price->color2 = $this->convertFlutterToHex($price->color2);
 
-    //  $price->price = getPriceAttribute($price->price);
-
-                    $gameCoins = GameCoin::all();
-
+    $gameCoins = GameCoin::all();
 
     return view('admin.price.edit_price', compact('price','gameCoins'));
 }
 
  public function editPriceStore(Request $request){
-
-
           $request->validate([
             'title' => 'required',
+            'description' => 'nullable|string',
             'price' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
-                        'coins_number' => 'required|numeric',
-
+            'coins_number' => 'required|numeric',
             'game_coin_id'  => 'required|exists:game_coins,id',
-
-
         ], [
-            'title.required' => 'الرجاء اضافة الوصف',
+            'title.required' => 'الرجاء اضافة عنوان الباقة',
             'price.required' => 'الرجاء اضافة السعر',
-                        'price.numeric' => 'الرجاء اضافة السعر رقما',
-                              'coins_number.required' => 'الرجاء اضافة عدد الألعاب',
-                        'coins_number.numeric' => 'الرجاء اضافة عدد الألعاب رقما',
-
+            'price.numeric' => 'الرجاء اضافة السعر رقما',
+            'coins_number.required' => 'الرجاء اضافة عدد العملات',
+            'coins_number.numeric' => 'الرجاء اضافة عدد العملات رقما',
             'color1.required' => 'الرجاء اضافة اللون الأول',
             'color2.required' => 'الرجاء اضافة اللون الثاني',
-                        'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
-
+            'game_coin_id.required' => '⚠️ الرجاء اختيار عملة اللعبة',
         ]);
 
             // Convert colors
@@ -163,22 +131,16 @@ $price = Price::latest('id')->get();
         $price_id = $request->id;
 
          Price::findOrFail($price_id)->update([
-                  'title' => $request->title,
+            'title' => $request->title,
+            'description' => $request->description,
             'price' => $request->price,
             'color1' => $color1,
             'color2' => $color2,
-                              'coins_number' => $request->coins_number,
+            'coins_number' => $request->coins_number,
             'game_coin_id' => $request->game_coin_id,
-
-
-               'points_number_online' => $request->points_number_online,
+            'points_number_online' => $request->points_number_online,
             'points_number_offline' => $request->points_number_offline,
-
-
-            'created_at' =>Carbon::now()
-
-
-
+            'updated_at' => Carbon::now()
         ]);
 
        $notification = array(

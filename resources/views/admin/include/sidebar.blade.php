@@ -305,16 +305,17 @@
 
 
      @if(Auth::user()->can('عرض الإحصائيات'))
-
-
         <li>
-            <a href="{{route('report.view')}}">
+            <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon">
                     <ion-icon name="stats-chart-outline"></ion-icon>
-
                 </div>
-                <div class="menu-title">الاحصائيات</div>
+                <div class="menu-title">الاحصائيات والتقارير</div>
             </a>
+            <ul>
+                <li> <a href="{{route('report.view')}}"><i class='bx bx-radio-circle'></i>إحصائيات النظام العامة</a></li>
+                <li> <a href="{{route('report.online.games')}}"><i class='bx bx-radio-circle'></i>تدقيق ألعاب الميدان (أونلاين)</a></li>
+            </ul>
         </li>
  @endif
 
@@ -1076,6 +1077,9 @@
                   <li> <a href="{{route('all.game.coin')}}"><i class='bx bx-radio-circle'></i>عرض العملات</a>
                 </li>
 
+                  <li> <a href="{{route('coin.transaction.settings')}}"><i class='bx bx-radio-circle'></i>نصوص حركات العملات</a>
+                </li>
+
          @endif
 
 
@@ -1101,6 +1105,9 @@
 
 
                 <li> <a href="{{route('add.versions')}}"><i class='bx bx-radio-circle'></i>اعدادات اللعبة</a>
+                </li>
+
+                <li> <a href="{{route('coin.transaction.settings')}}"><i class='bx bx-radio-circle'></i>نصوص حركات العملات</a>
                 </li>
 
 

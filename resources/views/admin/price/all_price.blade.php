@@ -34,7 +34,8 @@
                 <thead>
 <tr>
 <th>الرقم</th>
-<th>الوصف</th>
+<th>عنوان الباقة</th>
+<th>الوصف التفصيلي</th>
 <th>السعر</th>
 
 <th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>
@@ -50,7 +51,8 @@
 @foreach($price as $key => $item)
 <tr>
 <td> {{ $key+1 }} </td>
-<td>{{ $item->title }} </td>
+<td><strong>{{ $item->title }}</strong></td>
+<td><span class="text-muted small">{{ Str::limit($item->description ?? '---', 40) }}</span></td>
 <td>{{ $item->price }} دك</td>
 <td>{{ $item->points_number_offline }}</td>
 <td>{{ $item->points_number_online }} </td>
@@ -82,8 +84,9 @@
 </tbody>
 <tfoot>
 <tr>
- <th>الرقم</th>
-<th>الوصف</th>
+<th>الرقم</th>
+<th>عنوان الباقة</th>
+<th>الوصف التفصيلي</th>
 <th>السعر</th>
 
 <th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>

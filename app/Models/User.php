@@ -36,6 +36,7 @@ class User extends Authenticatable
         'number_of_games' => 0,
         'is_game_free' => 'paid',
         'offline_points' => 0,
+        'offline_game_wins' => 0,
     ];
 
 
@@ -134,12 +135,13 @@ class User extends Authenticatable
     }// End Method
 
     /**
-     * Get user rank and level information based on online_game_wins.
+     * Get user rank and level information based on total wins (online_game_wins + offline_game_wins).
      *
      * @param \Illuminate\Support\Collection|null $rankings Pre-fetched rankings to prevent N+1 queries.
+     * @param int|null $wins Custom win count (defaults to total combined wins)
      * @return array
      */
-    public function getRankAndLevel($rankings = null)
+    public function getRankAndLevel($rankings = null, $wins = null)
     {
         if (!$rankings) {
             $rankings = \App\Models\RankingNew::where('rank_order', '>', 0)
@@ -151,6 +153,12 @@ class User extends Authenticatable
             }
         }
 
+        if ($wins === null) {
+            $wins = (int) ($this->online_game_wins ?? 0) + (int) ($this->offline_game_wins ?? 0);
+        } else {
+            $wins = (int) $wins;
+        }
+
         if ($rankings->isEmpty()) {
             return [
                 'rank' => null,
@@ -158,14 +166,12 @@ class User extends Authenticatable
                 'rank_name_en' => 'No Ranks',
                 'level' => 1,
                 'levels_count' => 0,
-                'wins' => (int) ($this->online_game_wins ?? 0),
+                'wins' => $wins,
                 'wins_in_current_level' => 0,
                 'wins_to_next_level' => 0,
                 'display' => 'لا توجد رتب',
             ];
         }
-
-        $wins = (int) ($this->online_game_wins ?? 0);
 
         $currentRank = null;
         $previousRankTotalWins = 0;
@@ -218,5 +224,10 @@ class User extends Authenticatable
             'wins_to_next_level' => $winsToNextLevelInCurrentLevel,
             'display' => $currentRank->rank_name . ' (المستوى ' . $currentLevel . ' من ' . $currentRank->levels_count . ')',
         ];
+    }
+
+    public function getOfflineRankAndLevel($rankings = null)
+    {
+        return $this->getRankAndLevel($rankings);
     }
 }

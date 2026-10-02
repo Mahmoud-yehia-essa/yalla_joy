@@ -12,6 +12,10 @@ use App\Models\Question;
 use App\Models\MainCategory;
 use Illuminate\Http\Request;
 use App\Models\TitlePosition;
+use App\Models\OnlineGameInfo;
+use App\Models\OnlineGameUser;
+use App\Models\OnlineGameCategory;
+use Illuminate\Support\Facades\DB;
 
 
 class ReportController extends Controller
@@ -171,17 +175,123 @@ class ReportController extends Controller
     public function OrderByUser(){
         // $users = User::where('role','user')->latest()->get();
         // return view('backend.report.report_by_user',compact('users'));
-
     }// End Method
 
     public function SearchByUser(Request $request){
-
         // $user_id = $request->user;
         // $users = User::find($user_id);
-
         // $orders = Order::where('user_id',$user_id)->latest()->get();
         // return view('backend.report.report_by_user_show',compact('orders','users'));
     }// End Method
 
+    /**
+     * تقرير تدقيق ومراقبة مباريات الميدان أونلاين
+     */
+    public function OnlineGamesAuditReport(Request $request)
+    {
+        $search = $request->input('search');
+        $anomalyOnly = $request->input('anomaly_only');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
 
+        $query = OnlineGameInfo::with(['user', 'categories.category', 'onlineGameUsers.user'])
+            ->latest('id');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('game_session_name', 'like', "%{$search}%")
+                  ->orWhere('online_game_name', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('f_name', 'like', "%{$search}%")
+                         ->orWhere('l_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if (!empty($dateFrom)) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if (!empty($dateTo)) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        $allGames = $query->paginate(25)->withQueryString();
+
+        // إلحاق إحصائيات الأسئلة والفئات وفحص الأنماط غير الطبيعية (Anomalies) لكل لعبة
+        foreach ($allGames as $game) {
+            $game->questions_count = DB::table('game_session_question_onlines')
+                ->where('session_id', $game->game_session_name)
+                ->count();
+
+            $game->categories_count = $game->categories->count();
+
+            $game->has_self_join = $game->onlineGameUsers->contains(function ($u) use ($game) {
+                return $u->user_id == $game->created_user_id && $u->role !== 'admin';
+            });
+
+            $game->is_anomaly = ($game->questions_count > 36) || ($game->categories_count > 6) || $game->has_self_join;
+        }
+
+        // إذا تم اختيار فلتر الألعاب غير الطبيعية فقط
+        if ($anomalyOnly == '1') {
+            $filteredItems = $allGames->getCollection()->filter(function ($game) {
+                return $game->is_anomaly;
+            });
+            $allGames->setCollection($filteredItems);
+        }
+
+        // إحصائيات عامة
+        $totalOnlineGames = OnlineGameInfo::count();
+        $totalOnlineQuestionsInDb = DB::table('game_session_question_onlines')->count();
+
+        return view('admin.report.online_games_audit', compact(
+            'allGames',
+            'search',
+            'anomalyOnly',
+            'dateFrom',
+            'dateTo',
+            'totalOnlineGames',
+            'totalOnlineQuestionsInDb'
+        ));
+    }
+
+    /**
+     * تفاصيل جلسة لعبة أونلاين محددة والأسئلة والفئات المرتبطة بها
+     */
+    public function OnlineGameDetailsReport($id)
+    {
+        $game = OnlineGameInfo::with(['user', 'categories.category', 'onlineGameUsers.user'])
+            ->where('id', $id)
+            ->orWhere('game_session_name', $id)
+            ->firstOrFail();
+
+        $questions = DB::table('game_session_question_onlines as gsq')
+            ->join('questions as q', 'gsq.question_id', '=', 'q.id')
+            ->join('categories as c', 'gsq.category_id', '=', 'c.id')
+            ->where('gsq.session_id', $game->game_session_name)
+            ->orderBy('gsq.id')
+            ->select(
+                'q.*',
+                'gsq.category_id',
+                'gsq.question_order',
+                'gsq.created_at as question_attached_at',
+                'c.category_name',
+                'c.category_name_en',
+                'c.category_photo'
+            )
+            ->get();
+
+        $categories = $game->categories;
+        $players = $game->onlineGameUsers;
+
+        return view('admin.report.online_game_details', compact(
+            'game',
+            'questions',
+            'categories',
+            'players'
+        ));
+    }
 }

@@ -24,5 +24,11 @@ public function categories()
     );
 }
 
-
+public function onlineGameUsers()
+{
+    return $this->hasMany(
+        OnlineGameUser::class,
+        'online_game_info_id'
+    );
+}
 }

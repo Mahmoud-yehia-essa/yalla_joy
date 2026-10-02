@@ -328,11 +328,13 @@ class CouponCompanyController extends Controller
             }
 
             // Deduct coins
+            $couponDes = \App\Models\AppVersion::getCoinDescription('coupon_exchange', 'استبدال عملات بكوبون خصم' . ($coupon->name ? ': ' . $coupon->name : ''));
             \App\Models\UserCoin::create([
                 'user_id' => $userId,
                 'game_coin_id' => $gameCoinId,
                 'coins_number' => -abs($cost),
-                'type' => 'withdraw'
+                'type' => 'withdraw',
+                'des' => $couponDes,
             ]);
         }
 

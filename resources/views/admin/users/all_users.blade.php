@@ -378,6 +378,7 @@
                                 <th>اسم العملة</th>
                                 <th>الكمية</th>
                                 <th>نوع العملية</th>
+                                <th>وصف العملية</th>
                                 <th>تاريخ العملية</th>
                             </tr>
                         </thead>
@@ -753,6 +754,7 @@
                                     <td><strong>${item.name || item.name_en || 'N/A'}</strong></td>
                                     <td>${countBadge}</td>
                                     <td>${typeLabel}</td>
+                                    <td><span class="text-muted small fw-bold">${item.des || '---'}</span></td>
                                     <td>
                                         <span class="text-muted d-block small">${item.created_at_human}</span>
                                         <span class="text-muted small" style="font-size: 10px;">${new Date(item.created_at).toLocaleString('ar-EG')}</span>

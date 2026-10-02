@@ -1147,6 +1147,7 @@ public function validateRegisterApi(Request $request)
                         'game_coin_id' => $coinId,
                         'coins_number' => $diff,
                         'type' => $diff > 0 ? 'add' : 'withdraw',
+                        'des' => $diff > 0 ? 'تعديل رصيد العملات (إضافة من الإدارة)' : 'تعديل رصيد العملات (خصم من الإدارة)',
                     ]);
                 }
             }
@@ -1172,6 +1173,7 @@ public function validateRegisterApi(Request $request)
         try {
             $user = User::findOrFail($userId);
             $user->online_game_wins = 0;
+            $user->offline_game_wins = 0;
             $user->save();
 
             $rankInfo = $user->getRankAndLevel();
@@ -1182,6 +1184,7 @@ public function validateRegisterApi(Request $request)
                 'rank_info' => $rankInfo,
                 'data' => [
                     'online_game_wins' => 0,
+                    'offline_game_wins' => 0,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -1207,11 +1210,13 @@ public function validateRegisterApi(Request $request)
 
             $user = User::findOrFail($userId);
 
-            // 1. Reset Maydan game stats (wins, play count, points)
+            // 1. Reset Maydan game stats & Jalsa stats (wins, play count, points)
             $user->online_game_wins = 0;
+            $user->offline_game_wins = 0;
             $user->online_play_count = 0;
             $user->online_points = 0;
             $user->online_points_fixed = 0;
+            $user->offline_points = 0;
             $user->save();
 
             // 2. Reset Session games (delete user created games, cascade deletes related records)
@@ -1230,9 +1235,11 @@ public function validateRegisterApi(Request $request)
                 'rank_info' => $rankInfo,
                 'data' => [
                     'online_game_wins' => 0,
+                    'offline_game_wins' => 0,
                     'online_play_count' => 0,
                     'online_points' => 0,
                     'online_points_fixed' => 0,
+                    'offline_points' => 0,
                     'session_games_count' => 0,
                 ]
             ]);
@@ -1282,6 +1289,7 @@ public function validateRegisterApi(Request $request)
                     'game_coin_id' => $plan->game_coin_id,
                     'coins_number' => $plan->coins_number,
                     'type' => 'add',
+                    'des' => 'مكافأة تسجيل حساب جديد' . ($plan->name ? ' (' . $plan->name . ')' : ''),
                 ]);
                 $claimedPlans[] = [
                     'id' => $plan->id,

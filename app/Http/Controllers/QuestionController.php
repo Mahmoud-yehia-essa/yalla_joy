@@ -2601,42 +2601,48 @@ public function createGameSessionQuestions(Request $request)
             ->sortBy(fn ($q) => $questionIds->search($q->id))
             ->values();
 
-    } else {
+        // 3️⃣ التحقق من أن الجلسة لم تتجاوز 18 سؤالاً (6 فئات × 3 أسئلة)
+        $existingSessionQCount = DB::table('game_session_question_onlines')
+            ->where('session_id', $sessionId)
+            ->count();
 
-        // 3️⃣ إنشاء أسئلة جديدة لهذا التصنيف فقط
-        $questions_200 = Question::where('category_id', $categoryId)
-            ->where('qu_points', 200)
-            ->inRandomOrder()
-            ->take(1)
-            ->get();
+        if ($existingSessionQCount < 18) {
+            $questions_200 = Question::where('category_id', $categoryId)
+                ->where('qu_points', 200)
+                ->inRandomOrder()
+                ->take(1)
+                ->get();
 
-        $questions_400 = Question::where('category_id', $categoryId)
-            ->where('qu_points', 400)
-            ->inRandomOrder()
-            ->take(1)
-            ->get();
+            $questions_400 = Question::where('category_id', $categoryId)
+                ->where('qu_points', 400)
+                ->inRandomOrder()
+                ->take(1)
+                ->get();
 
-        $questions_600 = Question::where('category_id', $categoryId)
-            ->where('qu_points', 600)
-            ->inRandomOrder()
-            ->take(1)
-            ->get();
+            $questions_600 = Question::where('category_id', $categoryId)
+                ->where('qu_points', 600)
+                ->inRandomOrder()
+                ->take(1)
+                ->get();
 
-        $questions = $questions_200
-            ->merge($questions_400)
-            ->merge($questions_600)
-            ->values();
+            $questions = $questions_200
+                ->merge($questions_400)
+                ->merge($questions_600)
+                ->values();
 
-        // 4️⃣ حفظها للجلسة + التصنيف
-        foreach ($questions as $index => $question) {
-            DB::table('game_session_question_onlines')->insert([
-                'session_id'     => $sessionId,
-                'category_id'    => $categoryId,
-                'question_id'    => $question->id,
-                'question_order' => $index,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
+            // 4️⃣ حفظها للجلسة + التصنيف
+            foreach ($questions as $index => $question) {
+                DB::table('game_session_question_onlines')->insert([
+                    'session_id'     => $sessionId,
+                    'category_id'    => $categoryId,
+                    'question_id'    => $question->id,
+                    'question_order' => $index,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+        } else {
+            $questions = collect();
         }
     }
 
@@ -2917,7 +2923,8 @@ public function getGameSessionQuestions(Request $request)
             'c.category_name_en',
             'c.category_photo'
         )
-        // لا يوجد حد ثابت للأسئلة - العدد يعتمد على عدد الفئات المختارة (6 × عدد الفئات)
+        // سقف أمان حاسم: حد أقصى 36 سؤالاً للجلسة (6 فئات × 6 أسئلة)
+        ->take(36)
         ->get();
 
     if ($questions->isEmpty()) {

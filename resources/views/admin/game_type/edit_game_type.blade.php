@@ -145,6 +145,160 @@
                                     </div>
                                 </div>
 
+                                    <!-- Coins Requirement Section Header -->
+                                    <div class="row mb-3 mt-4">
+                                        <div class="col-sm-12">
+                                            <div class="p-3 rounded bg-light border-start border-primary border-4 shadow-sm">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-coin-stack text-warning fs-3"></i>
+                                                    <div>
+                                                        <h6 class="mb-0 fw-bold text-dark">العملات المطلوبة للعب حسب أماكن وأنماط اللعب</h6>
+                                                        <small class="text-muted">حدد نوع العملة وعدد العملات المطلوب خصمها عند بدء اللعب من كل نمط/مصدر في التطبيق</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4">
+                                        <!-- 1. لعبة الجلسة -->
+                                        <div class="col-md-6">
+                                            <div class="card border border-primary-subtle shadow-none h-100 mb-0" style="background-color: #f8faff;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                                        <span class="badge bg-primary rounded-circle p-2"><i class="bx bx-group fs-6"></i></span>
+                                                        <h6 class="mb-0 fw-bold text-primary">1. لعبة الجلسة (أوفلاين)</h6>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold">نوع العملة</label>
+                                                        <select name="offline_game_coin_id" class="form-select form-select-sm">
+                                                            <option value="">-- مجاناً (بدون عملات) --</option>
+                                                            @foreach($gameCoins as $coin)
+                                                                <option value="{{ $coin->id }}" {{ old('offline_game_coin_id', $gameType->offline_game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                                    {{ $coin->name }} ({{ $coin->name_en }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small fw-bold">عدد العملات المطلوبة</label>
+                                                        <input type="number" min="0" name="offline_coins_number" class="form-control form-control-sm" value="{{ old('offline_coins_number', $gameType->offline_coins_number ?? 0) }}" placeholder="0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. لعبة الميدان - البحث عن لاعبين -->
+                                        <div class="col-md-6">
+                                            <div class="card border border-info-subtle shadow-none h-100 mb-0" style="background-color: #f6fbff;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                                        <span class="badge bg-info text-white rounded-circle p-2"><i class="bx bx-search-alt fs-6"></i></span>
+                                                        <h6 class="mb-0 fw-bold text-info">2. لعبة الميدان (البحث عن لاعبين)</h6>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold">نوع العملة</label>
+                                                        <select name="online_search_game_coin_id" class="form-select form-select-sm">
+                                                            <option value="">-- مجاناً (بدون عملات) --</option>
+                                                            @foreach($gameCoins as $coin)
+                                                                <option value="{{ $coin->id }}" {{ old('online_search_game_coin_id', $gameType->online_search_game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                                    {{ $coin->name }} ({{ $coin->name_en }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small fw-bold">عدد العملات المطلوبة</label>
+                                                        <input type="number" min="0" name="online_search_coins_number" class="form-control form-control-sm" value="{{ old('online_search_coins_number', $gameType->online_search_coins_number ?? 0) }}" placeholder="0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 3. لعبة الميدان - إنشاء لعبة كاملة (6 فئات) -->
+                                        <div class="col-md-6">
+                                            <div class="card border border-success-subtle shadow-none h-100 mb-0" style="background-color: #f6fbf8;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                                        <span class="badge bg-success rounded-circle p-2"><i class="bx bx-grid-alt fs-6"></i></span>
+                                                        <h6 class="mb-0 fw-bold text-success">3. لعبة الميدان (إنشاء لعبة كاملة - 6 فئات)</h6>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold">نوع العملة</label>
+                                                        <select name="online_create_game_coin_id" class="form-select form-select-sm">
+                                                            <option value="">-- مجاناً (بدون عملات) --</option>
+                                                            @foreach($gameCoins as $coin)
+                                                                <option value="{{ $coin->id }}" {{ old('online_create_game_coin_id', $gameType->online_create_game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                                    {{ $coin->name }} ({{ $coin->name_en }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small fw-bold">عدد العملات المطلوبة</label>
+                                                        <input type="number" min="0" name="online_create_coins_number" class="form-control form-control-sm" value="{{ old('online_create_coins_number', $gameType->online_create_coins_number ?? 0) }}" placeholder="0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 4. لعبة الميدان - تحدي مع صديق (3 فئات) -->
+                                        <div class="col-md-6">
+                                            <div class="card border border-warning-subtle shadow-none h-100 mb-0" style="background-color: #fffdf6;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                                        <span class="badge bg-warning text-dark rounded-circle p-2"><i class="bx bx-user-plus fs-6"></i></span>
+                                                        <h6 class="mb-0 fw-bold text-warning text-dark">4. لعبة الميدان (تحدي مع صديق - 3 فئات)</h6>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold">نوع العملة</label>
+                                                        <select name="online_challenge_game_coin_id" class="form-select form-select-sm">
+                                                            <option value="">-- مجاناً (بدون عملات) --</option>
+                                                            @foreach($gameCoins as $coin)
+                                                                <option value="{{ $coin->id }}" {{ old('online_challenge_game_coin_id', $gameType->online_challenge_game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                                    {{ $coin->name }} ({{ $coin->name_en }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small fw-bold">عدد العملات المطلوبة</label>
+                                                        <input type="number" min="0" name="online_challenge_coins_number" class="form-control form-control-sm" value="{{ old('online_challenge_coins_number', $gameType->online_challenge_coins_number ?? 0) }}" placeholder="0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 5. التحديات - نافس الحاصلين على أعلى الدرجات والبحث عن منافس -->
+                                        <div class="col-md-12">
+                                            <div class="card border border-danger-subtle shadow-none mb-0" style="background-color: #fff9f9;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                                        <span class="badge bg-danger rounded-circle p-2"><i class="bx bx-trophy fs-6"></i></span>
+                                                        <h6 class="mb-0 fw-bold text-danger">5. التحديات (نافس الحاصلين على أعلى الدرجات والبحث عن منافس)</h6>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label small fw-bold">نوع العملة</label>
+                                                            <select name="top_scorers_game_coin_id" class="form-select form-select-sm">
+                                                                <option value="">-- مجاناً (بدون عملات) --</option>
+                                                                @foreach($gameCoins as $coin)
+                                                                    <option value="{{ $coin->id }}" {{ old('top_scorers_game_coin_id', $gameType->top_scorers_game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                                        {{ $coin->name }} ({{ $coin->name_en }})
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small fw-bold">عدد العملات المطلوبة</label>
+                                                            <input type="number" min="0" name="top_scorers_coins_number" class="form-control form-control-sm" value="{{ old('top_scorers_coins_number', $gameType->top_scorers_coins_number ?? 0) }}" placeholder="0" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 <!-- Submit Button -->
                                 <div class="row">
                                     <div class="col-sm-3"></div>

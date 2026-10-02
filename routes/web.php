@@ -56,6 +56,8 @@ use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandPageController::class, 'landingPage'])->name('landing.page');
+Route::get('/download', [LandPageController::class, 'smartDownload'])->name('landing.download');
+Route::get('/app', [LandPageController::class, 'smartDownload'])->name('landing.app');
 
 // Public coupon display page (no auth required)
 Route::get('/coupon', [CouponCompanyController::class, 'showCouponPage'])->name('coupon.show');
@@ -93,6 +95,8 @@ Route::controller(AppVersionController::class)->middleware(['checkUserRole','aut
 
     Route::get('/add/versions', 'addVersions')->name('add.versions');
     Route::post('/update/versions', 'updateVersions')->name('update.versions.store');
+    Route::get('/coin/transaction/settings', 'coinTransactionSettings')->name('coin.transaction.settings');
+    Route::post('/coin/transaction/settings/update', 'updateCoinTransactionSettings')->name('coin.transaction.settings.update');
 
 
 });
@@ -418,7 +422,8 @@ Route::controller(AdsController::class)->middleware(['checkUserRole','auth'])->g
     Route::get('/order/by/user' , 'OrderByUser')->name('order.by.user');
     Route::post('/search/by/user' , 'SearchByUser')->name('search-by-user');
 
-
+    Route::get('/admin/report/online-games', 'OnlineGamesAuditReport')->name('report.online.games');
+    Route::get('/admin/report/online-games/{id}', 'OnlineGameDetailsReport')->name('report.online.game.details');
 });
 
 Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'])->group(function () {

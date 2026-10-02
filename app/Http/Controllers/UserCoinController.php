@@ -148,6 +148,7 @@ public function getUserCoinDetails(Request $request)
                     'photo' => $coin->photo,
                     'status' => $coin->status,
                     'type' => $item->type,
+                    'des' => $item->des,
                     'created_at' => $item->created_at,
                     'created_at_human' => Carbon::parse($item->created_at)->diffForHumans(),
                     'updated_at' => $item->updated_at,
@@ -155,6 +156,7 @@ public function getUserCoinDetails(Request $request)
             }
 
             $arr = $item->toArray();
+            $arr['des'] = $item->des;
             $arr['created_at_human'] = Carbon::parse($item->created_at)->diffForHumans();
             return $arr;
         });
@@ -266,12 +268,14 @@ public function updateCoinsNumbers(Request $request)
         'game_coin_id' => 'required|integer|exists:game_coins,id',
         'new_coins_number' => 'required|integer|min:1',
         'type' => 'required|in:add,withdraw',
+        'des' => 'nullable|string',
     ]);
 
     $userId = $request->user_id;
     $gameCoinId = $request->game_coin_id;
     $coinsNumber = $request->new_coins_number;
     $type = $request->type;
+    $des = $request->des ?? ($type === 'add' ? 'إضافة عملات' : 'خصم عملات');
 
     // لو سحب نخزن رقم سالب
     if ($type === 'withdraw') {
@@ -284,6 +288,7 @@ public function updateCoinsNumbers(Request $request)
         'game_coin_id' => $gameCoinId,
         'coins_number' => $coinsNumber,
         'type' => $type, // add | withdraw
+        'des' => $des,
     ]);
 
     // ✅ ملخص العملات بعد العملية

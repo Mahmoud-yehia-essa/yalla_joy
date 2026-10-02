@@ -38,6 +38,7 @@
 
 <th>نوع اللعبة</th>
 <th>عدد الفئات الرئيسية في نوع اللعبة</th>
+<th>العملات المطلوبة للعب</th>
 
 <th> الصورة</th>
 <th>الاجراء</th>
@@ -55,7 +56,65 @@
 
 </span></td>
 
+<td>
+    @php
+        $hasCoins = false;
+    @endphp
+    <div class="d-flex flex-column gap-1" style="min-width: 170px; font-size: 0.8rem;">
+        @if($item->offlineGameCoin && $item->offline_coins_number > 0)
+            @php $hasCoins = true; @endphp
+            <div class="d-flex align-items-center justify-content-between bg-primary-subtle text-primary px-2 py-0.5 rounded border border-primary-subtle">
+                <span><i class="bx bx-group me-1"></i> الجلسة:</span>
+                <span class="fw-bold">{{ $item->offline_coins_number }} {{ $item->offlineGameCoin->name }}</span>
+            </div>
+        @endif
 
+        @if($item->onlineSearchGameCoin && $item->online_search_coins_number > 0)
+            @php $hasCoins = true; @endphp
+            <div class="d-flex align-items-center justify-content-between bg-info-subtle text-info px-2 py-0.5 rounded border border-info-subtle">
+                <span><i class="bx bx-search-alt me-1"></i> بحث أونلاين:</span>
+                <span class="fw-bold">{{ $item->online_search_coins_number }} {{ $item->onlineSearchGameCoin->name }}</span>
+            </div>
+        @endif
+
+        @if($item->onlineCreateGameCoin && $item->online_create_coins_number > 0)
+            @php $hasCoins = true; @endphp
+            <div class="d-flex align-items-center justify-content-between bg-success-subtle text-success px-2 py-0.5 rounded border border-success-subtle">
+                <span><i class="bx bx-grid-alt me-1"></i> إنشاء كاملة (6):</span>
+                <span class="fw-bold">{{ $item->online_create_coins_number }} {{ $item->onlineCreateGameCoin->name }}</span>
+            </div>
+        @endif
+
+        @if($item->onlineChallengeGameCoin && $item->online_challenge_coins_number > 0)
+            @php $hasCoins = true; @endphp
+            <div class="d-flex align-items-center justify-content-between bg-warning-subtle text-warning-emphasis px-2 py-0.5 rounded border border-warning-subtle">
+                <span><i class="bx bx-user-plus me-1"></i> تحدي صديق (3):</span>
+                <span class="fw-bold">{{ $item->online_challenge_coins_number }} {{ $item->onlineChallengeGameCoin->name }}</span>
+            </div>
+        @endif
+
+        @if($item->topScorersGameCoin && $item->top_scorers_coins_number > 0)
+            @php $hasCoins = true; @endphp
+            <div class="d-flex align-items-center justify-content-between bg-danger-subtle text-danger px-2 py-0.5 rounded border border-danger-subtle">
+                <span><i class="bx bx-trophy me-1"></i> التحديات:</span>
+                <span class="fw-bold">{{ $item->top_scorers_coins_number }} {{ $item->topScorersGameCoin->name }}</span>
+            </div>
+        @endif
+
+        @if(!$hasCoins)
+            @if($item->gameCoin && $item->coins_number > 0)
+                <div class="d-flex align-items-center justify-content-between bg-secondary-subtle text-secondary px-2 py-0.5 rounded border">
+                    <span>افتراضي:</span>
+                    <span class="fw-bold">{{ $item->coins_number }} {{ $item->gameCoin->name }}</span>
+                </div>
+            @else
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 text-center">
+                    <i class="bx bx-check-circle me-1"></i> مجاناً (بدون عملات)
+                </span>
+            @endif
+        @endif
+    </div>
+</td>
 
 <td> <img onclick="showImageModal(this.src)" src="{{ asset($item->type_photo) }}" style="width: 70px; height:40px; cursor: pointer;" >  </td>
 
@@ -104,6 +163,7 @@
 
 <th>نوع اللعبة</th>
 <th>عدد الفئات في النوع</th>
+<th>العملات المطلوبة للعب</th>
 
 <th> الصورة</th>
 <th>الاجراء</th>

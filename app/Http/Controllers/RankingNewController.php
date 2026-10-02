@@ -147,7 +147,10 @@ class RankingNewController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $wins = (int) $user->online_game_wins;
+        $onlineWins = (int) ($user->online_game_wins ?? 0);
+        $offlineWins = (int) ($user->offline_game_wins ?? 0);
+        $totalWins = $onlineWins + $offlineWins;
+        $wins = $totalWins;
 
         // جلب كل الرتب مرتّبة تصاعدياً
         $rankings = RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])
@@ -161,7 +164,7 @@ class RankingNewController extends Controller
             ], 200);
         }
 
-        // الرتبة المناسبة: أول رتبة يكون عدد الانتصارات أقل من total_wins_to_next_rank الخاص بها
+        // الرتبة المناسبة: أول رتبة يكون إجمالي عدد الانتصارات أقل من total_wins_to_next_rank الخاص بها
         $currentRank = null;
         $previousRankTotalWins = 0;
         foreach ($rankings as $rank) {
@@ -252,7 +255,8 @@ class RankingNewController extends Controller
         return response()->json([
             'success'               => true,
             'user_id'               => $user->id,
-            'wins_count'            => $wins,
+            'wins_count'            => $totalWins,
+            'total_wins'            => $totalWins,
             'current_rank'          => $currentRank,
             'current_level'         => $currentLevel,
             'wins_in_current_level' => $winsInCurrentLevel,
@@ -260,11 +264,18 @@ class RankingNewController extends Controller
             'next_rank'             => $nextRank,
             'wins_to_next_rank'     => $winsToNextRank,
             'online_play_count'     => (int) $user->online_play_count,
-            'online_game_wins'      => (int) $user->online_game_wins,
+            'online_game_wins'      => $onlineWins,
+            'offline_game_wins'     => $offlineWins,
+            'online_points'         => $userPoints,
             'user_position'         => $userPosition,
             'offline_user_position' => $offlineUserPosition,
             'offline_points'        => (int) ($user->offline_points ?? 0),
         ], 200);
+    }
+
+    public function getOfflineUserRankApi(Request $request)
+    {
+        return $this->getUserRankApi($request);
     }
 
     private function recalculateTotalWins()

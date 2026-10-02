@@ -217,11 +217,15 @@ class OttuPaymentController extends Controller
                             $user->save();
                         }
                         if ($coinsCount > 0 && $gameCoinId) {
+                            $coinDes = AppVersion::getCoinDescription('online_purchase', 'شراء باقة عملات عبر الدفع الإلكتروني', [
+                                'package_title' => $packageTitle ?? 'باقة عملات',
+                            ]);
                             UserCoin::create([
                                 'user_id'      => $user->id,
                                 'game_coin_id' => $gameCoinId,
                                 'coins_number' => $coinsCount,
                                 'type'         => 'add',
+                                'des'          => $coinDes,
                             ]);
                         }
                         Cache::put($processedCacheKey, true, now()->addDays(7));
@@ -337,11 +341,15 @@ class OttuPaymentController extends Controller
                                     $user->save();
                                 }
                                 if ($coinsCount > 0 && $gameCoinId) {
+                                    $coinDes = AppVersion::getCoinDescription('online_purchase', 'شراء باقة عملات عبر الدفع الإلكتروني', [
+                                        'package_title' => $packageTitle ?? 'باقة عملات',
+                                    ]);
                                     UserCoin::create([
                                         'user_id'      => $user->id,
                                         'game_coin_id' => $gameCoinId,
                                         'coins_number' => $coinsCount,
                                         'type'         => 'add',
+                                        'des'          => $coinDes,
                                     ]);
                                 }
                                 Cache::put($processedCacheKey, true, now()->addDays(7));
@@ -513,15 +521,29 @@ class OttuPaymentController extends Controller
                 }
             }
 
+            // Clean up any legacy or combined title formats like "باقة 24 من باقة عدد 6 العاب"
             if (!empty($packageTitle)) {
-                $description = "باقة {$packageTitle} في تطبيق فيك تحدي";
-            } elseif ($gamesCount > 0) {
-                $description = "باقة تتيح لك إنشاء والمشاركة في عدد ({$gamesCount}) ألعاب في تطبيق فيك تحدي";
-            } elseif ($coinsCount > 0) {
-                $description = "باقة شحن عدد ({$coinsCount}) من العملات في تطبيق فيك تحدي";
-            } else {
-                $description = "شراء وتفعيل رصيد ألعاب في تطبيق فيك تحدي";
+                if (preg_match('/باقة\s+\d+\s+من\s+(.+)/u', $packageTitle, $matches)) {
+                    $packageTitle = trim($matches[1]);
+                }
             }
+
+            if (empty($packageTitle)) {
+                if ($gamesCount > 0) {
+                    $packageTitle = "باقة ({$gamesCount}) ألعاب";
+                } elseif ($coinsCount > 0) {
+                    $packageTitle = "باقة ({$coinsCount}) عملة";
+                } else {
+                    $packageTitle = "باقة ألعاب فيك تحدي";
+                }
+            }
+
+            // Normalize title: remove any leading 'شراء' and trailing 'في تطبيق فيك تحدي'
+            $cleanTitle = trim(preg_replace('/^شراء\s+/u', '', trim($packageTitle)));
+            $cleanTitle = trim(preg_replace('/في تطبيق فيك تحدي$/u', '', $cleanTitle));
+            $displayPackageTitle = 'شراء ' . $cleanTitle . ' في تطبيق فيك تحدي';
+
+            $description = '';
 
             $htmlContent = $this->buildInvoiceHtml([
                 'order_no'        => $orderNo,
@@ -532,7 +554,7 @@ class OttuPaymentController extends Controller
                 'currency_code'   => $currencyCode,
                 'payment_method'  => $paymentMethod,
                 'description'     => $description,
-                'package_title'   => $packageTitle,
+                'package_title'   => $displayPackageTitle,
                 'games_count'     => $gamesCount,
                 'customer_name'   => $customerName,
                 'customer_phone'  => $customerPhone,
@@ -749,15 +771,20 @@ class OttuPaymentController extends Controller
         $customerEmail = htmlspecialchars($inv['customer_email'] ?? '-');
         $userId = htmlspecialchars((string)($inv['user_id'] ?? '-'));
         $gamesCount = (int)($inv['games_count'] ?? 0);
-        $packageTitle = htmlspecialchars($inv['package_title'] ?? '');
-
-        if (empty($packageTitle)) {
+        $rawPackageTitle = $inv['package_title'] ?? '';
+        if (empty($rawPackageTitle)) {
             if ($gamesCount > 0) {
-                $packageTitle = "باقة ({$gamesCount}) ألعاب فيك تحدي";
+                $rawPackageTitle = "باقة ({$gamesCount}) ألعاب";
             } else {
-                $packageTitle = "باقة رصيد ألعاب فيك تحدي";
+                $rawPackageTitle = "باقة رصيد ألعاب";
             }
         }
+        if (preg_match('/باقة\s+\d+\s+من\s+(.+)/u', $rawPackageTitle, $matches)) {
+            $rawPackageTitle = trim($matches[1]);
+        }
+        $cleanPackageTitle = trim(preg_replace('/^شراء\s+/u', '', trim($rawPackageTitle)));
+        $cleanPackageTitle = trim(preg_replace('/في تطبيق فيك تحدي$/u', '', $cleanPackageTitle));
+        $packageTitle = htmlspecialchars('شراء ' . $cleanPackageTitle . ' في تطبيق فيك تحدي');
 
         return <<<HTML
 <!DOCTYPE html>
@@ -845,9 +872,8 @@ class OttuPaymentController extends Controller
 
                             <!-- Purchased Package Card -->
                             <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-right: 5px solid #1E3A8A; border-radius: 12px; padding: 16px 18px; margin-bottom: 20px;">
-                                <div style="font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 4px;">تفاصيل الطلب</div>
-                                <div style="font-size: 15px; font-weight: 800; color: #0F172A; margin-bottom: 3px;">{$packageTitle}</div>
-                                <div style="font-size: 12px; color: #475569; line-height: 1.5;">{$description}</div>
+                                <div style="font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 5px;">تفاصيل الطلب</div>
+                                <div style="font-size: 15px; font-weight: 800; color: #0F172A; line-height: 1.4;">{$packageTitle}</div>
                             </div>
 
                             <!-- Customer Information Section -->

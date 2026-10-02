@@ -32,11 +32,24 @@
                                 <!-- Title -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <h6 class="mb-0">الوصف</h6>
+                                        <h6 class="mb-0">عنوان الباقة (الوصف المختصر)</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="title" id="title" class="form-control" value="{{ old('title') }}" />
+                                        <input type="text" name="title" id="title" class="form-control" value="{{ old('title') }}" placeholder="مثال: شراء جديد أو باقة 50 عملة ذهبية" />
                                         @error('title')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Detailed Description -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">الوصف التفصيلي للباقة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <textarea name="description" id="description" class="form-control" rows="3" placeholder="أدخل وصفاً تفصيلياً للباقة يظهر للمستخدم في التطبيق أسفل العنوان">{{ old('description') }}</textarea>
+                                        @error('description')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -148,9 +161,10 @@
                                         <h6 class="mb-0">معاينة التدرج</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <div id="gradientPreview" style="height: 120px; border-radius: 10px; border: 1px solid #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-shadow: 1px 1px 3px #000;">
-                                            <div id="previewPrice" style="font-size: 26px; font-weight: bold;">0 دك</div>
-                                            <div id="previewTitle" style="font-size: 18px;">الوصف</div>
+                                        <div id="gradientPreview" style="min-height: 130px; border-radius: 14px; border: 1px solid #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-shadow: 1px 1px 3px #000; padding: 15px; text-align: center;">
+                                            <div id="previewPrice" style="font-size: 24px; font-weight: bold;">0 دك</div>
+                                            <div id="previewTitle" style="font-size: 17px; font-weight: bold; margin-top: 4px;">عنوان الباقة</div>
+                                            <div id="previewDescription" style="font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; max-width: 90%;">الوصف التفصيلي للباقة</div>
                                         </div>
                                     </div>
                                 </div>
@@ -186,7 +200,8 @@
                         function updateGradientPreview() {
                             const color1 = document.getElementById('color1').value;
                             const color2 = document.getElementById('color2').value;
-                            const title = document.getElementById('title').value || 'الوصف';
+                            const title = document.getElementById('title').value || 'عنوان الباقة';
+                            const description = document.getElementById('description').value || '';
                             const priceVal = document.getElementById('price').value;
                             const price = priceVal ? `${priceVal} دك` : '0 دك';
 
@@ -195,6 +210,13 @@
 
                             document.getElementById('previewPrice').textContent = price;
                             document.getElementById('previewTitle').textContent = title;
+                            const descEl = document.getElementById('previewDescription');
+                            if (description) {
+                                descEl.textContent = description;
+                                descEl.style.display = 'block';
+                            } else {
+                                descEl.style.display = 'none';
+                            }
                         }
 
                         document.addEventListener('DOMContentLoaded', function () {
@@ -202,6 +224,7 @@
                             document.getElementById('color1').addEventListener('input', updateGradientPreview);
                             document.getElementById('color2').addEventListener('input', updateGradientPreview);
                             document.getElementById('title').addEventListener('input', updateGradientPreview);
+                            document.getElementById('description').addEventListener('input', updateGradientPreview);
                             document.getElementById('price').addEventListener('input', updateGradientPreview);
                         });
                     </script>

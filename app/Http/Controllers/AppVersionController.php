@@ -96,6 +96,48 @@ class AppVersionController extends Controller
 
     }
 
+    /**
+     * Show coin transaction descriptions settings page
+     */
+    public function coinTransactionSettings()
+    {
+        $appVersion = AppVersion::firstOrCreate(['id' => 1]);
+        return view('admin.coin_settings.transaction_descriptions', compact('appVersion'));
+    }
+
+    /**
+     * Update coin transaction descriptions settings
+     */
+    public function updateCoinTransactionSettings(Request $request)
+    {
+        $request->validate([
+            'coin_desc_online_purchase'   => 'nullable|string|max:255',
+            'coin_desc_game_win'          => 'nullable|string|max:255',
+            'coin_desc_rank_upgrade'      => 'nullable|string|max:255',
+            'coin_desc_coupon_exchange'   => 'nullable|string|max:255',
+            'coin_desc_avatar_purchase'   => 'nullable|string|max:255',
+            'coin_desc_animation_purchase'=> 'nullable|string|max:255',
+            'coin_desc_admin_adjustment'  => 'nullable|string|max:255',
+        ]);
+
+        $appVersion = AppVersion::firstOrCreate(['id' => 1]);
+        $appVersion->update([
+            'coin_desc_online_purchase'   => $request->coin_desc_online_purchase ?: 'شراء باقة عملات عبر الدفع الإلكتروني',
+            'coin_desc_game_win'          => $request->coin_desc_game_win ?: 'مكافأة الفوز في التحدي',
+            'coin_desc_rank_upgrade'      => $request->coin_desc_rank_upgrade ?: 'مكافأة الترقية إلى رتبة جديدة',
+            'coin_desc_coupon_exchange'   => $request->coin_desc_coupon_exchange ?: 'استبدال عملات بكوبون خصم',
+            'coin_desc_avatar_purchase'   => $request->coin_desc_avatar_purchase ?: 'شراء عنصر من متجر الأفاتار',
+            'coin_desc_animation_purchase'=> $request->coin_desc_animation_purchase ?: 'شراء حركة تفاعلية من متجر الحركات',
+            'coin_desc_admin_adjustment'  => $request->coin_desc_admin_adjustment ?: 'تعديل رصيد من إدارة التطبيق',
+        ]);
+
+        $notification = array(
+            'message' => 'تم حفظ وتحديث نصوص عمليات العملات بنجاح',
+            'alert-type' => 'success'
+        );
+
+        return back()->with($notification);
+    }
 
     /// Api
 

@@ -184,6 +184,7 @@ Route::post('update/user/offline-points', [UserController::class, 'updateUserOff
 
 // Ranking by user wins
 Route::post('user/rank', [RankingNewController::class, 'getUserRankApi']);
+Route::post('user/offline-rank', [RankingNewController::class, 'getOfflineUserRankApi']);
 
 // Proverbs by rank
 Route::post('proverbs/by-rank', [ProverbController::class, 'getProverbsByRankApi']);
@@ -241,6 +242,7 @@ Route::post('add/online/game/points',[OnlineGameController::class,'addPoints']);
 Route::post('top/online/users/points',[OnlineGameController::class,'topUsersByOnlinePoints']);
 Route::post('top/offline/users/points',[OnlineGameController::class,'topUsersByOfflinePoints']);
 Route::post('add/online/game/win', [OnlineGameController::class, 'addOnlineWin']);
+Route::post('add/offline/game/win', [OnlineGameController::class, 'addOfflineWin']);
 Route::post('add/online/game/play-count', [OnlineGameController::class, 'addOnlinePlayCount']);
 
 

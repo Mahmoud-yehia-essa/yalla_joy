@@ -392,11 +392,13 @@ class AvatarItemController extends Controller
             }
 
             // خصم التكلفة وتسجيلها في جدول حركات عملات المستخدم
+            $avatarDes = \App\Models\AppVersion::getCoinDescription('avatar_purchase', 'شراء عنصر للأفاتار' . ($avatarItem->name ? ': ' . $avatarItem->name : ''));
             \App\Models\UserCoin::create([
                 'user_id' => $userId,
                 'game_coin_id' => $gameCoinId,
                 'coins_number' => -abs($cost),
-                'type' => 'withdraw'
+                'type' => 'withdraw',
+                'des' => $avatarDes,
             ]);
         }
 

@@ -102,11 +102,13 @@ class AnimationUserLibraryController extends Controller
             }
 
             // Deduct coins by creating a new record in user_coins
+            $animDes = \App\Models\AppVersion::getCoinDescription('animation_purchase', 'شراء أنيميشن تفاعلي' . ($animation->name ? ': ' . $animation->name : ($animation->title ? ': ' . $animation->title : '')));
             \App\Models\UserCoin::create([
                 'user_id' => $request->user_id,
                 'game_coin_id' => $coin_id,
                 'coins_number' => -$required_amount,
-                'type' => 'buy_animation'
+                'type' => 'buy_animation',
+                'des' => $animDes,
             ]);
         }
         // --- End Purchase Logic ---

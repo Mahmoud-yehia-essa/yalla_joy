@@ -219,7 +219,7 @@ class AnimationFeedbackController extends Controller
         ]);
 
         $user = \App\Models\User::findOrFail($request->user_id);
-        $wins = (int) $user->online_game_wins;
+        $wins = (int) ($user->online_game_wins ?? 0) + (int) ($user->offline_game_wins ?? 0);
 
         // Get all rankings ordered by rank_order to determine the user's current rank
         $rankings = \App\Models\RankingNew::with(['rankRewardCoin', 'levelRewardCoin'])
