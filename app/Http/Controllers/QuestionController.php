@@ -2299,25 +2299,19 @@ public function getQuestionApi(Request $request, $id)
 {
     $term = $request->query('term');
 
-    // Fetch 2 random questions for each qu_points category
+    // Fetch questions for each qu_points category
     $query_200 = Question::where('category_id', $id)->where('qu_points', 200);
     $query_400 = Question::where('category_id', $id)->where('qu_points', 400);
     $query_600 = Question::where('category_id', $id)->where('qu_points', 600);
 
-    if ($term === null || $term === 'null' || $term === '' || $term == 1) {
-        $query_200->where(function ($q) {
-            $q->whereNull('term')->orWhere('term', 1);
-        });
-        $query_400->where(function ($q) {
-            $q->whereNull('term')->orWhere('term', 1);
-        });
-        $query_600->where(function ($q) {
-            $q->whereNull('term')->orWhere('term', 1);
-        });
-    } else {
-        $query_200->where('term', $term);
-        $query_400->where('term', $term);
-        $query_600->where('term', $term);
+    // إذا تم إرسال term بشكل صريح ومحدد (مثلاً 1 أو 2) وكانت الفئة تحتوي فعلاً على أسئلة لهذا الـ term، نطبق الفلترة؛ خلاف ذلك نجلب كل أسئلة الفئة (سواء كانت NULL أو 1 أو 2)
+    if ($request->filled('term') && $term !== 'null' && $term !== 'all' && $term !== 'all_terms') {
+        $hasTermQuestions = Question::where('category_id', $id)->where('term', $term)->exists();
+        if ($hasTermQuestions) {
+            $query_200->where('term', $term);
+            $query_400->where('term', $term);
+            $query_600->where('term', $term);
+        }
     }
 
     // Fetch 4 random questions for each qu_points category (2 active board questions + 2 hidden backup questions)
@@ -2328,16 +2322,16 @@ public function getQuestionApi(Request $request, $id)
     // Merge in the required order: 4x 200, 4x 400, 4x 600 (Total 12 questions: 6 active + 6 backup)
     $qu = $questions_200->merge($questions_400)->merge($questions_600);
 
-    // If less than 6 questions, fill missing ones from other available questions
-    // if ($qu->count() < 6) {
-    //     $extra_questions = Question::where('category_id', $id)
-    //         ->whereNotIn('id', $qu->pluck('id')) // Exclude already selected
-    //         ->inRandomOrder()
-    //         ->take(6 - $qu->count())
-    //         ->get();
+    // If less than 6 questions, fill missing ones from other available questions in this category
+    if ($qu->count() < 6) {
+        $extra_questions = Question::where('category_id', $id)
+            ->whereNotIn('id', $qu->pluck('id'))
+            ->inRandomOrder()
+            ->take(6 - $qu->count())
+            ->get();
 
-    //     $qu = $qu->merge($extra_questions);
-    // }
+        $qu = $qu->merge($extra_questions);
+    }
 
     // Map and return in the correct order
     $qu = $qu->map(function ($question) {
@@ -2969,15 +2963,15 @@ $id =  $request->id;
     $qu = $questions_200->merge($questions_400)->merge($questions_600);
 
     // If less than 6 questions, fill missing ones from other available questions
-    // if ($qu->count() < 6) {
-    //     $extra_questions = Question::where('category_id', $id)
-    //         ->whereNotIn('id', $qu->pluck('id')) // Exclude already selected
-    //         ->inRandomOrder()
-    //         ->take(6 - $qu->count())
-    //         ->get();
+    if ($qu->count() < 6) {
+        $extra_questions = Question::where('category_id', $id)
+            ->whereNotIn('id', $qu->pluck('id'))
+            ->inRandomOrder()
+            ->take(6 - $qu->count())
+            ->get();
 
-    //     $qu = $qu->merge($extra_questions);
-    // }
+        $qu = $qu->merge($extra_questions);
+    }
 
     // Map and return in the correct order
     $qu = $qu->map(function ($question) {
