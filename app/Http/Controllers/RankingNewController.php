@@ -218,38 +218,42 @@ class RankingNewController extends Controller
             $winsToNextRank = 0;
         }
 
-        // ترتيب المستخدم بناءً على نقاط لعبة الميدان (مطابق تماماً لترتيب لوحة التحكم والمتصدرين)
+        // ترتيب المستخدم بناءً على نقاط لعبة الميدان (مطابق تماماً لترتيب المتصدرين وقواعد المراكز المكررة)
         $userPoints = (int) ($user->online_points ?? 0);
+        $userPosition = null;
+        $isOnlineTied = false;
+
         if ($userPoints > 0) {
             $higherOnlineCount = User::where('role', '!=', 'admin')
                 ->where('online_points', '>', $userPoints)
-                ->count();
+                ->distinct()
+                ->count('online_points');
 
-            $sameOnlineHigherCount = User::where('role', '!=', 'admin')
+            $userPosition = $higherOnlineCount + 1;
+
+            $isOnlineTied = User::where('role', '!=', 'admin')
                 ->where('online_points', '=', $userPoints)
-                ->where('id', '<', $user->id)
-                ->count();
-
-            $userPosition = $higherOnlineCount + $sameOnlineHigherCount + 1;
-        } else {
-            $userPosition = null;
+                ->where('id', '!=', $user->id)
+                ->exists();
         }
 
-        // ترتيب المستخدم بناءً على نقاط لعبة الجلسة (مطابق تماماً لترتيب متصدري لعبة الجلسة)
+        // ترتيب المستخدم بناءً على نقاط لعبة الجلسة (مطابق تماماً لترتيب متصدري لعبة الجلسة وقواعد المراكز المكررة)
         $userOfflinePoints = (int) ($user->offline_points ?? 0);
+        $offlineUserPosition = null;
+        $isOfflineTied = false;
+
         if ($userOfflinePoints > 0) {
             $higherOfflineCount = User::where('role', '!=', 'admin')
                 ->where('offline_points', '>', $userOfflinePoints)
-                ->count();
+                ->distinct()
+                ->count('offline_points');
 
-            $sameOfflineHigherCount = User::where('role', '!=', 'admin')
+            $offlineUserPosition = $higherOfflineCount + 1;
+
+            $isOfflineTied = User::where('role', '!=', 'admin')
                 ->where('offline_points', '=', $userOfflinePoints)
-                ->where('id', '<', $user->id)
-                ->count();
-
-            $offlineUserPosition = $higherOfflineCount + $sameOfflineHigherCount + 1;
-        } else {
-            $offlineUserPosition = null;
+                ->where('id', '!=', $user->id)
+                ->exists();
         }
 
         return response()->json([
@@ -268,7 +272,9 @@ class RankingNewController extends Controller
             'offline_game_wins'     => $offlineWins,
             'online_points'         => $userPoints,
             'user_position'         => $userPosition,
+            'is_online_tied'        => (bool) $isOnlineTied,
             'offline_user_position' => $offlineUserPosition,
+            'is_offline_tied'       => (bool) $isOfflineTied,
             'offline_points'        => (int) ($user->offline_points ?? 0),
         ], 200);
     }
