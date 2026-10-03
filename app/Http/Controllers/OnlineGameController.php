@@ -263,21 +263,31 @@ public function addPoints(Request $request)
 {
     $request->validate([
         'user_id' => 'required|exists:users,id',
-        'points' => 'required|integer|min:1'
+        'points' => 'nullable|integer|min:0'
     ]);
 
     $user = User::findOrFail($request->user_id);
 
-    // إضافة النقاط
-    $user->increment('online_points', $request->points);
-    $user->increment('online_points_fixed', $request->points);
+    if ($request->has('points') && $request->points !== null) {
+        $points = (int) $request->points;
+    } else {
+        $appSetting = \App\Models\AppVersion::first();
+        $points = $appSetting && isset($appSetting->online_game_win_points)
+            ? (int) $appSetting->online_game_win_points
+            : 6;
+    }
 
-    // تحديث البيانات
-    $user->refresh();
+    // إضافة النقاط
+    if ($points > 0) {
+        $user->increment('online_points', $points);
+        $user->increment('online_points_fixed', $points);
+        $user->refresh();
+    }
 
     return response()->json([
         'status' => true,
         'message' => 'Points added successfully',
+        'points_added' => $points,
         'user' => $user
     ]);
 }
@@ -500,6 +510,11 @@ public function addPoints(Request $request)
             $currentLevelNum = $currentRank->levels_count;
         }
 
+        $appSetting = \App\Models\AppVersion::first();
+        $onlineWinPoints = $appSetting && isset($appSetting->online_game_win_points)
+            ? (int) $appSetting->online_game_win_points
+            : 6;
+
         return response()->json([
             'status' => true,
             'message' => $responseMessage,
@@ -507,7 +522,7 @@ public function addPoints(Request $request)
             'offline_game_wins' => $newOfflineWins,
             'total_wins' => $wins,
             'wins_count' => $wins,
-            'points_awarded' => 0,
+            'points_awarded' => $onlineWinPoints,
             'upgrade_type' => $upgradeType,
             'current_rank' => $currentRank,
             'current_level' => [
@@ -710,6 +725,11 @@ public function addPoints(Request $request)
             $currentLevelNum = $currentRank->levels_count;
         }
 
+        $appSetting = \App\Models\AppVersion::first();
+        $offlineWinPoints = $appSetting && isset($appSetting->offline_game_win_points)
+            ? (int) $appSetting->offline_game_win_points
+            : 6;
+
         return response()->json([
             'status' => true,
             'message' => $responseMessage,
@@ -717,7 +737,7 @@ public function addPoints(Request $request)
             'offline_game_wins' => $newOfflineWins,
             'total_wins' => $wins,
             'wins_count' => $wins,
-            'points_awarded' => 0,
+            'points_awarded' => $offlineWinPoints,
             'upgrade_type' => $upgradeType,
             'current_rank' => $currentRank,
             'current_level' => [
