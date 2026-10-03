@@ -70,22 +70,17 @@ class OnlineGameController extends Controller
             ], 200);
         }
 
-        // منع تكرار نفس الفئة لنفس الجلسة إذا كانت مسجلة مسبقاً
-        $existing = OnlineGameCategory::where('online_game_info_id', $onlineGameInfoId)
-            ->where('category_id', $categoryId)
-            ->first();
-
-        if ($existing) {
-            return response()->json(['onlineGameCategoryId' => $existing->id], 200);
-        }
-
         $onlineGameCategory = OnlineGameCategory::create([
             'category_id' => $categoryId,
             'online_game_info_id' => $onlineGameInfoId,
         ]);
 
         $onlineGameCategoryId = $onlineGameCategory->id;
-        return response()->json(['onlineGameCategoryId' => $onlineGameCategoryId], 200);
+        return response()->json([
+            'status' => true,
+            'message' => 'Category added successfully',
+            'onlineGameCategoryId' => $onlineGameCategoryId
+        ], 200);
     }
 
     public function addOnlineGameUsers(Request $request)
