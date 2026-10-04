@@ -28,9 +28,125 @@
             <form method="POST" action="{{ route('update.versions.store') }}">
                 @csrf
 
+                {{-- App Status Alert Control Section (التحكم في حالة التطبيق والتنبيهات) --}}
+                <div class="card shadow-sm mb-4" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; overflow: hidden;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3 border-bottom" style="background: #f8fafc;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bx bx-bell text-primary" style="font-size: 24px;"></i>
+                            <h5 class="mb-0 fw-bold" style="color: #0f172a; font-size: 17px;">حالة تنبيهات التطبيق وتوقف الصيانة (App Status Alert)</h5>
+                        </div>
+                        <div>
+                            @php
+                                $currentStatus = old('app_status', $appVersion->app_status ?? 'normal');
+                            @endphp
+                            @if($currentStatus == 'maintenance')
+                                <span class="badge bg-warning text-dark px-3 py-2 fw-bold" style="font-size: 13px;">
+                                    <i class="bx bx-wrench me-1"></i> وضع الصيانة والتوقف نشط الآن 🛠️
+                                </span>
+                            @elseif($currentStatus == 'update')
+                                <span class="badge bg-primary px-3 py-2 fw-bold" style="font-size: 13px;">
+                                    <i class="bx bx-cloud-upload me-1"></i> تنبيه التحديث نشط الآن 🚀
+                                </span>
+                            @else
+                                <span class="badge bg-success px-3 py-2 fw-bold" style="font-size: 13px;">
+                                    <i class="bx bx-check-circle me-1"></i> الوضع الطبيعي نشط 🟢
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-3 p-md-4">
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <h6 class="mb-0 fw-bold" style="color: #0f172a; font-size: 15px;">اختر الحالة النشطة:</h6>
+                                <small class="text-muted d-block mt-1">حدد ما يظهر للمستخدم عند فتح التطبيق</small>
+                            </div>
+                            <div class="col-sm-9">
+                                <div class="row g-3">
+                                    
+                                    {{-- 1. الوضع الطبيعي --}}
+                                    <div class="col-md-4">
+                                        <div class="p-3 border rounded-3 h-100 status-card" id="card_status_normal" onclick="selectAppStatus('normal')" style="cursor: pointer; transition: all 0.2s ease; background: {{ $currentStatus == 'normal' ? '#f0fdf4' : '#ffffff' }}; border-color: {{ $currentStatus == 'normal' ? '#10b981' : '#cbd5e1' }} !important; border-width: 2px !important;">
+                                            <div class="form-check d-flex align-items-start gap-2 mb-0">
+                                                <input class="form-check-input mt-1" type="radio" name="app_status" id="app_status_normal" value="normal" {{ $currentStatus == 'normal' ? 'checked' : '' }}>
+                                                <label class="form-check-label w-100" for="app_status_normal" style="cursor: pointer;">
+                                                    <div class="fw-bold text-success" style="font-size: 14.5px;">🟢 الوضع الطبيعي</div>
+                                                    <div class="text-muted" style="font-size: 12.5px; line-height: 1.4; margin-top: 3px;">يعمل التطبيق بشكل اعتيادي دون إظهار أي تنبيهات صيانة أو إجبار تحديث.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
 
+                                    {{-- 2. تنبيه التحديث --}}
+                                    <div class="col-md-4">
+                                        <div class="p-3 border rounded-3 h-100 status-card" id="card_status_update" onclick="selectAppStatus('update')" style="cursor: pointer; transition: all 0.2s ease; background: {{ $currentStatus == 'update' ? '#eff6ff' : '#ffffff' }}; border-color: {{ $currentStatus == 'update' ? '#3b82f6' : '#cbd5e1' }} !important; border-width: 2px !important;">
+                                            <div class="form-check d-flex align-items-start gap-2 mb-0">
+                                                <input class="form-check-input mt-1" type="radio" name="app_status" id="app_status_update" value="update" {{ $currentStatus == 'update' ? 'checked' : '' }}>
+                                                <label class="form-check-label w-100" for="app_status_update" style="cursor: pointer;">
+                                                    <div class="fw-bold text-primary" style="font-size: 14.5px;">🚀 تنبيه التحديث</div>
+                                                    <div class="text-muted" style="font-size: 12.5px; line-height: 1.4; margin-top: 3px;">إظهار نافذة التحديث للمستخدمين مع رقم الإصدار ووصف الميزات وروابط المتاجر.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                 <div class="row mb-3">
+                                    {{-- 3. وضع الصيانة --}}
+                                    <div class="col-md-4">
+                                        <div class="p-3 border rounded-3 h-100 status-card" id="card_status_maintenance" onclick="selectAppStatus('maintenance')" style="cursor: pointer; transition: all 0.2s ease; background: {{ $currentStatus == 'maintenance' ? '#fffbeb' : '#ffffff' }}; border-color: {{ $currentStatus == 'maintenance' ? '#f59e0b' : '#cbd5e1' }} !important; border-width: 2px !important;">
+                                            <div class="form-check d-flex align-items-start gap-2 mb-0">
+                                                <input class="form-check-input mt-1" type="radio" name="app_status" id="app_status_maintenance" value="maintenance" {{ $currentStatus == 'maintenance' ? 'checked' : '' }}>
+                                                <label class="form-check-label w-100" for="app_status_maintenance" style="cursor: pointer;">
+                                                    <div class="fw-bold text-warning" style="font-size: 14.5px;">🛠️ وضع الصيانة والتوقف</div>
+                                                    <div class="text-muted" style="font-size: 12.5px; line-height: 1.4; margin-top: 3px;">إيقاف التطبيق مؤقتاً للمستخدمين وعرض شاشة الصيانة المغلقة مع زر إعادة المحاولة.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                @error('app_status')
+                                    <div class="text-danger mt-1 fw-bold">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Maintenance Details Section (تظهر عند اختيار الصيانة) --}}
+                        <div id="maintenance_fields_section" class="mt-4 p-3.5 rounded-3 border-2" style="background: #fffdf5; border: 1.5px solid #f59e0b; display: {{ $currentStatus == 'maintenance' ? 'block' : 'none' }};">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bx bx-wrench text-warning fs-4"></i>
+                                <h6 class="mb-0 fw-bold text-dark" style="font-size: 15.5px;">تخصيص نصوص شاشة الصيانة التي ستظهر للمستخدمين:</h6>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label for="maintenance_title" class="form-label fw-bold text-dark mb-0">عنوان نافذة الصيانة:</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control @error('maintenance_title') is-invalid @enderror" id="maintenance_title" name="maintenance_title" value="{{ old('maintenance_title', $appVersion->maintenance_title ?? 'التطبيق قيد الصيانة 🛠️') }}" placeholder="مثال: التطبيق قيد الصيانة 🛠️">
+                                    @error('maintenance_title')
+                                        <div class="text-danger mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label for="maintenance_message" class="form-label fw-bold text-dark mb-0">رسالة وتوضيح الصيانة:</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <textarea name="maintenance_message" id="maintenance_message" class="form-control @error('maintenance_message') is-invalid @enderror" rows="3" placeholder="مثال: نقوم حالياً ببعض أعمال الصيانة والتحسينات الدورية لنقدم لكم أفضل تجربة. سنعود قريباً جداً، شكراً لصبركم وتفهمكم! ❤️">{{ old('maintenance_message', $appVersion->maintenance_message ?? '') }}</textarea>
+                                    <small class="text-muted d-block mt-1">في حال تركها فارغة، سيتم عرض الرسالة الافتراضية التلقائية للصيانة.</small>
+                                    @error('maintenance_message')
+                                        <div class="text-danger mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <hr class="my-4">
                     <div class="col-sm-3">
                         <h6 class="mb-0">اسم اللعبة</h6>
                     </div>
@@ -551,7 +667,54 @@
 </div>
 
 <script>
+function selectAppStatus(status) {
+    const radio = document.getElementById('app_status_' + status);
+    if (radio) {
+        radio.checked = true;
+        updateAppStatusCards();
+    }
+}
+
+function updateAppStatusCards() {
+    const checkedRadio = document.querySelector('input[name="app_status"]:checked');
+    if (!checkedRadio) return;
+    const status = checkedRadio.value;
+
+    const cards = {
+        'normal': { id: 'card_status_normal', bg: '#f0fdf4', border: '#10b981' },
+        'update': { id: 'card_status_update', bg: '#eff6ff', border: '#3b82f6' },
+        'maintenance': { id: 'card_status_maintenance', bg: '#fffbeb', border: '#f59e0b' }
+    };
+
+    for (let key in cards) {
+        const el = document.getElementById(cards[key].id);
+        if (el) {
+            if (key === status) {
+                el.style.backgroundColor = cards[key].bg;
+                el.style.borderColor = cards[key].border;
+            } else {
+                el.style.backgroundColor = '#ffffff';
+                el.style.borderColor = '#cbd5e1';
+            }
+        }
+    }
+
+    const maintenanceSection = document.getElementById('maintenance_fields_section');
+    if (maintenanceSection) {
+        if (status === 'maintenance') {
+            maintenanceSection.style.display = 'block';
+        } else {
+            maintenanceSection.style.display = 'none';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    updateAppStatusCards();
+    document.querySelectorAll('input[name="app_status"]').forEach(function(radio) {
+        radio.addEventListener('change', updateAppStatusCards);
+    });
+
     const select = document.getElementById('fontSelect');
     const preview = document.getElementById('fontPreview');
 
