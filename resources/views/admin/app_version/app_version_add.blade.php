@@ -893,7 +893,7 @@
                                     </div>
                                     <div class="col-md-4 mb-2">
                                         <label class="form-label small text-muted">Sandbox PG Codes (بوابات الدفع)</label>
-                                        <input type="text" name="ottu_sandbox_pg_codes" class="form-control form-control-sm" value="{{ old('ottu_sandbox_pg_codes', $appVersion->ottu_sandbox_pg_codes ?? 'knet,credit-card') }}" placeholder="knet,credit-card">
+                                        <input type="text" name="ottu_sandbox_pg_codes" class="form-control form-control-sm" value="{{ old('ottu_sandbox_pg_codes', $appVersion->ottu_sandbox_pg_codes ?? 'knet') }}" placeholder="knet">
                                     </div>
                                 </div>
                             </div>

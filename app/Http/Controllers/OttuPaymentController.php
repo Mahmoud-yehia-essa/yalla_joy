@@ -74,7 +74,16 @@ class OttuPaymentController extends Controller
             $pgCodes = $ottuConfig['pg_codes'];
         }
         $pgCodes = array_values(array_unique(array_filter(array_map('trim', (array)$pgCodes))));
-        if (empty($pgCodes)) {
+        
+        // In sandbox mode, Ottu only has knet enabled by default (credit-card causes plugin errors)
+        if ($activeMode === 'sandbox') {
+            $pgCodes = array_values(array_filter($pgCodes, function($code) {
+                return strtolower($code) !== 'credit-card';
+            }));
+            if (empty($pgCodes)) {
+                $pgCodes = ['knet'];
+            }
+        } elseif (empty($pgCodes)) {
             $pgCodes = ['knet', 'credit-card'];
         }
 
@@ -109,6 +118,16 @@ class OttuPaymentController extends Controller
                 'Content-Type'  => 'application/json',
             ])->post($apiUrl, $payload);
 
+            // Auto-fallback: If gateway rejected pg_codes (e.g. credit-card not enabled), retry with knet
+            if (!$response->successful() && str_contains($response->body(), 'not enabled')) {
+                Log::warning('Ottu pg_code not enabled, retrying with knet only...');
+                $payload['pg_codes'] = ['knet'];
+                $response = Http::withHeaders([
+                    'Authorization' => 'Api-Key ' . $apiKey,
+                    'Content-Type'  => 'application/json',
+                ])->post($apiUrl, $payload);
+            }
+
             if ($response->successful()) {
                 $data = $response->json();
                 $sessionId = $data['session_id'] ?? '';
@@ -128,7 +147,7 @@ class OttuPaymentController extends Controller
                     'game_coin_id'     => $gameCoinId,
                     'amount'           => $validated['amount'],
                     'currency'         => 'KWD',
-                    'pg_code'          => $pgCodes[0] ?? 'knet',
+                    'pg_code'          => $payload['pg_codes'][0] ?? 'knet',
                     'status'           => 'pending',
                     'customer_name'    => trim($validated['customer_first_name'] . ' ' . $validated['customer_last_name']),
                     'customer_email'   => $validated['customer_email'],
@@ -999,12 +1018,17 @@ HTML;
             } else {
                 $apiKey = !empty($appVersion->ottu_sandbox_api_key) ? $appVersion->ottu_sandbox_api_key : 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL';
                 $apiUrl = !empty($appVersion->ottu_sandbox_api_url) ? $appVersion->ottu_sandbox_api_url : 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/';
-                $pgCodesStr = !empty($appVersion->ottu_sandbox_pg_codes) ? $appVersion->ottu_sandbox_pg_codes : 'knet,credit-card';
+                $pgCodesStr = !empty($appVersion->ottu_sandbox_pg_codes) ? $appVersion->ottu_sandbox_pg_codes : 'knet';
             }
 
             $pgCodes = array_values(array_unique(array_filter(array_map('trim', explode(',', (string)$pgCodesStr)))));
+            if ($mode === 'sandbox') {
+                $pgCodes = array_values(array_filter($pgCodes, function($code) {
+                    return strtolower($code) !== 'credit-card';
+                }));
+            }
             if (empty($pgCodes)) {
-                $pgCodes = ['knet', 'credit-card'];
+                $pgCodes = $mode === 'live' ? ['knet', 'credit-card'] : ['knet'];
             }
 
             return [
@@ -1019,7 +1043,7 @@ HTML;
                 'mode'     => 'sandbox',
                 'api_key'  => 'GYj5Na8H.29g9hqNjm11nORQMa2WiZwIBQQ49MdAL',
                 'api_url'  => 'https://sandbox.ottu.net/b/checkout/v1/pymt-txn/',
-                'pg_codes' => ['knet', 'credit-card'],
+                'pg_codes' => ['knet'],
             ];
         }
     }
