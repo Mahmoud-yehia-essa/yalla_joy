@@ -563,8 +563,10 @@ class OttuPaymentController extends Controller
             ]);
 
             $subject = "فاتورة تأكيد الدفع الإلكتروني #{$orderNo} - تطبيق فيك تحدي";
-            $fromAddress = config('ottu.mail.from_address', 'no-reply@fiktahadi.com');
-            $fromName = config('ottu.mail.from_name', 'فيك تحدي');
+            $mailSettings = \App\Models\AppVersion::getMailSettings('invoice');
+            $fromAddress = $mailSettings['from_address'];
+            $fromName = $mailSettings['from_name'];
+            $ccList = $mailSettings['cc'];
 
             $isSent = false;
 
@@ -575,9 +577,9 @@ class OttuPaymentController extends Controller
                 $smtpUser = config('ottu.mail.brevo_smtp_username', env('BREVO_SMTP_USERNAME', 'aebc32001@smtp-brevo.com'));
                 $smtpPass = config('ottu.mail.brevo_smtp_password', env('BREVO_SMTP_PASSWORD', ''));
 
-                $this->sendViaSmtpSocket($customerEmail, $customerName, $subject, $htmlContent, $fromAddress, $fromName, $smtpHost, $smtpPort, $smtpUser, $smtpPass);
+                $this->sendViaSmtpSocket($customerEmail, $customerName, $subject, $htmlContent, $fromAddress, $fromName, $smtpHost, $smtpPort, $smtpUser, $smtpPass, $ccList);
                 $isSent = true;
-                Log::info("✅ Invoice email sent successfully via Brevo SMTP to {$customerEmail} for session {$sessionId}");
+                Log::info("✅ Invoice email sent successfully via Brevo SMTP to {$customerEmail} (CC: " . implode(',', $ccList) . ") for session {$sessionId}");
             } catch (\Exception $brevoEx) {
                 Log::warning("⚠️ Brevo SMTP failed: {$brevoEx->getMessage()}. Trying Laravel default mailer...");
             }
@@ -585,10 +587,14 @@ class OttuPaymentController extends Controller
             // 2. Backup 1: Laravel Default Mailer
             if (!$isSent) {
                 try {
-                    Mail::html($htmlContent, function ($msg) use ($customerEmail, $customerName, $subject, $fromAddress, $fromName) {
+                    Mail::html($htmlContent, function ($msg) use ($customerEmail, $customerName, $subject, $fromAddress, $fromName, $ccList) {
                         $msg->to($customerEmail, $customerName)
                             ->subject($subject)
                             ->from($fromAddress, $fromName);
+
+                        if (!empty($ccList)) {
+                            $msg->cc($ccList);
+                        }
                     });
                     $isSent = true;
                     Log::info("✅ Invoice email sent via Laravel Default Mailer to {$customerEmail}");
@@ -603,6 +609,9 @@ class OttuPaymentController extends Controller
                     $headers  = "MIME-Version: 1.0\r\n";
                     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
                     $headers .= "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromAddress}>\r\n";
+                    if (!empty($ccList)) {
+                        $headers .= "Cc: " . implode(', ', $ccList) . "\r\n";
+                    }
                     $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
 
                     $encodedSubject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
@@ -630,7 +639,7 @@ class OttuPaymentController extends Controller
     /**
      * Send email via direct SMTP Socket with TLS encryption
      */
-    protected function sendViaSmtpSocket($to, $toName, $subject, $htmlBody, $from, $fromName, $host, $port, $user, $pass)
+    protected function sendViaSmtpSocket($to, $toName, $subject, $htmlBody, $from, $fromName, $host, $port, $user, $pass, $ccList = [])
     {
         $socket = @fsockopen($host, $port, $errno, $errstr, 8);
         if (!$socket) {
@@ -700,6 +709,16 @@ class OttuPaymentController extends Controller
             throw new \Exception("RCPT TO rejected: {$res}");
         }
 
+        if (!empty($ccList) && is_array($ccList)) {
+            foreach ($ccList as $cc) {
+                $cc = trim($cc);
+                if (!empty($cc) && filter_var($cc, FILTER_VALIDATE_EMAIL)) {
+                    fputs($socket, "RCPT TO: <{$cc}>\r\n");
+                    fgets($socket, 515); // Consume response
+                }
+            }
+        }
+
         fputs($socket, "DATA\r\n");
         $res = fgets($socket, 515);
         if (substr($res, 0, 3) != '354') {
@@ -716,6 +735,9 @@ class OttuPaymentController extends Controller
         $headers[] = "MIME-Version: 1.0";
         $headers[] = "From: {$encodedFromName} <{$from}>";
         $headers[] = "To: {$encodedToName} <{$to}>";
+        if (!empty($ccList) && is_array($ccList)) {
+            $headers[] = "Cc: " . implode(', ', $ccList);
+        }
         $headers[] = "Date: " . date('r');
         $headers[] = "Subject: {$encodedSubject}";
         $headers[] = "X-Mailer: Fiktahadi-Payment-Mailer/1.0";

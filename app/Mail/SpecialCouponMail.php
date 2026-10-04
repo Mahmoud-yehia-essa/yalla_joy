@@ -2,9 +2,11 @@
 
 namespace App\Mail;
 
+use App\Models\AppVersion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -30,9 +32,18 @@ class SpecialCouponMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        return new Envelope(
+        $mailSettings = AppVersion::getMailSettings('coupon');
+
+        $envelope = new Envelope(
+            from: new Address($mailSettings['from_address'], $mailSettings['from_name']),
             subject: 'تهانينا! قسيمتك المميزة جاهزة 🌟 - لعبة فيك تحدي',
         );
+
+        if (!empty($mailSettings['cc'])) {
+            $envelope->cc = $mailSettings['cc'];
+        }
+
+        return $envelope;
     }
 
     /**

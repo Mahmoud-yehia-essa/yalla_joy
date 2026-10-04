@@ -373,6 +373,258 @@
 
         <hr class="my-4">
 
+        {{-- Email Notifications & Senders Settings Section (التحكم في إرسال البريد الإلكتروني والـ From والـ CC) --}}
+        <div class="card shadow-sm mb-4" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; overflow: hidden;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3 border-bottom" style="background: #f8fafc;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bx bx-envelope text-primary" style="font-size: 24px;"></i>
+                    <h5 class="mb-0 fw-bold" style="color: #0f172a; font-size: 17px;">إدارة والتحكم في إرسال البريد الإلكتروني (From Sender & CC Copies)</h5>
+                </div>
+                <div>
+                    <span class="badge bg-primary px-3 py-2 fw-bold" style="font-size: 13px;">
+                        <i class="bx bx-send me-1"></i> إعدادات مخصصة لكل نوع إشعار
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body p-3 p-md-4" style="background: #ffffff;">
+
+                {{-- Alert Note --}}
+                <div class="p-3 mb-4 rounded-3 border" style="background: #eff6ff; border-color: #bfdbfe !important; color: #1e40af;">
+                    <div class="d-flex align-items-start gap-2.5">
+                        <i class="bx bx-info-circle fs-5 mt-0.5" style="color: #2563eb;"></i>
+                        <div style="font-size: 13.5px; line-height: 1.7;">
+                            <strong>💡 تخصيص المرسل والنسخ الإضافية (CC):</strong>
+                            يمكنك من هنا تحديد البريد المرسل منه <code class="fw-bold px-1.5 py-0.5 rounded bg-white border" style="color: #1d4ed8;">From</code> واسم المرسل المستعار لكل نوع بريد، بالإضافة لتحديد بريد إلكتروني لاستقبال نسخة <code class="fw-bold px-1.5 py-0.5 rounded bg-white border" style="color: #1d4ed8;">CC</code> تلقائياً من كل رسالة لمتابعتها وتوثيقها.
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 1. General Fallback Email Settings --}}
+                <div class="p-3 mb-4 rounded-3 border" style="background: #f8fafc; border-color: #e2e8f0 !important;">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="bx bx-slider-alt text-primary me-1"></i> الإعدادات الافتراضية العامة للبريد (General Fallback)
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label for="mail_from_name" class="form-label fw-bold small text-secondary">اسم المرسل العام الافتراضي (From Name):</label>
+                            <input type="text" class="form-control @error('mail_from_name') is-invalid @enderror" 
+                                   id="mail_from_name" name="mail_from_name" 
+                                   value="{{ old('mail_from_name', $appVersion->mail_from_name ?? 'فيك تحدي / Fiktahadi') }}" 
+                                   placeholder="مثال: فيك تحدي / Fiktahadi">
+                            @error('mail_from_name')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="mail_from_address" class="form-label fw-bold small text-secondary">البريد المرسل منه العام الافتراضي (From Email):</label>
+                            <input type="email" class="form-control @error('mail_from_address') is-invalid @enderror" 
+                                   id="mail_from_address" name="mail_from_address" 
+                                   value="{{ old('mail_from_address', $appVersion->mail_from_address ?? 'no-reply@fiktahadi.com') }}" 
+                                   placeholder="مثال: no-reply@fiktahadi.com">
+                            @error('mail_from_address')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3 Category Cards --}}
+                <div class="row g-4">
+                    
+                    {{-- Card 1: OTP Verification & Registration Email --}}
+                    <div class="col-lg-4 col-md-12">
+                        <div class="card h-100 border shadow-sm rounded-3" style="border-color: #cbd5e1 !important; border-top: 4px solid #3b82f6 !important;">
+                            <div class="card-header bg-white py-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle" style="background: #eff6ff;">
+                                        <i class="bx bx-shield-quarter fs-5"></i>
+                                    </span>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 15px;">1. بريد كود التحقق والتسجيل (OTP)</h6>
+                                        <small class="text-muted" style="font-size: 12px;">كود تفعيل العضوية، استعادة كلمة المرور</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-3">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">اسم المرسل (From Name):</label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_otp_from_name') is-invalid @enderror" 
+                                           id="mail_otp_from_name" name="mail_otp_from_name" 
+                                           value="{{ old('mail_otp_from_name', $appVersion->mail_otp_from_name ?? 'فيك تحدي - رمز التحقق') }}" 
+                                           placeholder="مثال: فيك تحدي - رمز التحقق" oninput="updateMailPreviews()">
+                                    @error('mail_otp_from_name')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">البريد المرسل منه (From Email):</label>
+                                    <input type="email" class="form-control form-control-sm @error('mail_otp_from_address') is-invalid @enderror" 
+                                           id="mail_otp_from_address" name="mail_otp_from_address" 
+                                           value="{{ old('mail_otp_from_address', $appVersion->mail_otp_from_address ?? 'auth@fiktahadi.com') }}" 
+                                           placeholder="مثال: auth@fiktahadi.com أو no-reply@fiktahadi.com" oninput="updateMailPreviews()">
+                                    @error('mail_otp_from_address')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-light text-muted border">اختياري</span></label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_otp_cc') is-invalid @enderror" 
+                                           id="mail_otp_cc" name="mail_otp_cc" 
+                                           value="{{ old('mail_otp_cc', $appVersion->mail_otp_cc ?? '') }}" 
+                                           placeholder="مثال: audit@fiktahadi.com">
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة من كل كود تحقق يُرسل للمستخدمين (يمكن كتابة أكثر من إيميل مفصولين بفاصلة).</small>
+                                    @error('mail_otp_cc')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- Live Preview Box --}}
+                                <div class="p-2.5 rounded bg-light border" style="font-size: 11.5px; color: #475569;">
+                                    <div class="fw-bold text-secondary mb-1">👁️ شكل المرسل لدى المستخدم:</div>
+                                    <div class="font-monospace text-primary fw-bold text-truncate" id="preview_otp_from">
+                                        From: فيك تحدي - رمز التحقق &lt;auth@fiktahadi.com&gt;
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Card 2: Purchase Invoices Email --}}
+                    <div class="col-lg-4 col-md-12">
+                        <div class="card h-100 border shadow-sm rounded-3" style="border-color: #cbd5e1 !important; border-top: 4px solid #10b981 !important;">
+                            <div class="card-header bg-white py-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success-subtle text-success p-2 rounded-circle" style="background: #f0fdf4;">
+                                        <i class="bx bx-receipt fs-5"></i>
+                                    </span>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 15px;">2. بريد فواتير الشراء الإلكترونية</h6>
+                                        <small class="text-muted" style="font-size: 12px;">فاتورة تأكيد الدفع وشراء باقات العملات</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-3">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">اسم المرسل (From Name):</label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_invoice_from_name') is-invalid @enderror" 
+                                           id="mail_invoice_from_name" name="mail_invoice_from_name" 
+                                           value="{{ old('mail_invoice_from_name', $appVersion->mail_invoice_from_name ?? 'فيك تحدي - الفواتير الإلكترونية') }}" 
+                                           placeholder="مثال: فيك تحدي - الفواتير الإلكترونية" oninput="updateMailPreviews()">
+                                    @error('mail_invoice_from_name')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">البريد المرسل منه (From Email):</label>
+                                    <input type="email" class="form-control form-control-sm @error('mail_invoice_from_address') is-invalid @enderror" 
+                                           id="mail_invoice_from_address" name="mail_invoice_from_address" 
+                                           value="{{ old('mail_invoice_from_address', $appVersion->mail_invoice_from_address ?? 'billing@fiktahadi.com') }}" 
+                                           placeholder="مثال: billing@fiktahadi.com أو invoices@fiktahadi.com" oninput="updateMailPreviews()">
+                                    @error('mail_invoice_from_address')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-success text-white">موصى به للمحاسبة</span></label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_invoice_cc') is-invalid @enderror" 
+                                           id="mail_invoice_cc" name="mail_invoice_cc" 
+                                           value="{{ old('mail_invoice_cc', $appVersion->mail_invoice_cc ?? '') }}" 
+                                           placeholder="مثال: finance@fiktahadi.com">
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة كاملة من كل فاتورة إلكترونية يتم إصدارها للعملاء في بريدك الخاص.</small>
+                                    @error('mail_invoice_cc')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- Live Preview Box --}}
+                                <div class="p-2.5 rounded bg-light border" style="font-size: 11.5px; color: #475569;">
+                                    <div class="fw-bold text-secondary mb-1">👁️ شكل المرسل لدى المستخدم:</div>
+                                    <div class="font-monospace text-success fw-bold text-truncate" id="preview_invoice_from">
+                                        From: فيك تحدي - الفواتير الإلكترونية &lt;billing@fiktahadi.com&gt;
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Card 3: Special Coupons & Gifts Email --}}
+                    <div class="col-lg-4 col-md-12">
+                        <div class="card h-100 border shadow-sm rounded-3" style="border-color: #cbd5e1 !important; border-top: 4px solid #f59e0b !important;">
+                            <div class="card-header bg-white py-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning-subtle text-warning p-2 rounded-circle" style="background: #fffbeb;">
+                                        <i class="bx bx-gift fs-5"></i>
+                                    </span>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 15px;">3. بريد الكوبونات والقسائم المميزة</h6>
+                                        <small class="text-muted" style="font-size: 12px;">إرسال كود القسيمة وتفاصيل الخصم للشركاء</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-3">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">اسم المرسل (From Name):</label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_coupon_from_name') is-invalid @enderror" 
+                                           id="mail_coupon_from_name" name="mail_coupon_from_name" 
+                                           value="{{ old('mail_coupon_from_name', $appVersion->mail_coupon_from_name ?? 'فيك تحدي - القسائم والهدايا') }}" 
+                                           placeholder="مثال: فيك تحدي - القسائم والهدايا" oninput="updateMailPreviews()">
+                                    @error('mail_coupon_from_name')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">البريد المرسل منه (From Email):</label>
+                                    <input type="email" class="form-control form-control-sm @error('mail_coupon_from_address') is-invalid @enderror" 
+                                           id="mail_coupon_from_address" name="mail_coupon_from_address" 
+                                           value="{{ old('mail_coupon_from_address', $appVersion->mail_coupon_from_address ?? 'coupons@fiktahadi.com') }}" 
+                                           placeholder="مثال: coupons@fiktahadi.com أو gifts@fiktahadi.com" oninput="updateMailPreviews()">
+                                    @error('mail_coupon_from_address')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-light text-muted border">اختياري</span></label>
+                                    <input type="text" class="form-control form-control-sm @error('mail_coupon_cc') is-invalid @enderror" 
+                                           id="mail_coupon_cc" name="mail_coupon_cc" 
+                                           value="{{ old('mail_coupon_cc', $appVersion->mail_coupon_cc ?? '') }}" 
+                                           placeholder="مثال: marketing@fiktahadi.com">
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة من الكوبونات وقسائم الهدايا المستبدلة لمتابعة المبيعات والعروض.</small>
+                                    @error('mail_coupon_cc')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- Live Preview Box --}}
+                                <div class="p-2.5 rounded bg-light border" style="font-size: 11.5px; color: #475569;">
+                                    <div class="fw-bold text-secondary mb-1">👁️ شكل المرسل لدى المستخدم:</div>
+                                    <div class="font-monospace text-warning fw-bold text-truncate" id="preview_coupon_from">
+                                        From: فيك تحدي - القسائم والهدايا &lt;coupons@fiktahadi.com&gt;
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <hr class="my-4">
+
         {{-- Payment Gateway Environment Settings Section --}}
         <div class="card shadow-sm mb-4" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; overflow: hidden;">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3 border-bottom" style="background: #f8fafc;">
@@ -709,8 +961,35 @@ function updateAppStatusCards() {
     }
 }
 
+function updateMailPreviews() {
+    // OTP Preview
+    const otpName = document.getElementById('mail_otp_from_name')?.value || 'فيك تحدي - رمز التحقق';
+    const otpAddr = document.getElementById('mail_otp_from_address')?.value || 'auth@fiktahadi.com';
+    const otpPreview = document.getElementById('preview_otp_from');
+    if (otpPreview) {
+        otpPreview.textContent = 'From: ' + otpName + ' <' + otpAddr + '>';
+    }
+
+    // Invoice Preview
+    const invName = document.getElementById('mail_invoice_from_name')?.value || 'فيك تحدي - الفواتير الإلكترونية';
+    const invAddr = document.getElementById('mail_invoice_from_address')?.value || 'billing@fiktahadi.com';
+    const invPreview = document.getElementById('preview_invoice_from');
+    if (invPreview) {
+        invPreview.textContent = 'From: ' + invName + ' <' + invAddr + '>';
+    }
+
+    // Coupon Preview
+    const cpnName = document.getElementById('mail_coupon_from_name')?.value || 'فيك تحدي - القسائم والهدايا';
+    const cpnAddr = document.getElementById('mail_coupon_from_address')?.value || 'coupons@fiktahadi.com';
+    const cpnPreview = document.getElementById('preview_coupon_from');
+    if (cpnPreview) {
+        cpnPreview.textContent = 'From: ' + cpnName + ' <' + cpnAddr + '>';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     updateAppStatusCards();
+    updateMailPreviews();
     document.querySelectorAll('input[name="app_status"]').forEach(function(radio) {
         radio.addEventListener('change', updateAppStatusCards);
     });
