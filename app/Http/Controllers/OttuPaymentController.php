@@ -612,11 +612,11 @@ class OttuPaymentController extends Controller
                             ->from($fromAddress, $fromName);
 
                         if (!empty($ccList)) {
-                            $msg->cc($ccList);
+                            $msg->bcc($ccList);
                         }
                     });
                     $isSent = true;
-                    Log::info("✅ Invoice email sent via Laravel Default Mailer to {$customerEmail}");
+                    Log::info("✅ Invoice email sent via Laravel Default Mailer to {$customerEmail} (BCC copy sent)");
                 } catch (\Exception $mailEx) {
                     Log::warning("⚠️ Laravel default mailer failed: {$mailEx->getMessage()}. Trying PHP native mail()...");
                 }
@@ -629,7 +629,7 @@ class OttuPaymentController extends Controller
                     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
                     $headers .= "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromAddress}>\r\n";
                     if (!empty($ccList)) {
-                        $headers .= "Cc: " . implode(', ', $ccList) . "\r\n";
+                        $headers .= "Bcc: " . implode(', ', $ccList) . "\r\n";
                     }
                     $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
 
@@ -754,9 +754,7 @@ class OttuPaymentController extends Controller
         $headers[] = "MIME-Version: 1.0";
         $headers[] = "From: {$encodedFromName} <{$from}>";
         $headers[] = "To: {$encodedToName} <{$to}>";
-        if (!empty($ccList) && is_array($ccList)) {
-            $headers[] = "Cc: " . implode(', ', $ccList);
-        }
+        // Cc list is sent via SMTP envelope (RCPT TO) without including Cc header in body to keep it hidden (BCC) from customer
         $headers[] = "Date: " . date('r');
         $headers[] = "Subject: {$encodedSubject}";
         $headers[] = "X-Mailer: Fiktahadi-Payment-Mailer/1.0";

@@ -471,12 +471,12 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-light text-muted border">اختياري</span></label>
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة مخفية (BCC Email): <span class="badge bg-light text-muted border">مخفية عن العميل 🔒</span></label>
                                     <input type="text" class="form-control form-control-sm @error('mail_otp_cc') is-invalid @enderror" 
                                            id="mail_otp_cc" name="mail_otp_cc" 
                                            value="{{ old('mail_otp_cc', $appVersion->mail_otp_cc ?? '') }}" 
                                            placeholder="مثال: audit@fiktahadi.com">
-                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة من كل كود تحقق يُرسل للمستخدمين (يمكن كتابة أكثر من إيميل مفصولين بفاصلة).</small>
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة مخفية (لا تظهر للمستخدم نهائياً) من كل كود تحقق يُرسل للمستخدمين (يمكن كتابة أكثر من إيميل مفصولين بفاصلة).</small>
                                     @error('mail_otp_cc')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -533,12 +533,12 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-success text-white">موصى به للمحاسبة</span></label>
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة مخفية (BCC Email): <span class="badge bg-success text-white">مخفية عن العميل 🔒</span></label>
                                     <input type="text" class="form-control form-control-sm @error('mail_invoice_cc') is-invalid @enderror" 
                                            id="mail_invoice_cc" name="mail_invoice_cc" 
                                            value="{{ old('mail_invoice_cc', $appVersion->mail_invoice_cc ?? '') }}" 
                                            placeholder="مثال: finance@fiktahadi.com">
-                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة كاملة من كل فاتورة إلكترونية يتم إصدارها للعملاء في بريدك الخاص.</small>
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة كاملة ومخفية (لا تظهر للعميل نهائياً) من كل فاتورة إلكترونية في بريدك الخاص.</small>
                                     @error('mail_invoice_cc')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -595,12 +595,12 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold small text-dark">إرسال نسخة إلى (CC Email): <span class="badge bg-light text-muted border">اختياري</span></label>
+                                    <label class="form-label fw-bold small text-dark">إرسال نسخة مخفية (BCC Email): <span class="badge bg-light text-muted border">مخفية عن العميل 🔒</span></label>
                                     <input type="text" class="form-control form-control-sm @error('mail_coupon_cc') is-invalid @enderror" 
                                            id="mail_coupon_cc" name="mail_coupon_cc" 
                                            value="{{ old('mail_coupon_cc', $appVersion->mail_coupon_cc ?? '') }}" 
                                            placeholder="مثال: marketing@fiktahadi.com">
-                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة من الكوبونات وقسائم الهدايا المستبدلة لمتابعة المبيعات والعروض.</small>
+                                    <small class="text-muted" style="font-size: 11px;">لاستقبال نسخة مخفية (لا تظهر للمستخدم نهائياً) من كل بريد قسيمة يتم إرسالها للعملاء في بريدك الخاص.</small>
                                     @error('mail_coupon_cc')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror

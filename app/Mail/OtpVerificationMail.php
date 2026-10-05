@@ -45,7 +45,7 @@ class OtpVerificationMail extends Mailable
         );
 
         if (!empty($mailSettings['cc'])) {
-            $envelope->cc = $mailSettings['cc'];
+            $envelope->bcc = $mailSettings['cc'];
         }
 
         return $envelope;
