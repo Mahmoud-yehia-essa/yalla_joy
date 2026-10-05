@@ -2722,12 +2722,12 @@ very important function to get qustions
 
         $questions = DB::table('game_session_question_onlines as gsq')
             ->join('questions as q', 'gsq.question_id', '=', 'q.id')
-            ->join('categories as c', 'gsq.category_id', '=', 'c.id')
+            ->join('categories as c', 'q.category_id', '=', 'c.id')
             ->where('gsq.session_id', $sessionId)
             ->orderBy('gsq.id') // الترتيب بالـ id لضمان نفس ترتيب الإدخال من 1 إلى 36
             ->select(
                 'q.*',
-                'gsq.category_id',
+                'q.category_id',
                 'gsq.question_order',
                 'c.category_name',
                 'c.category_name_en',
@@ -2795,43 +2795,51 @@ very important function to get qustions
         });
         $categoryIds = array_values($categoryIds);
 
-        // 3. ضمان وجود 6 فتحات فئات بالضبط (إذا كان الاختيار 3 فئات فقط، يتم استخدام كل فئة مرتين لإنشاء 6 فئات)
-        if (!empty($categoryIds)) {
-            $originalPicked = $categoryIds;
-            while (count($categoryIds) < 6) {
-                foreach ($originalPicked as $cId) {
-                    if (count($categoryIds) < 6) {
-                        $categoryIds[] = $cId;
-                    }
-                }
-            }
-        }
-
-        // إذا كانت القائمة لا تزال فارغة، نجلب 6 فئات نشطة عشوائية
-        if (empty($categoryIds)) {
-            $categoryIds = DB::table('categories')
+        // 3. ضمان وجود 6 فئات فريدة قدر الإمكان لتجنب استنزاف الأسئلة في نفس الفئة
+        $uniqueCategories = array_values(array_unique($categoryIds));
+        
+        // إذا كان هناك أقل من 6 فئات فريدة، نكمل بفئات نشطة من قاعدة البيانات
+        if (count($uniqueCategories) < 6) {
+            $neededCategoriesCount = 6 - count($uniqueCategories);
+            $additionalCategories = DB::table('categories')
                 ->where('status', 1)
+                ->whereNotIn('id', $uniqueCategories)
                 ->inRandomOrder()
-                ->take(6)
+                ->take($neededCategoriesCount)
                 ->pluck('id')
                 ->toArray();
-
-            if (empty($categoryIds)) {
-                $categoryIds = DB::table('categories')
-                    ->take(6)
-                    ->pluck('id')
-                    ->toArray();
-            }
+            
+            $uniqueCategories = array_merge($uniqueCategories, $additionalCategories);
         }
 
-        // أخذ 6 فئات بالضبط
-        $categoryIds = array_slice($categoryIds, 0, 6);
+        // إذا كانت لا تزال أقل من 6 (في حال قلة الفئات في النظام)، نكمل من أي فئات متاحة
+        if (count($uniqueCategories) < 6) {
+            $extra = DB::table('categories')
+                ->whereNotIn('id', $uniqueCategories)
+                ->inRandomOrder()
+                ->take(6 - count($uniqueCategories))
+                ->pluck('id')
+                ->toArray();
+            $uniqueCategories = array_merge($uniqueCategories, $extra);
+        }
+
+        // إذا كان إجمالي الفئات في النظام كله أقل من 6، نكرر الفئات المتاحة حتى نصل إلى 6
+        if (!empty($uniqueCategories)) {
+            $finalCategories = $uniqueCategories;
+            $idx = 0;
+            while (count($finalCategories) < 6) {
+                $finalCategories[] = $uniqueCategories[$idx % count($uniqueCategories)];
+                $idx++;
+            }
+            $categoryIds = array_slice($finalCategories, 0, 6);
+        } else {
+            $categoryIds = [1, 2, 3, 4, 5, 6];
+        }
 
         // 4. حذف أي أسئلة قديمة للجلسة لضمان توليد نظيف ومتكامل من 36 سؤالاً
         DB::table('game_session_question_onlines')->where('session_id', $sessionId)->delete();
 
         $sessionQuestionIds = [];
-        $sessionQuestionTitles = [];
         $currentOrder = 1;
 
         // دعم تفضيل الأسئلة غير الملعوبة للمستخدم
@@ -2844,15 +2852,11 @@ very important function to get qustions
                 ->toArray();
         }
 
-        // دالة مساعدة لجلب أسئلة فئة معينة بدرجة معينة بدون تكرار
-        $getTierQuestions = function($catId, $points, $count) use (&$sessionQuestionIds, &$sessionQuestionTitles, $userPlayedQuestionIds) {
+        // دالة مساعدة لجلب أسئلة فئة معينة بدرجة معينة بدون تكرار الـ ID
+        $getTierQuestions = function($catId, $points, $count) use (&$sessionQuestionIds, $userPlayedQuestionIds) {
             $baseQuery = Question::where('category_id', $catId)
                 ->where('qu_points', $points)
                 ->whereNotIn('id', $sessionQuestionIds);
-
-            if (!empty($sessionQuestionTitles)) {
-                $baseQuery->whereNotIn('qu_title', $sessionQuestionTitles);
-            }
 
             if (!empty($userPlayedQuestionIds)) {
                 $unplayed = (clone $baseQuery)->whereNotIn('id', $userPlayedQuestionIds)->inRandomOrder()->take($count)->get();
@@ -2864,9 +2868,6 @@ very important function to get qustions
                 $playedFallback = Question::where('category_id', $catId)
                     ->where('qu_points', $points)
                     ->whereNotIn('id', $excludeIds);
-                if (!empty($sessionQuestionTitles)) {
-                    $playedFallback->whereNotIn('qu_title', $sessionQuestionTitles);
-                }
                 $playedFallback = $playedFallback->inRandomOrder()->take($needed)->get();
                 return $unplayed->merge($playedFallback);
             }
@@ -2880,21 +2881,18 @@ very important function to get qustions
             $q200 = $getTierQuestions($catId, 200, 2);
             foreach ($q200 as $q) {
                 $sessionQuestionIds[] = $q->id;
-                if (!empty($q->qu_title)) $sessionQuestionTitles[] = trim($q->qu_title);
             }
 
             // ب) جلب 2 أسئلة من درجة 400
             $q400 = $getTierQuestions($catId, 400, 2);
             foreach ($q400 as $q) {
                 $sessionQuestionIds[] = $q->id;
-                if (!empty($q->qu_title)) $sessionQuestionTitles[] = trim($q->qu_title);
             }
 
             // ج) جلب 2 أسئلة من درجة 600
             $q600 = $getTierQuestions($catId, 600, 2);
             foreach ($q600 as $q) {
                 $sessionQuestionIds[] = $q->id;
-                if (!empty($q->qu_title)) $sessionQuestionTitles[] = trim($q->qu_title);
             }
 
             $catQuestions = $q200->merge($q400)->merge($q600);
@@ -2902,39 +2900,57 @@ very important function to get qustions
             // د) في حال وجود نقص في درجة معينة داخل الفئة، نكمل من نفس الفئة بأي درجة أخرى غير مستخدمة
             if ($catQuestions->count() < 6) {
                 $needed = 6 - $catQuestions->count();
-                $extraSameCatQuery = Question::where('category_id', $catId)
-                    ->whereNotIn('id', $sessionQuestionIds);
-                if (!empty($sessionQuestionTitles)) {
-                    $extraSameCatQuery->whereNotIn('qu_title', $sessionQuestionTitles);
-                }
-                $extraSameCat = $extraSameCatQuery->inRandomOrder()->take($needed)->get();
+                $extraSameCat = Question::where('category_id', $catId)
+                    ->whereNotIn('id', $sessionQuestionIds)
+                    ->inRandomOrder()
+                    ->take($needed)
+                    ->get();
                 foreach ($extraSameCat as $q) {
                     $sessionQuestionIds[] = $q->id;
-                    if (!empty($q->qu_title)) $sessionQuestionTitles[] = trim($q->qu_title);
                 }
                 $catQuestions = $catQuestions->merge($extraSameCat);
             }
 
-            // هـ) في حال استنفاد أسئلة الفئة تماماً، نكمل من الأسئلة العامة غير المستخدمة في قاعدة البيانات لضمان الوصول لـ 6 أسئلة
+            // هـ) في حال استنفاد أسئلة الفئة تماماً، نكمل من فئة نشطة بديلة بالكامل للحفاظ على تناسق الأسئلة
             if ($catQuestions->count() < 6) {
                 $needed = 6 - $catQuestions->count();
-                $extraGeneralQuery = Question::whereNotIn('id', $sessionQuestionIds);
-                if (!empty($sessionQuestionTitles)) {
-                    $extraGeneralQuery->whereNotIn('qu_title', $sessionQuestionTitles);
+                $fallbackCategory = DB::table('categories')
+                    ->where('status', 1)
+                    ->whereNotIn('id', $categoryIds)
+                    ->inRandomOrder()
+                    ->first();
+
+                if ($fallbackCategory) {
+                    $extraCatQuestions = Question::where('category_id', $fallbackCategory->id)
+                        ->whereNotIn('id', $sessionQuestionIds)
+                        ->inRandomOrder()
+                        ->take($needed)
+                        ->get();
+                    foreach ($extraCatQuestions as $q) {
+                        $sessionQuestionIds[] = $q->id;
+                    }
+                    $catQuestions = $catQuestions->merge($extraCatQuestions);
                 }
-                $extraGeneral = $extraGeneralQuery->inRandomOrder()->take($needed)->get();
+            }
+
+            // و) إذا لم نجد بعد، نكمل من أي أسئلة عامة غير مستخدمة
+            if ($catQuestions->count() < 6) {
+                $needed = 6 - $catQuestions->count();
+                $extraGeneral = Question::whereNotIn('id', $sessionQuestionIds)
+                    ->inRandomOrder()
+                    ->take($needed)
+                    ->get();
                 foreach ($extraGeneral as $q) {
                     $sessionQuestionIds[] = $q->id;
-                    if (!empty($q->qu_title)) $sessionQuestionTitles[] = trim($q->qu_title);
                 }
                 $catQuestions = $catQuestions->merge($extraGeneral);
             }
 
-            // و) إدخال الأسئلة الـ 6 الخاصة بهذه الفئة في جدول الجلسة
+            // ز) إدخال الأسئلة الخاصة بهذه الفئة في جدول الجلسة مع تسجيل category_id الفعلي للسؤال
             foreach ($catQuestions as $q) {
                 DB::table('game_session_question_onlines')->insert([
                     'session_id'     => $sessionId,
-                    'category_id'    => $catId,
+                    'category_id'    => $q->category_id, // ربط الفئة الحقيقية للسؤال لضمان مطابقة الاسم 100%
                     'question_id'    => $q->id,
                     'question_order' => $currentOrder++,
                     'created_at'     => now(),
