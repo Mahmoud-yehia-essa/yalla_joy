@@ -222,6 +222,7 @@ Route::get('get/game-offline-price',[GameOfflinePriceController::class,'getAllGa
 
 
 Route::post('add/online/game/info',[OnlineGameController::class,'addGameOnlineInfo']);
+Route::post('cancel/online/game/search',[OnlineGameController::class,'cancelOnlineGameSearch']);
 
 Route::post('add/online/game/category',[OnlineGameController::class,'addOnlineGameCategory']);
 

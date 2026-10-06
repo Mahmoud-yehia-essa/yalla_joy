@@ -8,6 +8,7 @@ use App\Models\OnlineGameUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OnlineGameController extends Controller
 {
@@ -15,41 +16,82 @@ class OnlineGameController extends Controller
 //api
     public function addGameOnlineInfo(Request $request)
     {
-        // Cleanup waiting games that are older than 5 minutes
-        OnlineGameInfo::where('game_online_state', 'waiting')
-            ->where('created_at', '<=', now()->subMinutes(5))
-            ->update(['game_online_state' => 'finished']);
+        $currentUserId = $request->created_user_id;
 
-        // Search for an existing waiting search game
-        $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
-            ->where('game_online_type', 'search')
-            ->first();
+        return DB::transaction(function () use ($request, $currentUserId) {
+            // 1. إنهاء أي ألعاب قديمة لهذا المستخدم كانت معلقة في حالة انتظار (لمنع مطابقة المستخدم مع نفسه نهائياً)
+            if ($currentUserId) {
+                OnlineGameInfo::where('created_user_id', $currentUserId)
+                    ->where('game_online_state', 'waiting')
+                    ->update(['game_online_state' => 'finished']);
+            }
 
-        if ($existingGame) {
-            // Update the existing game to 'matched'
-            $existingGame->update([
-                'game_online_state' => 'matched'
+            // 2. تنظيف ألعاب الانتظار المهجورة التي مر عليها أكثر من 180 ثانية لضمان البحث الفعلي النشط
+            OnlineGameInfo::where('game_online_state', 'waiting')
+                ->where('created_at', '<=', now()->subSeconds(180))
+                ->update(['game_online_state' => 'finished']);
+
+            // 3. البحث المقفل (lockForUpdate) عن لعبة انتظار نشطة تخص مستخدماً آخر خلال آخر 180 ثانية
+            $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
+                ->where('game_online_type', 'search')
+                ->when($currentUserId, function ($q) use ($currentUserId) {
+                    $q->where('created_user_id', '!=', $currentUserId);
+                })
+                ->where('created_at', '>=', now()->subSeconds(180))
+                ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingGame) {
+                // تم العثور على منافس نشط ← ترقية اللعبة إلى 'matched'
+                $existingGame->update([
+                    'game_online_state' => 'matched'
+                ]);
+
+                return response()->json([
+                    'onlineGameInfo_id' => $existingGame->id,
+                    'game_session_name' => $existingGame->game_session_name
+                ], 200);
+            }
+
+            // 4. في حال عدم وجود منافس حالي، إنشاء غرفة انتظار جديدة
+            $onlineGameInfo = OnlineGameInfo::create([
+                'created_user_id' => $currentUserId,
+                'online_game_name' => $request->online_game_name,
+                'users_count' => $request->users_count,
+                'game_session_name' => $request->game_session_name,
+                'game_online_type' => $request->game_online_type,
+                'game_online_state' => 'waiting',
             ]);
 
             return response()->json([
-                'onlineGameInfo_id' => $existingGame->id,
-                'game_session_name' => $existingGame->game_session_name
+                'onlineGameInfo_id' => $onlineGameInfo->id,
+                'game_session_name' => $onlineGameInfo->game_session_name
             ], 200);
-        }
+        });
+    }
 
-        // If no waiting search game is found, create a new one
-        $onlineGameInfo = OnlineGameInfo::create([
-            'created_user_id' => $request->created_user_id,
-            'online_game_name' => $request->online_game_name,
-            'users_count' => $request->users_count,
-            'game_session_name' => $request->game_session_name,
-            'game_online_type' => $request->game_online_type,
-            'game_online_state' => $request->game_online_state,
-        ]);
+    public function cancelOnlineGameSearch(Request $request)
+    {
+        $userId = $request->user_id;
+        $gameSessionName = $request->game_session_name;
+
+        $query = OnlineGameInfo::where('game_online_state', 'waiting');
+        if ($gameSessionName && $userId) {
+            $query->where(function($q) use ($gameSessionName, $userId) {
+                $q->where('game_session_name', $gameSessionName)
+                  ->orWhere('created_user_id', $userId);
+            });
+        } elseif ($gameSessionName) {
+            $query->where('game_session_name', $gameSessionName);
+        } elseif ($userId) {
+            $query->where('created_user_id', $userId);
+        }
+        $query->update(['game_online_state' => 'cancelled']);
 
         return response()->json([
-            'onlineGameInfo_id' => $onlineGameInfo->id,
-            'game_session_name' => $onlineGameInfo->game_session_name
+            'status' => true,
+            'message' => 'Search cancelled successfully'
         ], 200);
     }
 
