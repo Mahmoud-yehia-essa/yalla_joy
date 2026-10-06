@@ -17,51 +17,56 @@ class OnlineGameController extends Controller
     public function addGameOnlineInfo(Request $request)
     {
         $currentUserId = $request->created_user_id;
+        $isSearch = ($request->game_online_type === 'search');
 
-        return DB::transaction(function () use ($request, $currentUserId) {
-            // 1. إنهاء أي ألعاب قديمة لهذا المستخدم كانت معلقة في حالة انتظار (لمنع مطابقة المستخدم مع نفسه نهائياً)
-            if ($currentUserId) {
-                OnlineGameInfo::where('created_user_id', $currentUserId)
+        return DB::transaction(function () use ($request, $currentUserId, $isSearch) {
+            if ($isSearch) {
+                // 1. إنهاء أي ألعاب بحث قديمة لهذا المستخدم كانت معلقة في حالة انتظار (لمنع مطابقة المستخدم مع نفسه نهائياً)
+                if ($currentUserId) {
+                    OnlineGameInfo::where('created_user_id', $currentUserId)
+                        ->where('game_online_type', 'search')
+                        ->where('game_online_state', 'waiting')
+                        ->update(['game_online_state' => 'finished']);
+                }
+
+                // 2. تنظيف ألعاب الانتظار المهجورة للبحث التي مر عليها أكثر من 180 ثانية لضمان البحث الفعلي النشط
+                OnlineGameInfo::where('game_online_type', 'search')
                     ->where('game_online_state', 'waiting')
+                    ->where('created_at', '<=', now()->subSeconds(180))
                     ->update(['game_online_state' => 'finished']);
+
+                // 3. البحث المقفل (lockForUpdate) عن لعبة انتظار نشطة تخص مستخدماً آخر خلال آخر 180 ثانية
+                $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
+                    ->where('game_online_type', 'search')
+                    ->when($currentUserId, function ($q) use ($currentUserId) {
+                        $q->where('created_user_id', '!=', $currentUserId);
+                    })
+                    ->where('created_at', '>=', now()->subSeconds(180))
+                    ->orderBy('created_at', 'asc')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingGame) {
+                    // تم العثور على منافس نشط ← ترقية اللعبة إلى 'matched'
+                    $existingGame->update([
+                        'game_online_state' => 'matched'
+                    ]);
+
+                    return response()->json([
+                        'onlineGameInfo_id' => $existingGame->id,
+                        'game_session_name' => $existingGame->game_session_name
+                    ], 200);
+                }
             }
 
-            // 2. تنظيف ألعاب الانتظار المهجورة التي مر عليها أكثر من 180 ثانية لضمان البحث الفعلي النشط
-            OnlineGameInfo::where('game_online_state', 'waiting')
-                ->where('created_at', '<=', now()->subSeconds(180))
-                ->update(['game_online_state' => 'finished']);
-
-            // 3. البحث المقفل (lockForUpdate) عن لعبة انتظار نشطة تخص مستخدماً آخر خلال آخر 180 ثانية
-            $existingGame = OnlineGameInfo::where('game_online_state', 'waiting')
-                ->where('game_online_type', 'search')
-                ->when($currentUserId, function ($q) use ($currentUserId) {
-                    $q->where('created_user_id', '!=', $currentUserId);
-                })
-                ->where('created_at', '>=', now()->subSeconds(180))
-                ->orderBy('created_at', 'asc')
-                ->lockForUpdate()
-                ->first();
-
-            if ($existingGame) {
-                // تم العثور على منافس نشط ← ترقية اللعبة إلى 'matched'
-                $existingGame->update([
-                    'game_online_state' => 'matched'
-                ]);
-
-                return response()->json([
-                    'onlineGameInfo_id' => $existingGame->id,
-                    'game_session_name' => $existingGame->game_session_name
-                ], 200);
-            }
-
-            // 4. في حال عدم وجود منافس حالي، إنشاء غرفة انتظار جديدة
+            // 4. إنشاء غرفة جديدة (سواء كانت للبحث أو لإنشاء لعبة مخصصة برمز غرفة)
             $onlineGameInfo = OnlineGameInfo::create([
                 'created_user_id' => $currentUserId,
                 'online_game_name' => $request->online_game_name,
                 'users_count' => $request->users_count,
                 'game_session_name' => $request->game_session_name,
-                'game_online_type' => $request->game_online_type,
-                'game_online_state' => 'waiting',
+                'game_online_type' => $request->game_online_type ?? 'team',
+                'game_online_state' => $isSearch ? 'waiting' : ($request->game_online_state ?? 'disabled'),
             ]);
 
             return response()->json([
@@ -150,7 +155,9 @@ class OnlineGameController extends Controller
 
         if ($existingUser) {
             return response()->json([
-                'OnlineGameUserId' => 0
+                'OnlineGameUserId' => $existingUser->id,
+                'already_joined' => true,
+                'message' => 'User already joined.'
             ], 200);
         }
 
