@@ -1177,6 +1177,7 @@ Route::controller(FinancialReportController::class)->middleware(['checkUserRole'
     Route::get('/admin/transactions/details/{id}', 'transactionDetails')->name('transaction.details');
     Route::post('/admin/transactions/send-notification', 'sendNotificationToUser')->name('transaction.send.notification');
     Route::get('/admin/export/transactions', 'exportTransactions')->name('export.transactions');
+    Route::get('/admin/transactions/delete/{id}', 'deleteTransaction')->name('delete.transaction');
 });
 
 Route::controller(QrCodeController::class)->middleware(['checkUserRole','auth'])->group(function(){

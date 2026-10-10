@@ -217,4 +217,20 @@ class FinancialReportController extends Controller
         $fileName = 'financial_transactions_' . date('Y_m_d_His') . '.xlsx';
         return Excel::download(new FinancialReportExport($request), $fileName);
     }
+
+    /**
+     * Delete a transaction record
+     */
+    public function deleteTransaction($id)
+    {
+        $transaction = PaymentTransaction::findOrFail($id);
+        $transaction->delete();
+
+        $notification = array(
+            'message' => 'تم حذف العملية بنجاح',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->back()->with($notification);
+    }
 }

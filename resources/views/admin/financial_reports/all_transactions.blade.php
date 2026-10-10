@@ -225,7 +225,7 @@
                         <th>وسيلة الدفع ومراجع البوابة</th>
                         <th class="text-center">الحالة</th>
                         <th>تاريخ العملية</th>
-                        <th class="text-center" style="min-width: 170px;">الإجراءات والتواصل</th>
+                        <th class="text-center" style="min-width: 220px;">الإجراءات والتواصل</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -426,6 +426,14 @@
                                         title="تفاصيل العملية الكاملة وتفاصيل بوابة Ottu">
                                     <i class="bx bx-show fs-6"></i> <span>تفاصيل</span>
                                 </button>
+
+                                <!-- 6. Delete Transaction Button -->
+                                <a href="{{ route('delete.transaction', $item->id) }}" 
+                                   class="btn btn-sm btn-outline-danger action-btn-pill" 
+                                   id="delete" 
+                                   title="حذف العملية">
+                                    <i class="bx bx-trash fs-6"></i> <span>حذف</span>
+                                </a>
                             </div>
                         </td>
                     </tr>
