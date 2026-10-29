@@ -519,6 +519,15 @@
         </div>
         @endif
 
+        @if(!empty($importData['deleted_count']))
+        <div class="col-md-3 col-sm-6">
+            <div class="p-3 bg-white rounded-3 border shadow-sm">
+                <div class="text-muted small mb-1">أسئلة تم حذفها بنجاح</div>
+                <h3 class="fw-bold text-danger mb-0">🗑️ {{ $importData['deleted_count'] }}</h3>
+            </div>
+        </div>
+        @endif
+
         @if($totalExtracted > 0)
         <div class="col-md-3 col-sm-6">
             <div class="p-3 bg-white rounded-3 border shadow-sm">
@@ -632,11 +641,10 @@
                         <div class="d-flex align-items-center">
                             <i class="bx bx-info-circle fs-3 text-info me-2"></i>
                             <div>
-                                <strong>ذكاء النظام التلقائي في التعرف على العمليات:</strong>
-                                <ul class="mb-0 ps-3 mt-1 small">
-                                    <li>إذا كان الصف يحتوي على <code>qu_id</code> لسؤال موجود، سيتعرف النظام عليه تلقائياً ويقوم بعمل <strong>تحديث (Update)</strong> له ولإجاباته.</li>
+                                <ul class="mb-0 ps-3 small">
+                                    <li>إذا كان الصف يحتوي على <code>qu_id</code> لسؤال موجود (> 0)، سيتعرف النظام عليه تلقائياً ويقوم بعمل <strong>تحديث (Update)</strong> له ولإجاباته.</li>
                                     <li>إذا كان الصف <strong>بدون <code>qu_id</code></strong> (فارغ)، سيعتبره النظام <strong>سؤالاً جديداً (Insert)</strong> ويضيفه تلقائياً.</li>
-                                    <li>يمكنك دمج أسئلة للتعديل وأسئلة جديدة في نفس ملف الـ Excel بكل سهولة!</li>
+                                    <li>إذا كانت قيمة <code>qu_id</code> هي <strong>0 (صفر)</strong>، سيتعرف النظام مباشرة على أن هذا السؤال مخصص للـ <strong>حذف (Delete)</strong> وسيتم حذفه وإجاباته نهائياً!</li>
                                 </ul>
                             </div>
                         </div>
@@ -666,7 +674,7 @@
                         <i class="bx bx-download me-1"></i> تصدير أسئلة الفئة كملف Excel للتعديل (الخيار الأساسي والموصى به)
                     </h6>
                     <p class="text-muted small mb-0">
-                        اختر الفئة المطلوبة ثم اضغط على <strong>"تنزيل كملف Excel للتعديل"</strong> للحصول على ملف Excel منسق بالكامل من اليمين إلى اليسار (RTL) يحتوي على كافة الأسئلة والإجابات والـ IDs لتعديلها أوفلاين وإعادة رفعها، أو يمكنك تجربة <strong>العرض والتعديل المباشر في الصفحة (تجريبي)</strong>.
+                        اختر الفئة المطلوبة ثم اضغط على <strong>"تنزيل كملف Excel للتعديل"</strong> للحصول على ملف Excel منسق بالكامل من اليمين إلى اليسار (RTL) يحتوي على كافة الأسئلة والإجابات والـ IDs لتعديلها أوفلاين وإعادة رفعها. <span class="text-danger fw-bold">لحذف أي سؤال: يكفي تغيير قيمة qu_id إلى 0 (صفر) في صف ذلك السؤال قبل إعادة الرفع.</span>
                     </p>
                 </div>
 
@@ -838,9 +846,9 @@
     </div>
 
     <div class="card-body p-4">
-        {{-- بطاقات الإحصائيات مع عداد التعديل والإضافة --}}
+        {{-- بطاقات الإحصائيات مع عداد التعديل والإضافة والحذف --}}
         <div class="row g-3 mb-4">
-            <div class="col-md-3 col-sm-6">
+            <div class="{{ ($stats['delete_count'] ?? 0) > 0 ? 'col-xl col-md-4 col-sm-6' : 'col-md-3 col-sm-6' }}">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-primary text-primary"><i class="bx bx-help-circle"></i></div>
                     <div>
@@ -849,7 +857,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="{{ ($stats['delete_count'] ?? 0) > 0 ? 'col-xl col-md-4 col-sm-6' : 'col-md-3 col-sm-6' }}">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-info text-info"><i class="bx bx-sync"></i></div>
                     <div>
@@ -858,7 +866,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="{{ ($stats['delete_count'] ?? 0) > 0 ? 'col-xl col-md-4 col-sm-6' : 'col-md-3 col-sm-6' }}">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-success text-success"><i class="bx bx-plus-circle"></i></div>
                     <div>
@@ -867,7 +875,18 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            @if(($stats['delete_count'] ?? 0) > 0)
+            <div class="col-xl col-md-4 col-sm-6">
+                <div class="stat-card border-danger">
+                    <div class="stat-icon bg-light-danger text-danger"><i class="bx bx-trash"></i></div>
+                    <div>
+                        <div class="text-muted small">أسئلة سيتم حذفها</div>
+                        <h4 class="mb-0 fw-bold text-danger">🗑️ {{ $stats['delete_count'] }}</h4>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <div class="{{ ($stats['delete_count'] ?? 0) > 0 ? 'col-xl col-md-4 col-sm-6' : 'col-md-3 col-sm-6' }}">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-warning text-warning"><i class="bx bx-folder"></i></div>
                     <div>
@@ -877,6 +896,16 @@
                 </div>
             </div>
         </div>
+
+        @if(($stats['delete_count'] ?? 0) > 0)
+        <div class="alert alert-danger border-0 bg-light-danger text-danger mb-4 d-flex align-items-center shadow-sm">
+            <i class="bx bx-error-circle fs-3 me-2"></i>
+            <div>
+                <strong>تنبيه عملية الحذف ({{ $stats['delete_count'] }} سؤال):</strong>
+                يحتوي ملف Excel على أسئلة تم تعيين الـ ID الخاص بها للقيمة <code>0</code> لطلب حذفها نهائياً. سيتم حذف هذه الأسئلة وإجاباتها من قاعدة البيانات فور الضغط على زر الاعتماد أدناه.
+            </div>
+        </div>
+        @endif
 
         {{-- ملخص الفئات المختارة --}}
         <div class="alert alert-light border d-flex align-items-center justify-content-between p-3 mb-4">
@@ -920,10 +949,22 @@
                 </thead>
                 <tbody>
                     @foreach($rows as $row)
-                    <tr>
+                    @php $isDelete = ($row['_row_action'] ?? '') == 'delete'; @endphp
+                    <tr class="{{ $isDelete ? 'table-danger' : '' }}">
                         <td class="fw-bold">{{ $loop->iteration }}</td>
                         <td>
-                            @if($row['_row_action'] == 'update')
+                            @if($isDelete)
+                                @if(!empty($row['_target_question_found']))
+                                    <span class="badge bg-danger px-2 py-1 shadow-sm">
+                                        <i class="bx bx-trash me-1"></i> حذف #{{ $row['_target_question_id'] }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger px-2 py-1 shadow-sm">
+                                        <i class="bx bx-trash me-1"></i> حذف (0)
+                                    </span>
+                                    <small class="d-block text-danger mt-1 fw-bold">لم يُعثر عليه</small>
+                                @endif
+                            @elseif($row['_row_action'] == 'update')
                                 <span class="badge bg-primary px-2 py-1 shadow-sm">
                                     <i class="bx bx-sync me-1"></i> تعديل #{{ $row['qu_id'] }}
                                 </span>
@@ -934,7 +975,9 @@
                             @endif
                         </td>
                         <td>
-                            @if($row['_detected_type'] == 'image')
+                            @if($isDelete)
+                                <span class="badge bg-danger media-badge"><i class="bx bx-trash me-1"></i>حذف</span>
+                            @elseif($row['_detected_type'] == 'image')
                                 <span class="badge bg-success media-badge"><i class="bx bx-image me-1"></i>صورة</span>
                             @elseif($row['_detected_type'] == 'sound')
                                 <span class="badge bg-warning text-dark media-badge"><i class="bx bx-volume-full me-1"></i>صوت</span>
@@ -945,7 +988,7 @@
                             @endif
                         </td>
                         <td>
-                            <div class="fw-bold text-dark">{{ $row['qu_title'] ?? '-' }}</div>
+                            <div class="fw-bold {{ $isDelete ? 'text-danger text-decoration-line-through' : 'text-dark' }}">{{ $row['qu_title'] ?? '-' }}</div>
                             <small class="text-muted">{{ $row['qu_title_en'] ?? '' }}</small>
                         </td>
                         <td>
@@ -1027,8 +1070,13 @@
                 <a href="{{ route('excel.index') }}" class="btn btn-outline-danger px-4">
                     <i class="bx bx-x me-1"></i> إلغاء
                 </a>
-                <button type="submit" class="btn btn-success btn-lg px-5 shadow">
-                    <i class="bx bx-check-circle me-1"></i> اعتماد وحفظ التعديلات والأسئلة الجديدة
+                <button type="submit" class="btn {{ ($stats['delete_count'] ?? 0) > 0 ? 'btn-danger' : 'btn-success' }} btn-lg px-5 shadow">
+                    <i class="bx bx-check-circle me-1"></i>
+                    @if(($stats['delete_count'] ?? 0) > 0)
+                        اعتماد وحفظ العمليات (يتضمن حذف {{ $stats['delete_count'] }} سؤال)
+                    @else
+                        اعتماد وحفظ التعديلات والأسئلة الجديدة
+                    @endif
                 </button>
             </div>
         </form>

@@ -234,8 +234,37 @@ class ExcelController extends Controller
         try {
             $updatedCount  = 0;
             $insertedCount = 0;
+            $deletedCount  = 0;
 
             foreach ($questionsData as $row) {
+                // فحص إذا كان الصف مخصصاً للحذف (القيمة 0 في qu_id)
+                $rawQuId = $row['qu_id'] ?? null;
+                $isDelete = false;
+                if ($rawQuId !== null) {
+                    $trimmedQuId = trim((string)$rawQuId);
+                    if ($trimmedQuId === '0' || $rawQuId === 0 || $rawQuId === '0') {
+                        $isDelete = true;
+                    }
+                }
+
+                if ($isDelete) {
+                    $targetQ = null;
+                    if (!empty($row['ans_id'])) {
+                        $ans = Answer::find((int)$row['ans_id']);
+                        if ($ans && $ans->question) $targetQ = $ans->question;
+                    }
+                    if (!$targetQ && !empty($row['qu_title'])) {
+                        $targetQ = Question::where('qu_title', trim((string)$row['qu_title']))->first();
+                    }
+                    if ($targetQ) {
+                        $targetQ->answers()->delete();
+                        $targetQ->answerQuestionOnlines()->delete();
+                        $targetQ->delete();
+                        $deletedCount++;
+                    }
+                    continue;
+                }
+
                 $qu_image = !empty($row['qu_image']) ? trim($row['qu_image']) : null;
                 $qu_sound = !empty($row['qu_sound']) ? trim($row['qu_sound']) : null;
                 $qu_video = !empty($row['qu_video']) ? trim($row['qu_video']) : null;
@@ -410,11 +439,19 @@ class ExcelController extends Controller
 
             DB::commit();
 
+            $msg = "تم بنجاح حفظ التعديلات!";
+            $parts = [];
+            if ($updatedCount > 0) $parts[] = "تحديث {$updatedCount} سؤال قائم";
+            if ($insertedCount > 0) $parts[] = "إضافة {$insertedCount} سؤال جديد";
+            if ($deletedCount > 0) $parts[] = "حذف {$deletedCount} سؤال";
+            if (!empty($parts)) $msg .= " (" . implode('، ', $parts) . ").";
+
             return response()->json([
                 'success' => true,
-                'message' => "تم بنجاح حفظ التعديلات! (تحديث {$updatedCount} سؤال قائم، وإضافة {$insertedCount} سؤال جديد).",
+                'message' => $msg,
                 'updated_count'  => $updatedCount,
-                'inserted_count' => $insertedCount
+                'inserted_count' => $insertedCount,
+                'deleted_count'  => $deletedCount
             ]);
 
         } catch (\Exception $e) {
@@ -499,6 +536,7 @@ class ExcelController extends Controller
             'total_questions'     => 0,
             'update_count'        => 0,
             'insert_count'        => 0,
+            'delete_count'        => 0,
             'type_text'           => 0,
             'type_image'          => 0,
             'type_sound'          => 0,
@@ -514,7 +552,7 @@ class ExcelController extends Controller
             'answers'   => [],
         ];
 
-        // ربط الهيدر وتطبيق الفئات المحددة وتحديد نوع العملية (تعديل أو إضافة)
+        // ربط الهيدر وتطبيق الفئات المحددة وتحديد نوع العملية (تعديل أو إضافة أو حذف)
         $formatted = $rows->map(function ($row) use ($headers, $game_type_id, $main_category_id, $category_id, &$stats, &$referencedMedia) {
             $rowData = [];
             foreach ($headers as $index => $headerName) {
@@ -523,18 +561,7 @@ class ExcelController extends Controller
                 $rowData[$headerName] = is_string($val) ? trim($val) : $val;
             }
 
-            // تحديد ما إذا كان الصف لتحديث سؤال قائم أو إضافة جديدة
-            $quId = !empty($rowData['qu_id']) ? (int)$rowData['qu_id'] : null;
-            $rowAction = 'create';
-            if ($quId && Question::where('id', $quId)->exists()) {
-                $rowAction = 'update';
-                $stats['update_count']++;
-            } else {
-                $stats['insert_count']++;
-            }
-            $rowData['_row_action'] = $rowAction;
-
-            // تطبيق التصنيفات المختارة من القوائم المنسدلة إن وجدت
+            // تطبيق التصنيفات المختارة من القوائم المنسدلة إن وجدت أولاً
             if ($game_type_id && $game_type_id !== 'non') {
                 $rowData['game_type_id'] = $game_type_id;
             }
@@ -543,6 +570,168 @@ class ExcelController extends Controller
             }
             if ($category_id && $category_id !== 'non') {
                 $rowData['category_id'] = $category_id;
+            }
+
+            // استخراج معرف السؤال qu_id أو id وفحص قيمته بدقة شديدة
+            $rawQuId = null;
+            foreach (['qu_id', 'id', 'question_id'] as $k) {
+                if (array_key_exists($k, $rowData)) {
+                    $rawQuId = $rowData[$k];
+                    break;
+                }
+            }
+
+            // فحص إضافي لأعمدة الحذف الصريح إن وجدت
+            $isExplicitDelete = false;
+            foreach (['delete', 'is_delete', 'حذف'] as $delCol) {
+                if (!empty($rowData[$delCol])) {
+                    $delVal = trim((string)$rowData[$delCol]);
+                    if ($delVal === '1' || strtolower($delVal) === 'yes' || $delVal === 'نعم' || strtolower($delVal) === 'delete' || $delVal === 'حذف') {
+                        $isExplicitDelete = true;
+                        break;
+                    }
+                }
+            }
+
+            // فحص القيمة صفر أو السالب أو الكلمات الدالة على الحذف
+            $isZeroVal = false;
+            $isNegative = false;
+            $isPositive = false;
+            $parsedNum = null;
+
+            if ($rawQuId !== null) {
+                $trimmedStr = trim((string)$rawQuId);
+                if ($trimmedStr === '0' || $trimmedStr === '0.0' || $rawQuId === 0 || $rawQuId === 0.0) {
+                    $isZeroVal = true;
+                } elseif (in_array(strtolower($trimmedStr), ['delete', 'del', 'حذف'])) {
+                    $isZeroVal = true;
+                } elseif (is_numeric($trimmedStr)) {
+                    $parsedNum = (float)$trimmedStr;
+                    if ($parsedNum == 0) {
+                        $isZeroVal = true;
+                    } elseif ($parsedNum < 0) {
+                        $isNegative = true;
+                    } elseif ($parsedNum > 0) {
+                        $isPositive = true;
+                    }
+                }
+            }
+
+            $rowAction = 'create';
+            $targetQuestion = null;
+
+            if ($isZeroVal || $isNegative || $isExplicitDelete) {
+                // ============================================
+                // أ) عملية حذف السؤال (DELETE)
+                // ============================================
+                $rowAction = 'delete';
+                $stats['delete_count']++;
+
+                // محاولة العثور على السؤال المستهدف بعدة طرق دقيقة:
+                // 1) إذا كان الـ ID سالباً مثل -154
+                if ($isNegative && $parsedNum !== null) {
+                    $targetQuestion = Question::find(abs((int)$parsedNum));
+                }
+
+                // 2) عبر ans_id الخاص بالإجابة
+                if (!$targetQuestion && !empty($rowData['ans_id'])) {
+                    $ans = Answer::find((int)$rowData['ans_id']);
+                    if ($ans && $ans->question) {
+                        $targetQuestion = $ans->question;
+                    }
+                }
+
+                // 3) عبر online_ans_id_1..4
+                if (!$targetQuestion) {
+                    foreach (['online_ans_id_1', 'online_ans_id_2', 'online_ans_id_3', 'online_ans_id_4'] as $onlKey) {
+                        if (!empty($rowData[$onlKey])) {
+                            $onl = AnswerQuestionOnline::find((int)$rowData[$onlKey]);
+                            if ($onl && $onl->question) {
+                                $targetQuestion = $onl->question;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 4) عبر qu_title ضمن الفئة المحددة أو عالمياً
+                if (!$targetQuestion) {
+                    $title   = !empty($rowData['qu_title']) ? trim((string)$rowData['qu_title']) : '';
+                    $titleEn = !empty($rowData['qu_title_en']) ? trim((string)$rowData['qu_title_en']) : '';
+
+                    $targetCatId     = (!empty($rowData['category_id']) && $rowData['category_id'] !== 'non') ? $rowData['category_id'] : ($category_id !== 'non' ? $category_id : null);
+                    $targetMainCatId = (!empty($rowData['main_category_id']) && $rowData['main_category_id'] !== 'non') ? $rowData['main_category_id'] : ($main_category_id !== 'non' ? $main_category_id : null);
+                    $targetGameType  = (!empty($rowData['game_type_id']) && $rowData['game_type_id'] !== 'non') ? $rowData['game_type_id'] : ($game_type_id !== 'non' ? $game_type_id : null);
+
+                    if (!empty($title) && $title !== 'non') {
+                        $qQuery = Question::query();
+                        if ($targetCatId) $qQuery->where('category_id', $targetCatId);
+                        if ($targetMainCatId) $qQuery->where('main_category_id', $targetMainCatId);
+                        if ($targetGameType) $qQuery->where('game_type_id', $targetGameType);
+                        $qQuery->where('qu_title', $title);
+                        $targetQuestion = $qQuery->first();
+
+                        if (!$targetQuestion) {
+                            $targetQuestion = Question::where('qu_title', $title)->first();
+                        }
+                    } elseif (!empty($titleEn) && $titleEn !== 'non') {
+                        $qQuery = Question::query();
+                        if ($targetCatId) $qQuery->where('category_id', $targetCatId);
+                        if ($targetMainCatId) $qQuery->where('main_category_id', $targetMainCatId);
+                        if ($targetGameType) $qQuery->where('game_type_id', $targetGameType);
+                        $qQuery->where('qu_title_en', $titleEn);
+                        $targetQuestion = $qQuery->first();
+
+                        if (!$targetQuestion) {
+                            $targetQuestion = Question::where('qu_title_en', $titleEn)->first();
+                        }
+                    }
+                }
+
+                if ($targetQuestion) {
+                    $rowData['_target_question_id']    = $targetQuestion->id;
+                    $rowData['_target_question_found'] = true;
+                    if (empty($rowData['qu_title']) || $rowData['qu_title'] === 'non') {
+                        $rowData['qu_title'] = $targetQuestion->qu_title;
+                    }
+                    if (empty($rowData['qu_title_en']) || $rowData['qu_title_en'] === 'non') {
+                        $rowData['qu_title_en'] = $targetQuestion->qu_title_en;
+                    }
+                } else {
+                    $rowData['_target_question_id']    = null;
+                    $rowData['_target_question_found'] = false;
+                }
+
+            } elseif ($isPositive && $parsedNum !== null) {
+                // ============================================
+                // ب) عملية تحديث سؤال قائم (UPDATE)
+                // ============================================
+                $quId = (int)$parsedNum;
+                $existingQ = Question::find($quId);
+                if ($existingQ) {
+                    $rowAction = 'update';
+                    $stats['update_count']++;
+                    $rowData['_target_question_id']    = $quId;
+                    $rowData['_target_question_found'] = true;
+                } else {
+                    $rowAction = 'create';
+                    $stats['insert_count']++;
+                }
+            } else {
+                // ============================================
+                // ج) عملية إضافة سؤال جديد (INSERT)
+                // ============================================
+                $rowAction = 'create';
+                $stats['insert_count']++;
+            }
+
+            $rowData['_row_action'] = $rowAction;
+
+            // إذا كان الصف مخصصاً للحذف، لا يتم طلب وسائط له في خطوة الـ ZIP
+            if ($rowAction === 'delete') {
+                $rowData['_detected_type'] = 'delete';
+                $stats['total_questions']++;
+                return $rowData;
             }
 
             // تحديد نوع السؤال
@@ -823,11 +1012,125 @@ class ExcelController extends Controller
         DB::beginTransaction();
         try {
             $insertedCount = 0;
-            $updatedCount = 0;
+            $updatedCount  = 0;
+            $deletedCount  = 0;
             $questionMediaList = [];
             $answerMediaList = [];
 
             foreach ($rows as $row) {
+                // ============================================
+                // فحص ما إذا كان الصف مطلوب حذفه (DELETE)
+                // ============================================
+                $isDelete = false;
+                if (isset($row['_row_action']) && $row['_row_action'] === 'delete') {
+                    $isDelete = true;
+                } else {
+                    $rawQuId = null;
+                    foreach (['qu_id', 'id', 'question_id'] as $k) {
+                        if (array_key_exists($k, $row)) {
+                            $rawQuId = $row[$k];
+                            break;
+                        }
+                    }
+                    if ($rawQuId !== null) {
+                        $trimmedStr = trim((string)$rawQuId);
+                        if ($trimmedStr === '0' || $trimmedStr === '0.0' || $rawQuId === 0 || $rawQuId === 0.0) {
+                            $isDelete = true;
+                        } elseif (in_array(strtolower($trimmedStr), ['delete', 'del', 'حذف'])) {
+                            $isDelete = true;
+                        } elseif (is_numeric($trimmedStr) && (float)$trimmedStr <= 0) {
+                            $isDelete = true;
+                        }
+                    }
+                    if (!$isDelete) {
+                        foreach (['delete', 'is_delete', 'حذف'] as $delCol) {
+                            if (!empty($row[$delCol])) {
+                                $delVal = trim((string)$row[$delCol]);
+                                if ($delVal === '1' || strtolower($delVal) === 'yes' || $delVal === 'نعم' || strtolower($delVal) === 'delete' || $delVal === 'حذف') {
+                                    $isDelete = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($isDelete) {
+                    $questionToDelete = null;
+
+                    // 1) البحث بواسطة _target_question_id إن وجد
+                    if (!empty($row['_target_question_id'])) {
+                        $questionToDelete = Question::find((int)$row['_target_question_id']);
+                    }
+
+                    // 2) إذا لم يوجد، البحث بواسطة ans_id
+                    if (!$questionToDelete && !empty($row['ans_id'])) {
+                        $ans = Answer::find((int)$row['ans_id']);
+                        if ($ans && $ans->question) {
+                            $questionToDelete = $ans->question;
+                        }
+                    }
+
+                    // 3) البحث بواسطة إجابات الأونلاين 1..4
+                    if (!$questionToDelete) {
+                        foreach (['online_ans_id_1', 'online_ans_id_2', 'online_ans_id_3', 'online_ans_id_4'] as $onlKey) {
+                            if (!empty($row[$onlKey])) {
+                                $onl = AnswerQuestionOnline::find((int)$row[$onlKey]);
+                                if ($onl && $onl->question) {
+                                    $questionToDelete = $onl->question;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // 4) البحث بواسطة qu_title ضمن الفئة المحددة أو عالمياً
+                    if (!$questionToDelete) {
+                        $title   = !empty($row['qu_title']) ? trim((string)$row['qu_title']) : '';
+                        $titleEn = !empty($row['qu_title_en']) ? trim((string)$row['qu_title_en']) : '';
+
+                        $targetCatId     = (!empty($row['category_id']) && $row['category_id'] !== 'non') ? $row['category_id'] : ($request->category_id !== 'non' ? $request->category_id : null);
+                        $targetMainCatId = (!empty($row['main_category_id']) && $row['main_category_id'] !== 'non') ? $row['main_category_id'] : ($request->main_category_id !== 'non' ? $request->main_category_id : null);
+                        $targetGameType  = (!empty($row['game_type_id']) && $row['game_type_id'] !== 'non') ? $row['game_type_id'] : ($request->game_type_id !== 'non' ? $request->game_type_id : null);
+
+                        if (!empty($title) && $title !== 'non') {
+                            $qQuery = Question::query();
+                            if ($targetCatId) $qQuery->where('category_id', $targetCatId);
+                            if ($targetMainCatId) $qQuery->where('main_category_id', $targetMainCatId);
+                            if ($targetGameType) $qQuery->where('game_type_id', $targetGameType);
+                            $qQuery->where('qu_title', $title);
+                            $questionToDelete = $qQuery->first();
+
+                            if (!$questionToDelete) {
+                                $questionToDelete = Question::where('qu_title', $title)->first();
+                            }
+                        } elseif (!empty($titleEn) && $titleEn !== 'non') {
+                            $qQuery = Question::query();
+                            if ($targetCatId) $qQuery->where('category_id', $targetCatId);
+                            if ($targetMainCatId) $qQuery->where('main_category_id', $targetMainCatId);
+                            if ($targetGameType) $qQuery->where('game_type_id', $targetGameType);
+                            $qQuery->where('qu_title_en', $titleEn);
+                            $questionToDelete = $qQuery->first();
+
+                            if (!$questionToDelete) {
+                                $questionToDelete = Question::where('qu_title_en', $titleEn)->first();
+                            }
+                        }
+                    }
+
+                    if ($questionToDelete) {
+                        // حذف الإجابات التابعة للسؤال أولاً لضمان سلامة البيانات
+                        $questionToDelete->answers()->delete();
+                        $questionToDelete->answerQuestionOnlines()->delete();
+
+                        // حذف السؤال نفسه
+                        $questionToDelete->delete();
+                        $deletedCount++;
+                    }
+
+                    continue; // تجاوز بقية معالجة الإضافة/التعديل لهذا الصف
+                }
+
                 // 1) تحديد نوع السؤال والوسائط
                 $qu_image = !empty($row['qu_image']) ? trim($row['qu_image']) : null;
                 $qu_sound = !empty($row['qu_sound']) ? trim($row['qu_sound']) : null;
@@ -1075,9 +1378,10 @@ class ExcelController extends Controller
             $hasMedia = (count($qMediaUnique) > 0 || count($aMediaUnique) > 0);
 
             session()->flash('import_success', [
-                'saved_count'    => $insertedCount + $updatedCount,
+                'saved_count'    => $insertedCount + $updatedCount + $deletedCount,
                 'inserted_count' => $insertedCount,
                 'updated_count'  => $updatedCount,
+                'deleted_count'  => $deletedCount,
                 'question_media' => $qMediaUnique,
                 'answer_media'   => $aMediaUnique,
                 'has_media'      => $hasMedia,
@@ -1092,7 +1396,8 @@ class ExcelController extends Controller
 
             $msg = "تمت العملية بنجاح! ";
             if ($insertedCount > 0) $msg .= "تمت إضافة {$insertedCount} سؤال جديد. ";
-            if ($updatedCount > 0) $msg .= "تم تحديث {$updatedCount} سؤال قائم.";
+            if ($updatedCount > 0) $msg .= "تم تحديث {$updatedCount} سؤال قائم. ";
+            if ($deletedCount > 0) $msg .= "تم حذف {$deletedCount} سؤال بنجاح.";
 
             $notification = [
                 'message'    => $msg,
