@@ -76,6 +76,16 @@
                 </select>
             </div>
 
+            <!-- Jaribna Status Filter -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label small fw-bold text-muted mb-1">حالة جربنا (مجاني):</label>
+                <select id="filter-jaribna" class="form-select form-select-sm">
+                    <option value="all" selected>كل الفئات</option>
+                    <option value="1">متاح في جربنا فقط (مجاني)</option>
+                    <option value="0">غير متاح في جربنا</option>
+                </select>
+            </div>
+
             <!-- Questions Count Sort -->
             <div class="col-12 col-md-6 col-lg-4">
                 <label class="form-label small fw-bold text-muted mb-1">عدد الأسئلة في الفئة:</label>
@@ -120,6 +130,7 @@
                         <th>الفئة الرئيسية</th>
                         <th>إسم الفئة</th>
                         <th>تخصيص اللعبة</th>
+                        <th>جربنا (مجاني)</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الأسئلة في الفئة</th>
                         <th>عدد مرات الإستخدام</th>
@@ -138,6 +149,7 @@
                         <th>الفئة الرئيسية</th>
                         <th>إسم الفئة</th>
                         <th>تخصيص اللعبة</th>
+                        <th>جربنا (مجاني)</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الأسئلة في الفئة</th>
                         <th>عدد مرات الإستخدام</th>
@@ -352,6 +364,7 @@
             const gameTypeId = $('#filter-game-type').val();
             const mainCategoryId = $('#filter-main-category').val();
             const displayTarget = $('#filter-display-target').val();
+            const isJaribna = $('#filter-jaribna').val();
             const questionsSort = $('#filter-questions-sort').val();
             const dateSort = $('#filter-date-sort').val();
 
@@ -370,6 +383,7 @@
                     game_type_id: gameTypeId,
                     main_category_id: mainCategoryId,
                     display_target: displayTarget,
+                    is_jaribna: isJaribna,
                     questions_sort: questionsSort,
                     date_sort: dateSort,
                     ajax: 1
@@ -432,7 +446,7 @@
         });
 
         // Dropdown Filters Change Handlers
-        $('#filter-main-category, #filter-display-target, #filter-questions-sort, #filter-date-sort').on('change', function() {
+        $('#filter-main-category, #filter-display-target, #filter-jaribna, #filter-questions-sort, #filter-date-sort').on('change', function() {
             fetchCategories(true);
         });
 
@@ -441,10 +455,62 @@
             $('#filter-search').val('');
             $('#filter-game-type').val('all');
             $('#filter-display-target').val('all');
+            $('#filter-jaribna').val('all');
             $('#filter-questions-sort').val('all');
             $('#filter-date-sort').val('all');
             updateMainCategoriesDropdown('all');
             fetchCategories(true);
+        });
+
+        // Toggle Category Jaribna Button Handler
+        $(document).on('click', '.toggle-category-jaribna-btn', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var categoryId = btn.data('id');
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: "{{ route('category.toggle.jaribna') }}",
+                type: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}'
+                },
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id: categoryId
+                },
+                success: function(response) {
+                    btn.prop('disabled', false);
+                    if (response.status) {
+                        if (response.is_jaribna == 1) {
+                            btn.removeClass('btn-outline-secondary').addClass('btn-success');
+                            btn.html('<i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا');
+                        } else {
+                            btn.removeClass('btn-success').addClass('btn-outline-secondary');
+                            btn.html('<i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل');
+                        }
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message
+                        });
+                    }
+                },
+                error: function() {
+                    btn.prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: 'فشل تحديث حالة جربنا'
+                    });
+                }
+            });
         });
 
         // Load More Button Click

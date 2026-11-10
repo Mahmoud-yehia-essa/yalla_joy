@@ -85,6 +85,7 @@ class MainCategoryController extends Controller
             'main_category_description' => $request->main_category_description,
             'main_category_description_en' => $request->main_category_description_en,
             'display_target' => $request->display_target ?? 'both',
+            'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
             'main_category_photo' => $save_url ?? null,
             'order_by' => $request->order_by,
             'user_id' => Auth::user()->id,
@@ -188,6 +189,7 @@ class MainCategoryController extends Controller
                 'main_category_description' => $request->main_category_description,
                 'main_category_description_en' => $request->main_category_description_en,
                 'display_target' => $request->display_target ?? 'both',
+                'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
                 'main_category_photo' => $save_url,
                 'order_by' => $request->order_by,
             ]);
@@ -199,6 +201,7 @@ class MainCategoryController extends Controller
                 'main_category_description' => $request->main_category_description,
                 'main_category_description_en' => $request->main_category_description_en,
                 'display_target' => $request->display_target ?? 'both',
+                'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
                 'order_by' => $request->order_by,
             ]);
         }
@@ -265,14 +268,38 @@ class MainCategoryController extends Controller
         ]);
     }
 
+    public function toggleMainCategoryJaribna(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:main_categories,id',
+        ]);
+
+        $mainCategory = MainCategory::findOrFail($request->id);
+        $mainCategory->is_jaribna = $mainCategory->is_jaribna ? 0 : 1;
+        $mainCategory->save();
+
+        return response()->json([
+            'status' => true,
+            'is_jaribna' => (int) $mainCategory->is_jaribna,
+            'message' => $mainCategory->is_jaribna
+                ? 'تم تفعيل الفئة الرئيسية في "جربنا" بنجاح'
+                : 'تم إلغاء تفعيل الفئة الرئيسية من "جربنا"'
+        ]);
+    }
+
     /// API
 
     public function getMainCategoryApi(Request $request) {
         $game_type_id = $request->game_type_id;
         $game_target = $request->game_target ?? $request->display_target;
+        $isJaribna = $request->boolean('is_jaribna') || $request->input('is_jaribna') == '1';
 
         $query = MainCategory::where('game_type_id', $game_type_id)
             ->where('status', 'active');
+
+        if ($isJaribna) {
+            $query->where('is_jaribna', 1);
+        }
 
         if (!empty($game_target)) {
             $query->where(function ($q) use ($game_target) {
@@ -296,5 +323,11 @@ class MainCategoryController extends Controller
             'message' => 'Main Category retrieval successful',
             'gameType' => $gameType,
         ], 200);
+    }
+
+    public function getJaribnaMainCategoryApi(Request $request)
+    {
+        $request->merge(['is_jaribna' => 1]);
+        return $this->getMainCategoryApi($request);
     }
 }

@@ -50,6 +50,18 @@
         <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.75rem;">بدون فصل</span>
     @endif
 </td>
+<td class="text-center">
+    <button type="button" 
+            class="btn btn-sm {{ $item->is_jaribna ? 'btn-success' : 'btn-outline-secondary' }} toggle-question-jaribna-btn" 
+            data-id="{{ $item->id }}"
+            title="تبديل الإتاحة في جربنا">
+        @if($item->is_jaribna)
+            <i class="fa-solid fa-circle-check me-1"></i> جربنا
+        @else
+            <i class="fa-solid fa-circle-xmark me-1"></i> عادي
+        @endif
+    </button>
+</td>
 
 <td class="text-wrap">
     @php
@@ -100,6 +112,12 @@
             <strong class="text-dark">الفصل الدراسي</strong><br>
             <span class="badge {{ $item->term == 1 ? 'bg-primary' : ($item->term == 2 ? 'bg-success' : 'bg-secondary') }} mt-1">
                 {{ $item->term == 1 ? 'الفصل الدراسي الأول' : ($item->term == 2 ? 'الفصل الدراسي الثاني' : 'بدون فصل دراسي') }}
+            </span>
+        </div>
+        <div class="col-md-3">
+            <strong class="text-dark">متاح في جربنا</strong><br>
+            <span class="badge {{ $item->is_jaribna ? 'bg-success' : 'bg-secondary' }} mt-1">
+                {{ $item->is_jaribna ? 'نعم (مجاني)' : 'لا (عادي)' }}
             </span>
         </div>
     </div>

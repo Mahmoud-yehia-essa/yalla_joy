@@ -562,6 +562,7 @@ public function addQuestionStore(Request $request)
               'qu_hint' => $request->qu_hint,
             'qu_hint_en' => $request->qu_hint_en,
             'term' => ($request->filled('term') && $request->term !== 'non') ? $request->term : null,
+            'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
             'user_id' => Auth::user()->id,
 
 
@@ -1167,6 +1168,17 @@ foreach ($answersData as $ans) {
                     });
                 } else {
                     $query->where('term', $request->term);
+                }
+            }
+
+            // Filter by Jaribna (Free Trial)
+            if ($request->filled('is_jaribna') && $request->is_jaribna !== 'all') {
+                if ($request->is_jaribna === '1' || $request->is_jaribna === 'yes') {
+                    $query->where('is_jaribna', 1);
+                } elseif ($request->is_jaribna === '0' || $request->is_jaribna === 'no') {
+                    $query->where(function($q) {
+                        $q->where('is_jaribna', 0)->orWhereNull('is_jaribna');
+                    });
                 }
             }
 
@@ -1939,6 +1951,7 @@ public function editQuestionStore(Request $request)
               'qu_hint' => $request->qu_hint,
             'qu_hint_en' => $request->qu_hint_en,
             'term' => ($request->filled('term') && $request->term !== 'non') ? $request->term : null,
+            'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
         ]);
 
         // ملفات السؤال
@@ -2088,6 +2101,49 @@ foreach ($onlineAnswers as $index => $item) {
         DB::rollBack();
         return back()->with(['message' => $e->getMessage(), 'alert-type' => 'error']);
     }
+}
+
+public function toggleQuestionJaribna(Request $request)
+{
+    $request->validate([
+        'id' => 'required|exists:questions,id',
+    ]);
+
+    $question = Question::findOrFail($request->id);
+    $question->is_jaribna = $question->is_jaribna ? 0 : 1;
+    $question->save();
+
+    return response()->json([
+        'status' => true,
+        'is_jaribna' => (int) $question->is_jaribna,
+        'message' => $question->is_jaribna
+            ? 'تم تعيين السؤال كـ مجاني في "جربنا" بنجاح'
+            : 'تم إلغاء تعيين السؤال من "جربنا"'
+    ]);
+}
+
+public function bulkUpdateQuestionJaribna(Request $request)
+{
+    $request->validate([
+        'ids' => 'required|array',
+        'ids.*' => 'exists:questions,id',
+        'is_jaribna' => 'required|in:0,1',
+    ]);
+
+    $isJaribna = (int) $request->is_jaribna;
+    Question::whereIn('id', $request->ids)->update([
+        'is_jaribna' => $isJaribna,
+    ]);
+
+    $count = count($request->ids);
+    $msg = $isJaribna === 1
+        ? "تم بنجاح إضافة {$count} سؤال إلى تجربة جربنا المجانية"
+        : "تم بنجاح إزالة {$count} سؤال من تجربة جربنا المجانية";
+
+    return response()->json([
+        'status' => true,
+        'message' => $msg
+    ]);
 }
 
 
@@ -2298,15 +2354,27 @@ $pathSoundQ = 'upload/questions/sounds/'.$old_question_sound;
 public function getQuestionApi(Request $request, $id)
 {
     $term = $request->query('term');
+    $isJaribna = $request->boolean('is_jaribna') || $request->query('is_jaribna') == '1' || $request->input('is_jaribna') == '1';
 
     // Fetch questions for each qu_points category
     $query_200 = Question::where('category_id', $id)->where('qu_points', 200);
     $query_400 = Question::where('category_id', $id)->where('qu_points', 400);
     $query_600 = Question::where('category_id', $id)->where('qu_points', 600);
 
+    // في حال نمط "جربنا": جلب الأسئلة المحددة حصراً لـ جربنا دون غيرها نهائياً
+    if ($isJaribna) {
+        $query_200->where('is_jaribna', 1);
+        $query_400->where('is_jaribna', 1);
+        $query_600->where('is_jaribna', 1);
+    }
+
     // إذا تم إرسال term بشكل صريح ومحدد (مثلاً 1 أو 2) وكانت الفئة تحتوي فعلاً على أسئلة لهذا الـ term، نطبق الفلترة؛ خلاف ذلك نجلب كل أسئلة الفئة (سواء كانت NULL أو 1 أو 2)
     if ($request->filled('term') && $term !== 'null' && $term !== 'all' && $term !== 'all_terms') {
-        $hasTermQuestions = Question::where('category_id', $id)->where('term', $term)->exists();
+        $termCheckQuery = Question::where('category_id', $id)->where('term', $term);
+        if ($isJaribna) {
+            $termCheckQuery->where('is_jaribna', 1);
+        }
+        $hasTermQuestions = $termCheckQuery->exists();
         if ($hasTermQuestions) {
             $query_200->where('term', $term);
             $query_400->where('term', $term);
@@ -2314,23 +2382,65 @@ public function getQuestionApi(Request $request, $id)
         }
     }
 
-    // Fetch 4 random questions for each qu_points category (2 active board questions + 2 hidden backup questions)
+    // Fetch up to 4 random questions for each qu_points category (2 active board questions + 2 hidden backup questions)
     $questions_200 = $query_200->inRandomOrder()->take(4)->get();
     $questions_400 = $query_400->inRandomOrder()->take(4)->get();
     $questions_600 = $query_600->inRandomOrder()->take(4)->get();
 
+    // Fill to 4 for each point group if category has questions available for that point group
+    if ($questions_200->count() < 4) {
+        $fill200Query = Question::where('category_id', $id)->where('qu_points', 200)
+            ->whereNotIn('id', $questions_200->pluck('id'));
+        if ($isJaribna) {
+            $fill200Query->where('is_jaribna', 1);
+        }
+        $fill200 = $fill200Query->inRandomOrder()->take(4 - $questions_200->count())->get();
+        $questions_200 = $questions_200->merge($fill200);
+    }
+    if ($questions_400->count() < 4) {
+        $fill400Query = Question::where('category_id', $id)->where('qu_points', 400)
+            ->whereNotIn('id', $questions_400->pluck('id'));
+        if ($isJaribna) {
+            $fill400Query->where('is_jaribna', 1);
+        }
+        $fill400 = $fill400Query->inRandomOrder()->take(4 - $questions_400->count())->get();
+        $questions_400 = $questions_400->merge($fill400);
+    }
+    if ($questions_600->count() < 4) {
+        $fill600Query = Question::where('category_id', $id)->where('qu_points', 600)
+            ->whereNotIn('id', $questions_600->pluck('id'));
+        if ($isJaribna) {
+            $fill600Query->where('is_jaribna', 1);
+        }
+        $fill600 = $fill600Query->inRandomOrder()->take(4 - $questions_600->count())->get();
+        $questions_600 = $questions_600->merge($fill600);
+    }
+
     // Merge in the required order: 4x 200, 4x 400, 4x 600 (Total 12 questions: 6 active + 6 backup)
     $qu = $questions_200->merge($questions_400)->merge($questions_600);
 
-    // If less than 6 questions, fill missing ones from other available questions in this category
-    if ($qu->count() < 6) {
-        $extra_questions = Question::where('category_id', $id)
-            ->whereNotIn('id', $qu->pluck('id'))
-            ->inRandomOrder()
-            ->take(6 - $qu->count())
+    // If total is less than 12, fill up to 12 from any available questions in this category (حصراً is_jaribna=1 في نمط جربنا)
+    if ($qu->count() < 12) {
+        $extraQuery = Question::where('category_id', $id)
+            ->whereNotIn('id', $qu->pluck('id'));
+        if ($isJaribna) {
+            $extraQuery->where('is_jaribna', 1);
+        }
+        $extra_questions = $extraQuery->inRandomOrder()
+            ->take(12 - $qu->count())
             ->get();
-
         $qu = $qu->merge($extra_questions);
+    }
+
+    // في حال نمط "جربنا": إذا كان إجمالي الأسئلة المحددة أقل من 12، نكرر حصراً من أسئلة جربنا نفسها، ولا نجلب أبداً أي سؤال غير مخصص لـ جربنا
+    if ($isJaribna && $qu->count() < 12 && $qu->isNotEmpty()) {
+        $jaribnaPool = $qu->values();
+        $idx = 0;
+        while ($qu->count() < 12) {
+            $cloned = clone $jaribnaPool[$idx % $jaribnaPool->count()];
+            $qu->push($cloned);
+            $idx++;
+        }
     }
 
     // Map and return in the correct order
@@ -2341,6 +2451,12 @@ public function getQuestionApi(Request $request, $id)
     });
 
     return response()->json($qu->values()); // Ensure proper indexing
+}
+
+public function getJaribnaQuestionApi(Request $request, $id)
+{
+    $request->merge(['is_jaribna' => 1]);
+    return $this->getQuestionApi($request, $id);
 }
 
 
@@ -2660,6 +2776,7 @@ very important function to get qustions
     {
         $sessionId = $request->input('session_id');
         $categoryId = $request->input('category_id');
+        $isJaribna = $request->boolean('is_jaribna') || $request->input('is_jaribna') == '1';
 
         if (!$sessionId) {
             return response()->json(['error' => 'session_id is required'], 422);
@@ -2681,32 +2798,29 @@ very important function to get qustions
                     ->toArray();
 
                 // 2 أسئلة من 200
-                $q200 = Question::where('category_id', $categoryId)
+                $q200Query = Question::where('category_id', $categoryId)
                     ->where('qu_points', 200)
-                    ->whereNotIn('id', $existingSessionQIds)
-                    ->inRandomOrder()
-                    ->take(2)
-                    ->get();
+                    ->whereNotIn('id', $existingSessionQIds);
+                if ($isJaribna) $q200Query->where('is_jaribna', 1);
+                $q200 = $q200Query->inRandomOrder()->take(2)->get();
 
                 $excludeAfter200 = array_merge($existingSessionQIds, $q200->pluck('id')->toArray());
 
                 // 2 أسئلة من 400
-                $q400 = Question::where('category_id', $categoryId)
+                $q400Query = Question::where('category_id', $categoryId)
                     ->where('qu_points', 400)
-                    ->whereNotIn('id', $excludeAfter200)
-                    ->inRandomOrder()
-                    ->take(2)
-                    ->get();
+                    ->whereNotIn('id', $excludeAfter200);
+                if ($isJaribna) $q400Query->where('is_jaribna', 1);
+                $q400 = $q400Query->inRandomOrder()->take(2)->get();
 
                 $excludeAfter400 = array_merge($excludeAfter200, $q400->pluck('id')->toArray());
 
                 // 2 أسئلة من 600
-                $q600 = Question::where('category_id', $categoryId)
+                $q600Query = Question::where('category_id', $categoryId)
                     ->where('qu_points', 600)
-                    ->whereNotIn('id', $excludeAfter400)
-                    ->inRandomOrder()
-                    ->take(2)
-                    ->get();
+                    ->whereNotIn('id', $excludeAfter400);
+                if ($isJaribna) $q600Query->where('is_jaribna', 1);
+                $q600 = $q600Query->inRandomOrder()->take(2)->get();
 
                 $catQuestions = $q200->merge($q400)->merge($q600);
 
@@ -2714,17 +2828,18 @@ very important function to get qustions
                 if ($catQuestions->count() < 6) {
                     $needed = 6 - $catQuestions->count();
                     $excludeCurrent = array_merge($existingSessionQIds, $catQuestions->pluck('id')->toArray());
-                    $extraSameCat = Question::where('category_id', $categoryId)
-                        ->whereNotIn('id', $excludeCurrent)
-                        ->inRandomOrder()
-                        ->take($needed)
-                        ->get();
+                    $extraSameCatQuery = Question::where('category_id', $categoryId)
+                        ->whereNotIn('id', $excludeCurrent);
+                    if ($isJaribna) $extraSameCatQuery->where('is_jaribna', 1);
+                    $extraSameCat = $extraSameCatQuery->inRandomOrder()->take($needed)->get();
                     $catQuestions = $catQuestions->merge($extraSameCat);
                 }
 
                 // إذا كان إجمالي أسئلة الفئة في النظام أقل من 6، نكرر من نفس الفئة حصراً ولا ننتقل لفئة عشوائية
                 if ($catQuestions->count() < 6) {
-                    $allInCat = Question::where('category_id', $categoryId)->get();
+                    $allInCatQuery = Question::where('category_id', $categoryId);
+                    if ($isJaribna) $allInCatQuery->where('is_jaribna', 1);
+                    $allInCat = $allInCatQuery->get();
                     if ($allInCat->isNotEmpty()) {
                         $idx = 0;
                         while ($catQuestions->count() < 6) {
@@ -2799,6 +2914,12 @@ very important function to get qustions
         });
 
         return response()->json($questions);
+    }
+
+    public function createJaribnaGameSessionQuestions(Request $request)
+    {
+        $request->merge(['is_jaribna' => 1]);
+        return $this->createGameSessionQuestions($request);
     }
 
     public function getGameSessionQuestions(Request $request)

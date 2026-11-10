@@ -45,6 +45,12 @@
     </div>
     <div class="ms-auto">
         <div class="btn-group">
+            <button type="button" class="btn btn-success me-2" id="bulk-jaribna-add" style="display: none;">
+                <i class="bx bx-check-double me-1"></i> إضافة المحدد لـ جربنا
+            </button>
+            <button type="button" class="btn btn-secondary me-2" id="bulk-jaribna-remove" style="display: none;">
+                <i class="bx bx-x me-1"></i> إزالة المحدد من جربنا
+            </button>
             <button type="button" class="btn btn-danger me-2" id="delete-selected" style="display: none;">
                 حذف المحدد
             </button>
@@ -110,6 +116,13 @@
                     <option value="none" {{ request('term') === 'none' ? 'selected' : '' }}>بدون فصل دراسي</option>
                 </select>
             </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                <select id="jaribna-select" class="form-select">
+                    <option value="all" selected>كل الأسئلة (جربنا وغيره)</option>
+                    <option value="1">أسئلة جربنا فقط (مجاني)</option>
+                    <option value="0">غير مشمول في جربنا</option>
+                </select>
+            </div>
             <div class="col-lg-12 col-xl-12 col-md-12 col-sm-12 mb-2">
                 <select id="category-select" class="form-select">
                     <option value="all" selected>كل الفئات الفرعية</option>
@@ -163,6 +176,7 @@
 <th>توقيت السؤال</th>
 <th>توقيت السؤال OnLine</th>
 <th>الفئة</th>
+<th>جربنا</th>
 
 <th> الاجابة</th>
 <th> تاريخ الاضافة</th>
@@ -186,6 +200,7 @@
     <th>توقيت السؤال</th>
     <th>توقيت السؤال OnLine</th>
     <th>الفئة</th>
+<th>جربنا</th>
 
     <th> الاجابة</th>
     <th> التاريخ</th>
@@ -286,6 +301,7 @@
             let answerType = $('#answer-type-select').val();
             let points = $('#points-select').val();
             let term = $('#term-select').val();
+            let isJaribna = $('#jaribna-select').val();
             $('#loading-spinner').show();
 
             $.ajax({
@@ -299,7 +315,8 @@
                     questions_type: questionsType,
                     answer_type: answerType,
                     points: points,
-                    term: term
+                    term: term,
+                    is_jaribna: isJaribna
                 },
                 success: function(response) {
                     $('#questions-tbody').append(response.html);
@@ -360,7 +377,7 @@
             }, 500);
         });
 
-        $('#sort-by-select, #type-select, #answer-type-select, #category-select, #points-select, #term-select').on('change', function() {
+        $('#sort-by-select, #type-select, #answer-type-select, #category-select, #points-select, #term-select, #jaribna-select').on('change', function() {
             fetchQuestions(true);
         });
 
@@ -454,10 +471,110 @@
         function toggleDeleteButton() {
             if ($('.question-checkbox:checked').length > 0) {
                 $('#delete-selected').show();
+                $('#bulk-jaribna-add').show();
+                $('#bulk-jaribna-remove').show();
             } else {
                 $('#delete-selected').hide();
+                $('#bulk-jaribna-add').hide();
+                $('#bulk-jaribna-remove').hide();
             }
         }
+
+        // Handle Bulk Jaribna Add button
+        $('#bulk-jaribna-add').click(function() {
+            let selectedIds = [];
+            $('.question-checkbox:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+
+            if (selectedIds.length > 0) {
+                if (confirm('هل أنت متأكد من إضافة الأسئلة المحددة (' + selectedIds.length + ') إلى جربنا (مجاني)؟')) {
+                    $.ajax({
+                        url: "{{ route('question.bulk.jaribna') }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            ids: selectedIds,
+                            is_jaribna: 1
+                        },
+                        success: function(response) {
+                            toastr.success(response.message);
+                            fetchQuestions(true);
+                            $('#delete-selected, #bulk-jaribna-add, #bulk-jaribna-remove').hide();
+                            $('#select-all, #select-all-footer').prop('checked', false);
+                        },
+                        error: function() {
+                            toastr.error('حدث خطأ أثناء تحديث الأسئلة');
+                        }
+                    });
+                }
+            }
+        });
+
+        // Handle Bulk Jaribna Remove button
+        $('#bulk-jaribna-remove').click(function() {
+            let selectedIds = [];
+            $('.question-checkbox:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+
+            if (selectedIds.length > 0) {
+                if (confirm('هل أنت متأكد من إزالة الأسئلة المحددة (' + selectedIds.length + ') من جربنا؟')) {
+                    $.ajax({
+                        url: "{{ route('question.bulk.jaribna') }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            ids: selectedIds,
+                            is_jaribna: 0
+                        },
+                        success: function(response) {
+                            toastr.success(response.message);
+                            fetchQuestions(true);
+                            $('#delete-selected, #bulk-jaribna-add, #bulk-jaribna-remove').hide();
+                            $('#select-all, #select-all-footer').prop('checked', false);
+                        },
+                        error: function() {
+                            toastr.error('حدث خطأ أثناء تحديث الأسئلة');
+                        }
+                    });
+                }
+            }
+        });
+
+        // Single Toggle Jaribna Button Handler
+        $(document).on('click', '.toggle-question-jaribna-btn', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var questionId = btn.data('id');
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: "{{ route('question.toggle.jaribna') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id: questionId
+                },
+                success: function(response) {
+                    btn.prop('disabled', false);
+                    if (response.status) {
+                        if (response.is_jaribna == 1) {
+                            btn.removeClass('btn-outline-secondary').addClass('btn-success');
+                            btn.html('<i class="fa-solid fa-circle-check me-1"></i> جربنا');
+                        } else {
+                            btn.removeClass('btn-success').addClass('btn-outline-secondary');
+                            btn.html('<i class="fa-solid fa-circle-xmark me-1"></i> عادي');
+                        }
+                        toastr.success(response.message);
+                    }
+                },
+                error: function() {
+                    btn.prop('disabled', false);
+                    toastr.error('فشل تحديث حالة السؤال في جربنا');
+                }
+            });
+        });
 
         // Handle Delete Selected button
         $('#delete-selected').click(function() {

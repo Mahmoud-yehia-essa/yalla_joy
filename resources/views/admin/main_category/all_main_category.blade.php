@@ -38,6 +38,7 @@
                         <th>نوع اللعبة</th>
                         <th>الفئة الرئيسية</th>
                         <th>تخصيص اللعبة</th>
+                        <th>جربنا (مجاني)</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الفئات الفرعية</th>
                         <th>الإجراءات</th>
@@ -58,6 +59,18 @@
                             @else
                                 <span class="badge bg-secondary">الاثنين معاً</span>
                             @endif
+                        </td>
+                        <td class="text-center">
+                            <button type="button" 
+                                    class="btn btn-sm {{ $item->is_jaribna ? 'btn-success' : 'btn-outline-secondary' }} toggle-jaribna-btn" 
+                                    data-id="{{ $item->id }}"
+                                    title="تبديل الإتاحة في جربنا">
+                                @if($item->is_jaribna)
+                                    <i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا
+                                @else
+                                    <i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل
+                                @endif
+                            </button>
                         </td>
                         <td class="text-center" style="min-width: 130px;">
                             <div class="input-group input-group-sm">
@@ -102,6 +115,7 @@
                         <th>نوع اللعبة</th>
                         <th>الفئة الرئيسية</th>
                         <th>تخصيص اللعبة</th>
+                        <th>جربنا (مجاني)</th>
                         <th>ترتيب الظهور</th>
                         <th>عدد الفئات الفرعية</th>
                         <th>الإجراءات</th>
@@ -211,6 +225,53 @@
             var orderByVal = $('#order-input-' + categoryId).val();
             saveMainCategoryOrderAjax(categoryId, orderByVal, false);
         }
+    });
+
+    $(document).on('click', '.toggle-jaribna-btn', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var categoryId = btn.data('id');
+        btn.prop('disabled', true);
+
+        $.ajax({
+            url: "{{ route('main.category.toggle.jaribna') }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                id: categoryId
+            },
+            success: function(response) {
+                btn.prop('disabled', false);
+                if (response.status) {
+                    if (response.is_jaribna == 1) {
+                        btn.removeClass('btn-outline-secondary').addClass('btn-success');
+                        btn.html('<i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا');
+                    } else {
+                        btn.removeClass('btn-success').addClass('btn-outline-secondary');
+                        btn.html('<i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل');
+                    }
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2500,
+                        timerProgressBar: true
+                    });
+                    Toast.fire({
+                        icon: 'success',
+                        title: response.message
+                    });
+                }
+            },
+            error: function() {
+                btn.prop('disabled', false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'فشل تحديث حالة جربنا'
+                });
+            }
+        });
     });
 </script>
 

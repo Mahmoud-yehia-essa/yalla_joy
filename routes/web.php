@@ -239,6 +239,7 @@ Route::controller(MainCategoryController::class)->middleware(['checkUserRole','a
     Route::get('/main/category/active/{id}', 'mainCategoryActive')->name('active.main.category');
 
     Route::post('/update/main/category/order', 'updateMainCategoryOrder')->name('main.category.update.order');
+    Route::post('/admin/main/category/toggle-jaribna', 'toggleMainCategoryJaribna')->name('main.category.toggle.jaribna');
 
 });
 
@@ -331,6 +332,7 @@ Route::controller(CategoryController::class)->middleware(['checkUserRole','auth'
     Route::get('/category/active/{id}', 'categoryActive')->name('active.category');
 
     Route::post('/update/category/order', 'updateCategoryOrder')->name('category.update.order');
+    Route::post('/admin/category/toggle-jaribna', 'toggleCategoryJaribna')->name('category.toggle.jaribna');
 
 
         Route::get('/admin/filter/category', 'fillterCategory')->name('filter.category');
@@ -444,6 +446,8 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
 
     Route::get('/question/delete/{id}', 'deleteQuestion')->name('delete.question');
     Route::post('/question/delete-multiple', 'deleteMultipleQuestions')->name('delete.multiple.questions');
+    Route::post('/admin/question/toggle-jaribna', 'toggleQuestionJaribna')->name('question.toggle.jaribna');
+    Route::post('/admin/question/bulk-jaribna', 'bulkUpdateQuestionJaribna')->name('question.bulk.jaribna');
 
 
     Route::get('/admin/filter/question', 'fillterQuestion')->name('filter.question');

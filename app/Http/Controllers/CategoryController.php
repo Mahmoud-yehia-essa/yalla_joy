@@ -110,6 +110,17 @@ class CategoryController extends Controller
             }
         }
 
+        // Filter by Jaribna status
+        if ($request->filled('is_jaribna') && $request->is_jaribna !== 'all') {
+            if ($request->is_jaribna === '1' || $request->is_jaribna === 'yes') {
+                $query->where('is_jaribna', 1);
+            } elseif ($request->is_jaribna === '0' || $request->is_jaribna === 'no') {
+                $query->where(function($q) {
+                    $q->where('is_jaribna', 0)->orWhereNull('is_jaribna');
+                });
+            }
+        }
+
         // Sorting by Questions count or Date added or default order_by
         if ($request->filled('questions_sort') && $request->questions_sort === 'most') {
             $query->orderBy('questions_count', 'desc')->orderBy('id', 'desc');
@@ -237,6 +248,7 @@ class CategoryController extends Controller
             'category_description' => $request->category_description,
             'category_description_en' => $request->category_description_en,
             'display_target' => $request->display_target ?? 'both',
+            'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
             'category_photo' => $save_url ?? null,
             'special' => $request->special,
             'is_soon' => $request->is_soon ?? 'no',
@@ -333,6 +345,7 @@ class CategoryController extends Controller
                 'category_name_en' => $request->category_name_en,
                 'category_description_en' => $request->category_description_en,
                 'display_target' => $request->display_target ?? 'both',
+                'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
                 'category_photo' => $save_url,
                 'special'  => $request->special,
                 'is_soon'  => $request->is_soon ?? 'no',
@@ -347,6 +360,7 @@ class CategoryController extends Controller
                 'category_description_en' => $request->category_description_en,
                 'category_description' => $request->category_description,
                 'display_target' => $request->display_target ?? 'both',
+                'is_jaribna' => $request->boolean('is_jaribna') ? 1 : 0,
                 'special'  => $request->special,
                 'is_soon'  => $request->is_soon ?? 'no',
                 'order_by' => $request->order_by,
@@ -450,16 +464,40 @@ class CategoryController extends Controller
         return redirect()->back()->with($notification);
     }
 
+    public function toggleCategoryJaribna(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:categories,id',
+        ]);
+
+        $category = Category::findOrFail($request->id);
+        $category->is_jaribna = $category->is_jaribna ? 0 : 1;
+        $category->save();
+
+        return response()->json([
+            'status' => true,
+            'is_jaribna' => (int) $category->is_jaribna,
+            'message' => $category->is_jaribna
+                ? 'تم تفعيل الفئة في "جربنا" بنجاح'
+                : 'تم إلغاء تفعيل الفئة من "جربنا"'
+        ]);
+    }
+
     public function getCategoryApi(Request $request)
     {
         $game_type_id = $request->game_type_id;
         $main_category_id = $request->main_category_id;
         $userId = $request->user_id ?? ($request->user() ? $request->user()->id : null);
         $game_target = $request->game_target ?? $request->display_target;
+        $isJaribna = $request->boolean('is_jaribna') || $request->input('is_jaribna') == '1';
 
         $categoriesQueryBuilder = Category::where('game_type_id', $game_type_id)
             ->where('main_category_id', $main_category_id)
             ->where('status', 'active');
+
+        if ($isJaribna) {
+            $categoriesQueryBuilder->where('is_jaribna', 1);
+        }
 
         if (!empty($game_target)) {
             $categoriesQueryBuilder->where(function ($q) use ($game_target) {
@@ -482,6 +520,13 @@ class CategoryController extends Controller
             ->get();
 
         if ($categoriesQuery->isEmpty()) {
+            if ($isJaribna) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No categories found',
+                    'categoriesData' => []
+                ], 200);
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid get categories'
@@ -491,8 +536,12 @@ class CategoryController extends Controller
         $categoryIds = $categoriesQuery->pluck('id')->toArray();
 
         // 1. حساب إجمالي عدد الأسئلة في كل فئة دفعة واحدة
-        $questionsCounts = \Illuminate\Support\Facades\DB::table('questions')
-            ->whereIn('category_id', $categoryIds)
+        $questionsCountsQuery = \Illuminate\Support\Facades\DB::table('questions')
+            ->whereIn('category_id', $categoryIds);
+        if ($isJaribna) {
+            $questionsCountsQuery->where('is_jaribna', 1);
+        }
+        $questionsCounts = $questionsCountsQuery
             ->select('category_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total_count'))
             ->groupBy('category_id')
             ->pluck('total_count', 'category_id')
@@ -591,5 +640,11 @@ class CategoryController extends Controller
             'remaining_games_count' => $remainingGames,
             'will_repeat_next_game' => $willRepeatNextGame,
         ], 200);
+    }
+
+    public function getJaribnaCategoriesApi(Request $request)
+    {
+        $request->merge(['is_jaribna' => 1]);
+        return $this->getCategoryApi($request);
     }
 }

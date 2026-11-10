@@ -68,11 +68,13 @@ Route::post('/game/type',[GameTypeController::class,'getGameTypeApi']);
 
 
 Route::post('/main/category',[MainCategoryController::class,'getMainCategoryApi']);
+Route::post('/jaribna/main/category', [MainCategoryController::class, 'getJaribnaMainCategoryApi']);
 
 
 
 
 Route::post('/categories',[CategoryController::class,'getCategoryApi']);
+Route::post('/jaribna/categories', [CategoryController::class, 'getJaribnaCategoriesApi']);
 Route::post('/categories/repetition-status', [CategoryController::class, 'getCategoryRepetitionStatusApi']);
 
 Route::match(['get', 'post'], '/game/instructions', [GameInstructionController::class, 'getGameInstructionsApi']);
@@ -94,7 +96,9 @@ Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
 
 
 Route::get('/question/{id}',[QuestionController::class,'getQuestionApi']);
+Route::get('/jaribna/question/{id}', [QuestionController::class, 'getJaribnaQuestionApi']);
 Route::post('/game/session/questions',[QuestionController::class,'createGameSessionQuestions']);
+Route::post('/jaribna/game/session/questions', [QuestionController::class, 'createJaribnaGameSessionQuestions']);
 
 
 

@@ -25,6 +25,18 @@
                 <span class="badge bg-secondary">الاثنين معاً</span>
             @endif
         </td>
+        <td class="text-center">
+            <button type="button" 
+                    class="btn btn-sm {{ $item->is_jaribna ? 'btn-success' : 'btn-outline-secondary' }} toggle-category-jaribna-btn" 
+                    data-id="{{ $item->id }}"
+                    title="تبديل الإتاحة في جربنا">
+                @if($item->is_jaribna)
+                    <i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا
+                @else
+                    <i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل
+                @endif
+            </button>
+        </td>
         <td class="text-center" style="min-width: 130px;">
             <div class="input-group input-group-sm">
                 <input type="number" class="form-control text-center fw-bold category-order-input"
@@ -77,7 +89,7 @@
     @endforeach
 @elseif(isset($page) && $page == 1)
     <tr>
-        <td colspan="11" class="text-center text-muted p-4">
+        <td colspan="12" class="text-center text-muted p-4">
             <div class="my-3">
                 <i class="fa-regular fa-folder-open fa-3x mb-2 text-secondary"></i>
                 <div class="fs-6 fw-bold">لا توجد فئات مطابقة لمعايير البحث والتصفية</div>

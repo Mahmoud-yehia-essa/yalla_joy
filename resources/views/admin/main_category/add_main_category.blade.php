@@ -105,6 +105,19 @@
                                     </div>
                                 </div>
 
+                                <!-- Is Jaribna (Free Trial) -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">متاح في جربنا (مجاني)</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <div class="form-check form-switch mt-1">
+                                            <input class="form-check-input" type="checkbox" name="is_jaribna" id="is_jaribna" value="1" {{ old('is_jaribna') == 1 ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="is_jaribna">تفعيل ظهور هذه الفئة الرئيسية في أيقونة "جربنا" المجانية</label>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Category Description -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
