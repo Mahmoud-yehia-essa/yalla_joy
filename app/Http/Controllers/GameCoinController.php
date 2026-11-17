@@ -137,15 +137,10 @@ public function StoreGameCoin(Request $request){
            unlink($old_img);
         }
         GameCoin::findOrFail($id)->update([
-
-                                    'name' => $request->name,
-
-            'name' => $request->name_en,
-
-
-            'photo' => $save_url ,
+            'name' => $request->name,
+            'name_en' => $request->name_en,
+            'photo' => $save_url,
             // 'special'  => $request->special,
-
         ]);
 
 

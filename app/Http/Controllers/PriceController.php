@@ -46,7 +46,9 @@ $price = Price::latest('id')->get();
 
           $request->validate([
             'title' => 'required',
+            'title_en' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'price' => 'required|numeric',
             'coins_number' => 'required|numeric',
             'color1' => 'required',
@@ -54,6 +56,10 @@ $price = Price::latest('id')->get();
             'game_coin_id'  => 'required|exists:game_coins,id',
         ], [
             'title.required' => 'الرجاء اضافة عنوان الباقة',
+            'title_en.required' => '⚠️ الرجاء اضافة عنوان الباقة بالإنجليزية',
+            'title_en.string' => '⚠️ الرجاء التأكد من كتابة عنوان الباقة بالإنجليزية بشكل صحيح',
+            'title_en.max' => '⚠️ الرجاء التأكد من عدد أحرف العنوان بالإنجليزية لا يتجاوز 255 حرف',
+            'description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بالإنجليزية بشكل صحيح',
             'price.required' => 'الرجاء اضافة السعر',
             'price.numeric' => 'الرجاء اضافة السعر رقما',
             'coins_number.required' => 'الرجاء اضافة عدد العملات',
@@ -70,7 +76,9 @@ $price = Price::latest('id')->get();
         // Example return (just for checking)
     Price::insert([
             'title' => $request->title,
+            'title_en' => $request->title_en,
             'description' => $request->description,
+            'description_en' => $request->description_en,
             'price' => $request->price,
             'color1' => $color1,
             'color2' => $color2,
@@ -107,7 +115,9 @@ $price = Price::latest('id')->get();
  public function editPriceStore(Request $request){
           $request->validate([
             'title' => 'required',
+            'title_en' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'price' => 'required|numeric',
             'color1' => 'required',
             'color2' => 'required',
@@ -115,6 +125,10 @@ $price = Price::latest('id')->get();
             'game_coin_id'  => 'required|exists:game_coins,id',
         ], [
             'title.required' => 'الرجاء اضافة عنوان الباقة',
+            'title_en.required' => '⚠️ الرجاء اضافة عنوان الباقة بالإنجليزية',
+            'title_en.string' => '⚠️ الرجاء التأكد من كتابة عنوان الباقة بالإنجليزية بشكل صحيح',
+            'title_en.max' => '⚠️ الرجاء التأكد من عدد أحرف العنوان بالإنجليزية لا يتجاوز 255 حرف',
+            'description_en.string' => '⚠️ الرجاء التأكد من كتابة الوصف بالإنجليزية بشكل صحيح',
             'price.required' => 'الرجاء اضافة السعر',
             'price.numeric' => 'الرجاء اضافة السعر رقما',
             'coins_number.required' => 'الرجاء اضافة عدد العملات',
@@ -132,7 +146,9 @@ $price = Price::latest('id')->get();
 
          Price::findOrFail($price_id)->update([
             'title' => $request->title,
+            'title_en' => $request->title_en,
             'description' => $request->description,
+            'description_en' => $request->description_en,
             'price' => $request->price,
             'color1' => $color1,
             'color2' => $color2,
@@ -243,6 +259,7 @@ public function getAllPrice(Request $request)
 
         $item->price_after_coupon = "0";
         $item->game_coin_name = $item->gameCoin?->name;
+        $item->game_coin_name_en = $item->gameCoin?->name_en;
         $item->game_coin_photo = $item->gameCoin?->photo;
 
         // حذف العلاقة من الـ JSON

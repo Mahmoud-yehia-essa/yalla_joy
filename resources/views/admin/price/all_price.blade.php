@@ -35,7 +35,9 @@
 <tr>
 <th>الرقم</th>
 <th>عنوان الباقة</th>
+<th>العنوان بالإنجليزية</th>
 <th>الوصف التفصيلي</th>
+<th>الوصف بالإنجليزية</th>
 <th>السعر</th>
 
 <th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>
@@ -52,7 +54,9 @@
 <tr>
 <td> {{ $key+1 }} </td>
 <td><strong>{{ $item->title }}</strong></td>
+<td dir="ltr"><strong>{{ $item->title_en ?? '---' }}</strong></td>
 <td><span class="text-muted small">{{ Str::limit($item->description ?? '---', 40) }}</span></td>
+<td dir="ltr"><span class="text-muted small">{{ Str::limit($item->description_en ?? '---', 40) }}</span></td>
 <td>{{ $item->price }} دك</td>
 <td>{{ $item->points_number_offline }}</td>
 <td>{{ $item->points_number_online }} </td>
@@ -86,7 +90,9 @@
 <tr>
 <th>الرقم</th>
 <th>عنوان الباقة</th>
+<th>العنوان بالإنجليزية</th>
 <th>الوصف التفصيلي</th>
+<th>الوصف بالإنجليزية</th>
 <th>السعر</th>
 
 <th>عدد النقاط المطلوبة من اللعب اوف لاين  </th>

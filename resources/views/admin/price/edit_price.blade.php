@@ -44,6 +44,19 @@
                                     </div>
                                 </div>
 
+                                <!-- Title EN -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">عنوان الباقة بالإنجليزية</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" dir="ltr" name="title_en" id="title_en" class="form-control" value="{{ old('title_en', $price->title_en) }}" placeholder="e.g. 12 Games Package" />
+                                        @error('title_en')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <!-- Detailed Description -->
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
@@ -52,6 +65,19 @@
                                     <div class="col-sm-9 text-secondary">
                                         <textarea name="description" id="description" class="form-control" rows="3" placeholder="أدخل وصفاً تفصيلياً للباقة يظهر للمستخدم في التطبيق أسفل العنوان">{{ old('description', $price->description) }}</textarea>
                                         @error('description')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Detailed Description EN -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">الوصف التفصيلي للباقة بالإنجليزية</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <textarea dir="ltr" name="description_en" id="description_en" class="form-control" rows="3" placeholder="Enter detailed package description in English">{{ old('description_en', $price->description_en) }}</textarea>
+                                        @error('description_en')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>

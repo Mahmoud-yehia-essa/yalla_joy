@@ -370,6 +370,49 @@ public function addPoints(Request $request)
         ]);
     }
 
+    private function buildLocalizedWinMessages(
+        string $type,
+        ?object $rank = null,
+        int $levelNumber = 1,
+        int $coinsCount = 0
+    ): array {
+        $rankNameAr = trim((string) ($rank->rank_name ?? ''));
+        $rankNameEn = trim((string) ($rank->rank_name_en ?? ''));
+        if ($rankNameEn === '' || preg_match('/[\x{0600}-\x{06FF}]/u', $rankNameEn)) {
+            $rankNameEn = $rankNameAr === 'عامة' ? 'General' : ($rankNameEn !== '' ? $rankNameEn : $rankNameAr);
+        }
+
+        switch ($type) {
+            case 'level_upgrade':
+                return [
+                    'ar' => 'مبروك! لقد انتقلت إلى المستوى ' . $levelNumber . ' في رتبة ' . $rankNameAr,
+                    'en' => 'Congratulations! You have advanced to Level ' . $levelNumber . ' in rank ' . $rankNameEn,
+                ];
+            case 'rank_upgrade':
+                return [
+                    'ar' => 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $rankNameAr,
+                    'en' => 'Congratulations! You have advanced to a new rank: ' . $rankNameEn,
+                ];
+            case 'rank_completed':
+                return [
+                    'ar' => 'مبروك! لقد أتممت جميع المستويات في رتبة ' . $rankNameAr,
+                    'en' => 'Congratulations! You have completed all levels in rank ' . $rankNameEn,
+                ];
+            default:
+                $coinUnit = $coinsCount === 1 ? 'coin' : 'coins';
+                return [
+                    'ar' => 'مبروك! فوز جديد وحصلت على ' . $coinsCount . ' عملة',
+                    'en' => 'Congratulations! New win and you earned ' . $coinsCount . ' ' . $coinUnit,
+                ];
+        }
+    }
+
+    private function isEnglishWinRequest(Request $request): bool
+    {
+        $lang = strtolower((string) ($request->input('lang') ?? $request->header('Accept-Language', '')));
+        return str_starts_with($lang, 'en');
+    }
+
     public function addOnlineWin(Request $request)
     {
         $request->validate([
@@ -457,6 +500,7 @@ public function addPoints(Request $request)
         $isLevelCompleted = ($winInCurrentLevel == $winsToNextLevel);
 
         $responseMessage = 'Online win added successfully';
+        $responseMessageEn = 'Online win added successfully';
         $rewardsReceived = [];
         $upgradeType = 'none';
 
@@ -487,14 +531,18 @@ public function addPoints(Request $request)
                 // ترقية لمستوى جديد داخل نفس الرتبة
                 $upgradeType = 'level_upgrade';
                 $nextLevelNum = $levelNumberBefore + 1;
-                $responseMessage = 'مبروك! لقد انتقلت إلى المستوى ' . $nextLevelNum . ' في رتبة ' . $activeRank->rank_name;
+                $msgs = $this->buildLocalizedWinMessages('level_upgrade', $activeRank, $nextLevelNum, $coinsForThisWin);
+                $responseMessage = $msgs['ar'];
+                $responseMessageEn = $msgs['en'];
             } else {
                 // إتمام آخر مستوى في الرتبة والانتقال للرتبة التالية
                 $nextRank = $rankings->where('rank_order', '>', $activeRank->rank_order)->first();
 
                 if ($nextRank) {
                     $upgradeType = 'rank_upgrade';
-                    $responseMessage = 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $nextRank->rank_name;
+                    $msgs = $this->buildLocalizedWinMessages('rank_upgrade', $nextRank, $levelNumberBefore, $coinsForThisWin);
+                    $responseMessage = $msgs['ar'];
+                    $responseMessageEn = $msgs['en'];
 
                     // مكافأة الوصول للرتبة الجديدة (العملات / النقاط المقررة للرتبة)
                     if ($nextRank->rank_reward_amount > 0 && $nextRank->rank_reward_coin_id) {
@@ -517,12 +565,16 @@ public function addPoints(Request $request)
                     }
                 } else {
                     $upgradeType = 'level_upgrade';
-                    $responseMessage = 'مبروك! لقد أتممت جميع المستويات في رتبة ' . $activeRank->rank_name;
+                    $msgs = $this->buildLocalizedWinMessages('rank_completed', $activeRank, $levelNumberBefore, $coinsForThisWin);
+                    $responseMessage = $msgs['ar'];
+                    $responseMessageEn = $msgs['en'];
                 }
             }
         } else {
             // فوز مرحلي داخل المستوى
-            $responseMessage = 'مبروك! فوز جديد وحصلت على ' . $coinsForThisWin . ' عملة';
+            $msgs = $this->buildLocalizedWinMessages('win', $activeRank, $levelNumberBefore, $coinsForThisWin);
+            $responseMessage = $msgs['ar'];
+            $responseMessageEn = $msgs['en'];
         }
 
         // 3. حساب الرتبة والمستوى الحالي بعد الفوز
@@ -557,9 +609,12 @@ public function addPoints(Request $request)
             ? (int) $appSetting->online_game_win_points
             : 6;
 
+        $isEn = $this->isEnglishWinRequest($request);
+
         return response()->json([
             'status' => true,
-            'message' => $responseMessage,
+            'message' => $isEn ? $responseMessageEn : $responseMessage,
+            'message_en' => $responseMessageEn,
             'online_game_wins' => $newOnlineWins,
             'offline_game_wins' => $newOfflineWins,
             'total_wins' => $wins,
@@ -676,6 +731,7 @@ public function addPoints(Request $request)
         $isLevelCompleted = ($winInCurrentLevel == $winsToNextLevel);
 
         $responseMessage = 'Offline win added successfully';
+        $responseMessageEn = 'Offline win added successfully';
         $rewardsReceived = [];
         $upgradeType = 'none';
 
@@ -705,13 +761,17 @@ public function addPoints(Request $request)
             if ($levelNumberBefore < $levelsCount) {
                 $upgradeType = 'level_upgrade';
                 $nextLevelNum = $levelNumberBefore + 1;
-                $responseMessage = 'مبروك! لقد انتقلت إلى المستوى ' . $nextLevelNum . ' في رتبة ' . $activeRank->rank_name;
+                $msgs = $this->buildLocalizedWinMessages('level_upgrade', $activeRank, $nextLevelNum, $coinsForThisWin);
+                $responseMessage = $msgs['ar'];
+                $responseMessageEn = $msgs['en'];
             } else {
                 $nextRank = $rankings->where('rank_order', '>', $activeRank->rank_order)->first();
 
                 if ($nextRank) {
                     $upgradeType = 'rank_upgrade';
-                    $responseMessage = 'مبروك! لقد انتقلت إلى رتبة جديدة: ' . $nextRank->rank_name;
+                    $msgs = $this->buildLocalizedWinMessages('rank_upgrade', $nextRank, $levelNumberBefore, $coinsForThisWin);
+                    $responseMessage = $msgs['ar'];
+                    $responseMessageEn = $msgs['en'];
 
                     if ($nextRank->rank_reward_amount > 0 && $nextRank->rank_reward_coin_id) {
                         $rankDes = \App\Models\AppVersion::getCoinDescription('rank_upgrade', 'مكافأة الترقية إلى رتبة جديدة', [
@@ -733,11 +793,15 @@ public function addPoints(Request $request)
                     }
                 } else {
                     $upgradeType = 'level_upgrade';
-                    $responseMessage = 'مبروك! لقد أتممت جميع المستويات في رتبة ' . $activeRank->rank_name;
+                    $msgs = $this->buildLocalizedWinMessages('rank_completed', $activeRank, $levelNumberBefore, $coinsForThisWin);
+                    $responseMessage = $msgs['ar'];
+                    $responseMessageEn = $msgs['en'];
                 }
             }
         } else {
-            $responseMessage = 'مبروك! فوز جديد وحصلت على ' . $coinsForThisWin . ' عملة';
+            $msgs = $this->buildLocalizedWinMessages('win', $activeRank, $levelNumberBefore, $coinsForThisWin);
+            $responseMessage = $msgs['ar'];
+            $responseMessageEn = $msgs['en'];
         }
 
         // 3. حساب الرتبة والمستوى الحالي بعد الفوز
@@ -772,9 +836,12 @@ public function addPoints(Request $request)
             ? (int) $appSetting->offline_game_win_points
             : 6;
 
+        $isEn = $this->isEnglishWinRequest($request);
+
         return response()->json([
             'status' => true,
-            'message' => $responseMessage,
+            'message' => $isEn ? $responseMessageEn : $responseMessage,
+            'message_en' => $responseMessageEn,
             'online_game_wins' => $newOnlineWins,
             'offline_game_wins' => $newOfflineWins,
             'total_wins' => $wins,

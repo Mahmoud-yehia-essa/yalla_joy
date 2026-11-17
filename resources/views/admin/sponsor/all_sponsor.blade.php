@@ -35,6 +35,8 @@
                     <tr class="text-center">
                         <th>#</th>
                         <th>اسم الراعي</th>
+                        <th>الاسم (EN)</th>
+                        <th>الوصف (EN)</th>
                         <th>ترتيب الظهور</th>
                         <th>تاريخ الاضافة</th>
                         <th>الصورة</th>
@@ -46,6 +48,14 @@
                     <tr>
                         <td class="text-center">{{ $key+1 }}</td>
                         <td>{{ $item->title }}</td>
+                        <td>{{ $item->title_en ?: '-' }}</td>
+                        <td class="text-center">
+                            @if(!empty(trim((string) $item->des_en)))
+                                <span class="badge bg-success">متاح</span>
+                            @else
+                                <span class="badge bg-warning text-dark">ناقص</span>
+                            @endif
+                        </td>
                         <td class="text-center" style="min-width: 130px;">
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-center fw-bold sponsor-order-input"
@@ -78,6 +88,8 @@
                     <tr class="text-center">
                         <th>#</th>
                         <th>اسم الراعي</th>
+                        <th>الاسم (EN)</th>
+                        <th>الوصف (EN)</th>
                         <th>ترتيب الظهور</th>
                         <th>تاريخ الاضافة</th>
                         <th>الصورة</th>
