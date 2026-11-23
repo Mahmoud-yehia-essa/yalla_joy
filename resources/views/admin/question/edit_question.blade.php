@@ -350,14 +350,56 @@
                             <div id="questionPreview" class="mt-2"></div>
 
                             @if ($question->questions_type == 'image' && $question->qu_image && file_exists(public_path('upload/questions/images/' . $question->qu_image)))
-                                <img id="showQuestionImage" src="{{ url('upload/questions/images/' . $question->qu_image) }}" alt="Admin" width="110" class="mt-2">
+                                <div id="showQuestionImageWrap" class="mt-2">
+                                    <img id="showQuestionImage" src="{{ url('upload/questions/images/' . $question->qu_image) }}" alt="Admin" width="110" class="rounded border">
+                                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->qu_image }}</code>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="badge bg-primary">الرابط المباشر:</span>
+                                            <a href="{{ url('upload/questions/images/' . $question->qu_image) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                                {{ url('upload/questions/images/' . $question->qu_image) }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             @elseif ($question->questions_type == 'video' && $question->qu_video && file_exists(public_path('upload/questions/videos/' . $question->qu_video)))
-                                <video id="showQuestionVideo" width="400px" controls><source src="{{ url('upload/questions/videos/' . $question->qu_video) }}" type="video/mp4"></video>
+                                <div id="showQuestionVideoWrap" class="mt-2">
+                                    <video id="showQuestionVideo" width="400px" controls><source src="{{ url('upload/questions/videos/' . $question->qu_video) }}" type="video/mp4"></video>
+                                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->qu_video }}</code>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="badge bg-primary">الرابط المباشر:</span>
+                                            <a href="{{ url('upload/questions/videos/' . $question->qu_video) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                                {{ url('upload/questions/videos/' . $question->qu_video) }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             @elseif ($question->questions_type == 'sound' && $question->qu_sound && file_exists(public_path('upload/questions/sounds/' . $question->qu_sound)))
-                                <audio controls id="showQuestionAudio">
-                                    <source src="{{ url('upload/questions/sounds/' . $question->qu_sound) }}" type="audio/mpeg">
-                                    Your browser does not support the audio tag.
-                                </audio>
+                                <div id="showQuestionAudioWrap" class="mt-2">
+                                    <audio controls id="showQuestionAudio">
+                                        <source src="{{ url('upload/questions/sounds/' . $question->qu_sound) }}" type="audio/mpeg">
+                                        Your browser does not support the audio tag.
+                                    </audio>
+                                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->qu_sound }}</code>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="badge bg-primary">الرابط المباشر:</span>
+                                            <a href="{{ url('upload/questions/sounds/' . $question->qu_sound) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                                {{ url('upload/questions/sounds/' . $question->qu_sound) }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                         </div>
@@ -439,14 +481,56 @@
                         <div id="answerPreview" class="mt-2"></div>
 
                         @if ($question->answers->first()->answer_type == 'image' && $question->answers->first()->answer_image && file_exists(public_path('upload/answers/images/' . $question->answers->first()->answer_image)))
-                            <img id="showAnswerImage" src="{{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}" alt="Admin" width="110" class="mt-2">
+                            <div id="showAnswerImageWrap" class="mt-2">
+                                <img id="showAnswerImage" src="{{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}" alt="Admin" width="110" class="rounded border">
+                                <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                    <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                        <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                        <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answers->first()->answer_image }}</code>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <span class="badge bg-primary">الرابط المباشر:</span>
+                                        <a href="{{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                            {{ url('upload/answers/images/' . $question->answers->first()->answer_image) }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         @elseif ($question->answers->first()->answer_type == 'video' && $question->answers->first()->answer_video && file_exists(public_path('upload/answers/videos/' . $question->answers->first()->answer_video)))
-                            <video id="showAnswerVideo"  width="400px" controls><source src="{{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}" type="video/mp4"></video>
+                            <div id="showAnswerVideoWrap" class="mt-2">
+                                <video id="showAnswerVideo"  width="400px" controls><source src="{{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}" type="video/mp4"></video>
+                                <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                    <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                        <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                        <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answers->first()->answer_video }}</code>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <span class="badge bg-primary">الرابط المباشر:</span>
+                                        <a href="{{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                            {{ url('upload/answers/videos/' . $question->answers->first()->answer_video) }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         @elseif ($question->answers->first()->answer_type == 'sound' && $question->answers->first()->answer_sound && file_exists(public_path('upload/answers/sounds/' . $question->answers->first()->answer_sound)))
-                            <audio controls id="showAnswerAudio">
-                                <source src="{{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>
+                            <div id="showAnswerAudioWrap" class="mt-2">
+                                <audio controls id="showAnswerAudio">
+                                    <source src="{{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}" type="audio/mpeg">
+                                    Your browser does not support the audio tag.
+                                </audio>
+                                <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                                    <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                                        <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                                        <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answers->first()->answer_sound }}</code>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <span class="badge bg-primary">الرابط المباشر:</span>
+                                        <a href="{{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                            {{ url('upload/answers/sounds/' . $question->answers->first()->answer_sound) }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         @endif
 
                         <!-- Submit Button -->
@@ -539,17 +623,57 @@
         </div>
         <br>
             @if ($question->answerQuestionOnlines[1]->answer_type == 'image' && $question->answerQuestionOnlines[1]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image)))
-                            <img id="showAnswerImageTwo" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'video' && $question->answerQuestionOnlines[1]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video)))
-
-                            <video id="showAnswerVideoTwo" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[1]->answer_type == 'sound' && $question->answerQuestionOnlines[1]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound)))
-
-                            <audio controls id="showAnswerAudioTwo">
-                                <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound) }}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>
-                        @endif
+                <div id="showAnswerImageTwoWrap" class="mt-2">
+                    <img id="showAnswerImageTwo" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image) }}" alt="Admin" width="110" class="rounded border">
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[1]->answer_image }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[1]->answer_image) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[1]->answer_type == 'video' && $question->answerQuestionOnlines[1]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video)))
+                <div id="showAnswerVideoTwoWrap" class="mt-2">
+                    <video id="showAnswerVideoTwo" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video) }}" type="video/mp4"></video>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[1]->answer_video }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[1]->answer_video) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[1]->answer_type == 'sound' && $question->answerQuestionOnlines[1]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound)))
+                <div id="showAnswerAudioTwoWrap" class="mt-2">
+                    <audio controls id="showAnswerAudioTwo">
+                        <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound) }}" type="audio/mpeg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[1]->answer_sound }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[1]->answer_sound) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
     </div>
 </div>
 
@@ -591,17 +715,57 @@
 
          <br>
             @if ($question->answerQuestionOnlines[2]->answer_type == 'image' && $question->answerQuestionOnlines[2]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image)))
-                            <img id="showAnswerImageThree" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'video' && $question->answerQuestionOnlines[2]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video)))
-
-                            <video id="showAnswerVideoThree" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[2]->answer_type == 'sound' && $question->answerQuestionOnlines[2]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound)))
-
-                            <audio controls id="showAnswerAudioThree">
-                                <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound) }}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>
-                        @endif
+                <div id="showAnswerImageThreeWrap" class="mt-2">
+                    <img id="showAnswerImageThree" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image) }}" alt="Admin" width="110" class="rounded border">
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[2]->answer_image }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[2]->answer_image) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[2]->answer_type == 'video' && $question->answerQuestionOnlines[2]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video)))
+                <div id="showAnswerVideoThreeWrap" class="mt-2">
+                    <video id="showAnswerVideoThree" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video) }}" type="video/mp4"></video>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[2]->answer_video }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[2]->answer_video) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[2]->answer_type == 'sound' && $question->answerQuestionOnlines[2]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound)))
+                <div id="showAnswerAudioThreeWrap" class="mt-2">
+                    <audio controls id="showAnswerAudioThree">
+                        <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound) }}" type="audio/mpeg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[2]->answer_sound }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[2]->answer_sound) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
 
 
@@ -648,17 +812,57 @@
 
          <br>
             @if ($question->answerQuestionOnlines[3]->answer_type == 'image' && $question->answerQuestionOnlines[3]->answer_image && file_exists(public_path('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image)))
-                            <img id="showAnswerImageFour" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image) }}" alt="Admin" width="110" class="mt-2">
-                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'video' && $question->answerQuestionOnlines[3]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video)))
-
-                            <video id="showAnswerVideoFour" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video) }}" type="video/mp4"></video>
-                        @elseif ($question->answerQuestionOnlines[3]->answer_type == 'sound' && $question->answerQuestionOnlines[3]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound)))
-
-                            <audio controls id="showAnswerAudioFour">
-                                <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound) }}" type="audio/mpeg">
-                                Your browser does not support the audio tag.
-                            </audio>
-                        @endif
+                <div id="showAnswerImageFourWrap" class="mt-2">
+                    <img id="showAnswerImageFour" src="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image) }}" alt="Admin" width="110" class="rounded border">
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[3]->answer_image }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/images/' . $question->answerQuestionOnlines[3]->answer_image) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[3]->answer_type == 'video' && $question->answerQuestionOnlines[3]->answer_video && file_exists(public_path('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video)))
+                <div id="showAnswerVideoFourWrap" class="mt-2">
+                    <video id="showAnswerVideoFour" width="400px" controls><source src="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video) }}" type="video/mp4"></video>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[3]->answer_video }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/videos/' . $question->answerQuestionOnlines[3]->answer_video) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($question->answerQuestionOnlines[3]->answer_type == 'sound' && $question->answerQuestionOnlines[3]->answer_sound && file_exists(public_path('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound)))
+                <div id="showAnswerAudioFourWrap" class="mt-2">
+                    <audio controls id="showAnswerAudioFour">
+                        <source src="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound) }}" type="audio/mpeg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="mt-2 p-2 bg-light rounded border" style="max-width: 650px; font-size: 13px;">
+                        <div class="d-flex align-items-center mb-1 flex-wrap gap-2">
+                            <span class="badge bg-secondary">المسار في قاعدة البيانات:</span>
+                            <code class="text-dark fw-bold" style="direction: ltr; font-size: 13px;">{{ $question->answerQuestionOnlines[3]->answer_sound }}</code>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge bg-primary">الرابط المباشر:</span>
+                            <a href="{{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound) }}" target="_blank" class="text-break" style="direction: ltr;">
+                                {{ url('upload/answers/online/sounds/' . $question->answerQuestionOnlines[3]->answer_sound) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
 
 
@@ -781,9 +985,9 @@
             const file = this.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
-                $('#showQuestionImage').hide(); // Hide old preview if it's an image
-                $('#showQuestionAudio').hide(); // Hide old preview if it's an audio
-                 $('#showQuestionVideo').hide(); // Hide old preview if it's an audio
+                $('#showQuestionImage, #showQuestionImageWrap').hide(); // Hide old preview if it's an image
+                $('#showQuestionAudio, #showQuestionAudioWrap').hide(); // Hide old preview if it's an audio
+                $('#showQuestionVideo, #showQuestionVideoWrap').hide(); // Hide old preview if it's a video
 
                 $('#questionPreview').show();
                 const fileType = file.type;
@@ -803,9 +1007,9 @@
             const file = this.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
-                $('#showAnswerImage').hide(); // Hide old preview if it's an image
-                $('#showAnswerAudio').hide(); // Hide old preview if it's an audio
-                                $('#showAnswerVideo').hide(); // Hide old preview if it's an audio
+                $('#showAnswerImage, #showAnswerImageWrap').hide(); // Hide old preview if it's an image
+                $('#showAnswerAudio, #showAnswerAudioWrap').hide(); // Hide old preview if it's an audio
+                $('#showAnswerVideo, #showAnswerVideoWrap').hide(); // Hide old preview if it's a video
 
                 $('#answerPreview').show();
                 const fileType = file.type;
@@ -941,9 +1145,9 @@ $(document).ready(function(){
         const reader = new FileReader();
         reader.onload = function(e) {
             // hide any old DB previews for question
-            $('#showQuestionImage').hide();
-            $('#showQuestionAudio').hide();
-                        $('#showQuestionVideo').hide();
+            $('#showQuestionImage, #showQuestionImageWrap').hide();
+            $('#showQuestionAudio, #showQuestionAudioWrap').hide();
+            $('#showQuestionVideo, #showQuestionVideoWrap').hide();
 
             $('#questionPreview').empty().show();
             const fileType = file.type;
@@ -965,9 +1169,9 @@ $(document).ready(function(){
         const reader = new FileReader();
         reader.onload = function(e) {
             // hide old DB preview for local answer
-            $('#showAnswerImage').hide();
-            $('#showAnswerAudio').hide();
-                        $('#showAnswerVideo').hide();
+            $('#showAnswerImage, #showAnswerImageWrap').hide();
+            $('#showAnswerAudio, #showAnswerAudioWrap').hide();
+            $('#showAnswerVideo, #showAnswerVideoWrap').hide();
 
             $('#answerPreview').empty().show();
             const fileType = file.type;
@@ -989,9 +1193,9 @@ $(document).ready(function(){
         const reader = new FileReader();
         reader.onload = function(e) {
             // hide old DB previews for answer 2 (use the unique IDs you added)
-            $('#showAnswerImageTwo').hide();
-            $('#showAnswerVideoTwo').hide();
-            $('#showAnswerAudioTwo').hide();
+            $('#showAnswerImageTwo, #showAnswerImageTwoWrap').hide();
+            $('#showAnswerVideoTwo, #showAnswerVideoTwoWrap').hide();
+            $('#showAnswerAudioTwo, #showAnswerAudioTwoWrap').hide();
 
             $('#answerPreviewTwo').empty().show();
             const fileType = file.type;
@@ -1012,9 +1216,9 @@ $(document).ready(function(){
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            $('#showAnswerImageThree').hide();
-            $('#showAnswerVideoThree').hide();
-            $('#showAnswerAudioThree').hide();
+            $('#showAnswerImageThree, #showAnswerImageThreeWrap').hide();
+            $('#showAnswerVideoThree, #showAnswerVideoThreeWrap').hide();
+            $('#showAnswerAudioThree, #showAnswerAudioThreeWrap').hide();
 
             $('#answerPreviewThree').empty().show();
             const fileType = file.type;
@@ -1035,9 +1239,9 @@ $(document).ready(function(){
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            $('#showAnswerImageFour').hide();
-            $('#showAnswerVideoFour').hide();
-            $('#showAnswerAudioFour').hide();
+            $('#showAnswerImageFour, #showAnswerImageFourWrap').hide();
+            $('#showAnswerVideoFour, #showAnswerVideoFourWrap').hide();
+            $('#showAnswerAudioFour, #showAnswerAudioFourWrap').hide();
 
             $('#answerPreviewFour').empty().show();
             const fileType = file.type;
