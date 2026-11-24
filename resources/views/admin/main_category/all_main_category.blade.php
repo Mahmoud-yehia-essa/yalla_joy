@@ -151,6 +151,9 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function showImageModal(src) {
@@ -218,63 +221,57 @@
         saveMainCategoryOrderAjax(categoryId, orderByVal, false);
     }
 
-    $(document).on('click', '.btn-save-main-category-order', function(e) {
-        e.preventDefault();
-        var categoryId = $(this).data('id');
-        if (categoryId) {
-            var orderByVal = $('#order-input-' + categoryId).val();
-            saveMainCategoryOrderAjax(categoryId, orderByVal, false);
-        }
-    });
+    $(document).ready(function() {
+        // Toggle Main Category Jaribna Button Handler (same behavior as Sub Categories)
+        $(document).on('click', '.toggle-jaribna-btn', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var categoryId = btn.data('id');
+            btn.prop('disabled', true);
 
-    $(document).on('click', '.toggle-jaribna-btn', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var categoryId = btn.data('id');
-        btn.prop('disabled', true);
-
-        $.ajax({
-            url: "{{ route('main.category.toggle.jaribna') }}",
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                id: categoryId
-            },
-            success: function(response) {
-                btn.prop('disabled', false);
-                if (response.status) {
-                    if (response.is_jaribna == 1) {
-                        btn.removeClass('btn-outline-secondary').addClass('btn-success');
-                        btn.html('<i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا');
-                    } else {
-                        btn.removeClass('btn-success').addClass('btn-outline-secondary');
-                        btn.html('<i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل');
+            $.ajax({
+                url: "{{ route('main.category.toggle.jaribna') }}",
+                type: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}'
+                },
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id: categoryId
+                },
+                success: function(response) {
+                    btn.prop('disabled', false);
+                    if (response.status) {
+                        if (response.is_jaribna == 1) {
+                            btn.removeClass('btn-outline-secondary').addClass('btn-success');
+                            btn.html('<i class="fa-solid fa-circle-check me-1"></i> مفعل في جربنا');
+                        } else {
+                            btn.removeClass('btn-success').addClass('btn-outline-secondary');
+                            btn.html('<i class="fa-solid fa-circle-xmark me-1"></i> غير مفعل');
+                        }
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message
+                        });
                     }
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2500,
-                        timerProgressBar: true
-                    });
-                    Toast.fire({
-                        icon: 'success',
-                        title: response.message
+                },
+                error: function() {
+                    btn.prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: 'فشل تحديث حالة جربنا'
                     });
                 }
-            },
-            error: function() {
-                btn.prop('disabled', false);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'فشل تحديث حالة جربنا'
-                });
-            }
+            });
         });
     });
 </script>
-
-
-
 @endsection

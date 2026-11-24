@@ -1131,6 +1131,640 @@ foreach ($answersData as $ans) {
             return null;
         }
 
+        // =========================================================================
+        // نظام التحقق المتقدم من فيديوهات الأسئلة والإجابات (المحلية والأونلاين)
+        // =========================================================================
+
+        /**
+         * صفحة التحقق من فيديوهات الأسئلة والإجابات
+         * - الطلب الأول: يعرض إحصائيات قاعدة البيانات بسرعة فائقة
+         * - AJAX: يفحص الملفات الفعلية وحالتها وأحجامها وصيغها دفعة بدفعة
+         */
+        public function verifyQuestionVideos(Request $request)
+        {
+            if ($request->ajax()) {
+                return $this->verifyQuestionVideosAjax($request);
+            }
+
+            $search     = trim((string) $request->input('search', ''));
+            $filterType = (string) $request->input('filter_type', '');
+            $categoryId = (string) $request->input('category_id', '');
+            $scope      = (string) $request->input('scope', 'video_only');
+
+            $baseQuery = Question::query();
+            if ($search !== '') {
+                $baseQuery->where(function ($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%")
+                      ->orWhere('qu_video', 'like', "%{$search}%");
+                    if (ctype_digit($search)) {
+                        $q->orWhere('id', (int) $search);
+                    }
+                });
+            }
+            if ($categoryId !== '') {
+                $baseQuery->where('category_id', $categoryId);
+            }
+
+            $totalQuestions = (clone $baseQuery)->count();
+            $videoQuestions = (clone $baseQuery)->where('questions_type', 'video')->count();
+
+            $videoRelatedQuestions = (clone $baseQuery)->where(function ($q) {
+                $q->where('questions_type', 'video')
+                  ->orWhereHas('answers', function ($aq) {
+                      $aq->where('answer_type', 'video');
+                  })
+                  ->orWhereHas('answerQuestionOnlines', function ($oq) {
+                      $oq->where('answer_type', 'video');
+                  });
+            })->count();
+
+            $localAnswerVideosQuery = Answer::where('answer_type', 'video');
+            if ($categoryId !== '' || $search !== '') {
+                $localAnswerVideosQuery->whereIn('question_id', (clone $baseQuery)->select('id'));
+            }
+            $totalLocalAnswerVideos = $localAnswerVideosQuery->count();
+
+            $onlineAnswerVideosQuery = AnswerQuestionOnline::where('answer_type', 'video');
+            if ($categoryId !== '' || $search !== '') {
+                $onlineAnswerVideosQuery->whereIn('question_id', (clone $baseQuery)->select('id'));
+            }
+            $totalOnlineAnswerVideos = $onlineAnswerVideosQuery->count();
+
+            $stats = [
+                'total_questions'            => $totalQuestions,
+                'video_related_questions'    => $videoRelatedQuestions,
+                'video_questions'            => $videoQuestions,
+                'total_local_answer_videos'  => $totalLocalAnswerVideos,
+                'total_online_answer_videos' => $totalOnlineAnswerVideos,
+                'total_answer_videos'        => $totalLocalAnswerVideos + $totalOnlineAnswerVideos,
+            ];
+
+            $categories = Category::orderBy('category_name', 'asc')->get();
+
+            return view('admin.question.verify_videos', compact('stats', 'search', 'filterType', 'categories', 'scope'));
+        }
+
+        /**
+         * AJAX endpoint: يجلب دفعة من الأسئلة ويفحص فيديوهات السؤال والإجابات المحلية والأونلاين
+         */
+        public function verifyQuestionVideosAjax(Request $request)
+        {
+            $perPage    = 50;
+            $page       = max(1, (int) $request->input('page', 1));
+            $search     = trim((string) $request->input('search', ''));
+            $categoryId = (string) $request->input('category_id', '');
+            $scope      = (string) $request->input('scope', 'video_only');
+
+            $query = Question::with(['category', 'answers', 'answerQuestionOnlines'])
+                ->orderBy('id', 'asc');
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%")
+                      ->orWhere('qu_video', 'like', "%{$search}%");
+                    if (ctype_digit($search)) {
+                        $q->orWhere('id', (int) $search);
+                    }
+                });
+            }
+
+            if ($categoryId !== '') {
+                $query->where('category_id', $categoryId);
+            }
+
+            if ($scope === 'video_only') {
+                $query->where(function ($q) {
+                    $q->where('questions_type', 'video')
+                      ->orWhereHas('answers', function ($aq) {
+                          $aq->where('answer_type', 'video');
+                      })
+                      ->orWhereHas('answerQuestionOnlines', function ($oq) {
+                          $oq->where('answer_type', 'video');
+                      });
+                });
+            }
+
+            $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+            $questions = $paginator->items();
+
+            $qVideoDir       = public_path('upload/questions/videos/');
+            $aLocalVideoDir  = public_path('upload/answers/videos/');
+            $aOnlineVideoDir = public_path('upload/answers/online/videos/');
+
+            $rows = [];
+            $batchStats = [
+                'q_found'                   => 0,
+                'q_missing'                 => 0,
+                'q_no_path'                 => 0,
+                'q_corrupted'               => 0,
+                'a_local_found'             => 0,
+                'a_local_missing'           => 0,
+                'a_local_no_path'           => 0,
+                'a_local_corrupted'         => 0,
+                'a_online_found'            => 0,
+                'a_online_missing'          => 0,
+                'a_online_no_path'          => 0,
+                'a_online_corrupted'        => 0,
+                'total_size_bytes'          => 0,
+                'needs_sanitize_count'      => 0,
+                'large_videos_count'        => 0,
+                'incompatible_format_count' => 0,
+            ];
+
+            foreach ($questions as $question) {
+                // 1) فحص فيديو السؤال
+                $qInfo = null;
+                if ($question->questions_type === 'video') {
+                    $qInfo = $this->inspectVideoFile($qVideoDir, $question->qu_video, 'qvid_');
+                    $batchStats['q_' . $qInfo['status']]++;
+                    if ($qInfo['status'] === 'found') {
+                        $batchStats['total_size_bytes'] += $qInfo['size_bytes'];
+                        if ($qInfo['is_large']) $batchStats['large_videos_count']++;
+                        if (!$qInfo['is_web_compatible']) $batchStats['incompatible_format_count']++;
+                    }
+                    if ($qInfo['needs_sanitize']) {
+                        $batchStats['needs_sanitize_count']++;
+                    }
+                }
+
+                // 2) فحص فيديوهات الإجابات المحلية (Local)
+                $localAnswersData = [];
+                foreach ($question->answers as $answer) {
+                    $aInfo = null;
+                    if ($answer->answer_type === 'video') {
+                        $aInfo = $this->inspectVideoFile($aLocalVideoDir, $answer->answer_video, 'avid_');
+                        $batchStats['a_local_' . $aInfo['status']]++;
+                        if ($aInfo['status'] === 'found') {
+                            $batchStats['total_size_bytes'] += $aInfo['size_bytes'];
+                            if ($aInfo['is_large']) $batchStats['large_videos_count']++;
+                            if (!$aInfo['is_web_compatible']) $batchStats['incompatible_format_count']++;
+                        }
+                        if ($aInfo['needs_sanitize']) {
+                            $batchStats['needs_sanitize_count']++;
+                        }
+                    }
+
+                    $localAnswersData[] = [
+                        'id'           => $answer->id,
+                        'scope'        => 'local',
+                        'answer_type'  => $answer->answer_type,
+                        'answer_title' => $answer->answer_title ?? '',
+                        'answer_video' => $answer->answer_video,
+                        'video_info'   => $aInfo,
+                        'url'          => $answer->answer_video ? url('upload/answers/videos/' . $answer->answer_video) : null,
+                    ];
+                }
+
+                // 3) فحص فيديوهات إجابات الأونلاين (Online)
+                $onlineAnswersData = [];
+                foreach ($question->answerQuestionOnlines as $idx => $onlineAnswer) {
+                    $oaInfo = null;
+                    if ($onlineAnswer->answer_type === 'video') {
+                        $oaInfo = $this->inspectVideoFile($aOnlineVideoDir, $onlineAnswer->answer_video, 'oavid_');
+                        $batchStats['a_online_' . $oaInfo['status']]++;
+                        if ($oaInfo['status'] === 'found') {
+                            $batchStats['total_size_bytes'] += $oaInfo['size_bytes'];
+                            if ($oaInfo['is_large']) $batchStats['large_videos_count']++;
+                            if (!$oaInfo['is_web_compatible']) $batchStats['incompatible_format_count']++;
+                        }
+                        if ($oaInfo['needs_sanitize']) {
+                            $batchStats['needs_sanitize_count']++;
+                        }
+                    }
+
+                    $onlineAnswersData[] = [
+                        'id'           => $onlineAnswer->id,
+                        'index'        => $idx + 1,
+                        'scope'        => 'online',
+                        'is_correct'   => (bool) $onlineAnswer->is_correct,
+                        'answer_type'  => $onlineAnswer->answer_type,
+                        'answer_title' => $onlineAnswer->answer_title ?? '',
+                        'answer_video' => $onlineAnswer->answer_video,
+                        'video_info'   => $oaInfo,
+                        'url'          => $onlineAnswer->answer_video ? url('upload/answers/online/videos/' . $onlineAnswer->answer_video) : null,
+                    ];
+                }
+
+                $qStatus = $qInfo['status'] ?? null;
+                $hasQuestionIssue = in_array($qStatus, ['missing', 'no_path', 'corrupted'], true);
+                $hasCorrupted = ($qStatus === 'corrupted');
+
+                $allAnswersCombined = array_merge($localAnswersData, $onlineAnswersData);
+                $hasAnswerIssue = false;
+                $ansOkCount = 0;
+                $ansBadCount = 0;
+                $hasWarning = ($qInfo && ($qInfo['needs_sanitize'] || $qInfo['is_large'] || ($qStatus === 'found' && !$qInfo['is_web_compatible'])));
+
+                foreach ($allAnswersCombined as $ans) {
+                    if ($ans['answer_type'] === 'video' && $ans['video_info']) {
+                        $st = $ans['video_info']['status'];
+                        if ($st === 'found') {
+                            $ansOkCount++;
+                            if ($ans['video_info']['is_large'] || !$ans['video_info']['is_web_compatible']) {
+                                $hasWarning = true;
+                            }
+                        } else {
+                            $ansBadCount++;
+                            $hasAnswerIssue = true;
+                            if ($st === 'corrupted') {
+                                $hasCorrupted = true;
+                            }
+                        }
+                        if ($ans['video_info']['needs_sanitize']) {
+                            $hasWarning = true;
+                        }
+                    }
+                }
+
+                $rows[] = [
+                    'id'                     => $question->id,
+                    'qu_title'               => $question->qu_title,
+                    'qu_title_en'            => $question->qu_title_en,
+                    'questions_type'         => $question->questions_type,
+                    'qu_video'               => $question->qu_video,
+                    'qu_video_url'           => $question->qu_video ? url('upload/questions/videos/' . $question->qu_video) : null,
+                    'category_name'          => optional($question->category)->category_name ?? '—',
+                    'question_video_info'    => $qInfo,
+                    'question_video_status'  => $qStatus,
+                    'local_answers'          => $localAnswersData,
+                    'online_answers'         => $onlineAnswersData,
+                    'ans_ok_count'           => $ansOkCount,
+                    'ans_bad_count'          => $ansBadCount,
+                    'has_question_issue'     => $hasQuestionIssue,
+                    'has_answer_issue'       => $hasAnswerIssue,
+                    'has_corrupted'          => $hasCorrupted,
+                    'has_warning'            => $hasWarning,
+                    'has_any_issue'          => $hasQuestionIssue || $hasAnswerIssue,
+                ];
+            }
+
+            $html = view('admin.question.partials.verify_videos_rows', [
+                'rows'       => $rows,
+                'startIndex' => ($page - 1) * $perPage,
+            ])->render();
+
+            return response()->json([
+                'html'         => $html,
+                'next_page'    => $paginator->hasMorePages() ? $page + 1 : null,
+                'batch_stats'  => $batchStats,
+                'total'        => $paginator->total(),
+                'last_page'    => $paginator->lastPage(),
+                'current_page' => $page,
+                'rows_count'   => count($rows),
+            ]);
+        }
+
+        /**
+         * فحص ملف فيديو واحد وإرجاع تقرير تقني مفصل عن حالته وحجمه وصيغته وتوافق اسمه
+         */
+        protected function inspectVideoFile(string $baseDir, ?string $relativePath, string $slugPrefix = 'vid_'): array
+        {
+            $relativePath = trim((string) $relativePath);
+            if ($relativePath === '') {
+                return [
+                    'status'            => 'no_path',
+                    'size_bytes'        => 0,
+                    'size_formatted'    => '—',
+                    'extension'         => '',
+                    'is_web_compatible' => true,
+                    'is_large'          => false,
+                    'needs_sanitize'    => false,
+                    'encoding_mismatch' => false,
+                ];
+            }
+
+            $fullPath = $baseDir . $relativePath;
+            $extension = strtolower((string) pathinfo(rawurldecode($relativePath), PATHINFO_EXTENSION));
+            $sanitized = $this->computeSanitizedVideoPath($relativePath, $slugPrefix);
+            $needsSanitize = ($relativePath !== $sanitized);
+
+            if (file_exists($fullPath) && is_file($fullPath)) {
+                $sizeBytes = (int) (@filesize($fullPath) ?: 0);
+                $status = ($sizeBytes === 0) ? 'corrupted' : 'found';
+                return [
+                    'status'            => $status,
+                    'size_bytes'        => $sizeBytes,
+                    'size_formatted'    => $this->formatVideoBytes($sizeBytes),
+                    'extension'         => $extension,
+                    'is_web_compatible' => in_array($extension, ['mp4', 'webm', 'm4v', 'ogg'], true),
+                    'is_large'          => $sizeBytes > (15 * 1024 * 1024),
+                    'needs_sanitize'    => $needsSanitize,
+                    'encoding_mismatch' => false,
+                ];
+            }
+
+            // التحقق مما إذا كان الملف موجوداً فعلياً بترميز/مسافات مختلفة (يمكن إصلاحه بزر الضبط)
+            $physicalMatch = $this->findPhysicalFileForAjax($baseDir, $relativePath);
+
+            return [
+                'status'            => 'missing',
+                'size_bytes'        => 0,
+                'size_formatted'    => '—',
+                'extension'         => $extension,
+                'is_web_compatible' => in_array($extension, ['mp4', 'webm', 'm4v', 'ogg'], true),
+                'is_large'          => false,
+                'needs_sanitize'    => $needsSanitize || ($physicalMatch !== null),
+                'encoding_mismatch' => $physicalMatch !== null,
+            ];
+        }
+
+        /**
+         * توليد المسار القياسي المنظّف للفيديو مع الحفاظ على المجلدات الفرعية
+         */
+        protected function computeSanitizedVideoPath(string $oldName, string $fallbackPrefix = 'vid_'): string
+        {
+            $decoded   = rawurldecode($oldName);
+            $dirname   = pathinfo($decoded, PATHINFO_DIRNAME);
+            $basename  = pathinfo($decoded, PATHINFO_FILENAME);
+            $extension = pathinfo($decoded, PATHINFO_EXTENSION);
+
+            $cleanBasename = \Illuminate\Support\Str::slug($basename);
+            if ($cleanBasename === '') {
+                $cleanBasename = $fallbackPrefix . substr(md5($oldName), 0, 10);
+            }
+
+            $sanitizedName = $cleanBasename . ($extension ? '.' . strtolower($extension) : '');
+            return ($dirname && $dirname !== '.') ? ($dirname . '/' . $sanitizedName) : $sanitizedName;
+        }
+
+        /**
+         * تنسيق حجم الملف بوحدات مقروءة
+         */
+        protected function formatVideoBytes(int $bytes): string
+        {
+            if ($bytes <= 0) return '0 B';
+            $units = ['B', 'KB', 'MB', 'GB'];
+            $pow = min((int) floor(log($bytes, 1024)), count($units) - 1);
+            $val = $bytes / pow(1024, $pow);
+            return round($val, $pow >= 2 ? 2 : 1) . ' ' . $units[$pow];
+        }
+
+        /**
+         * AJAX endpoint: ضبط وتصحيح أسماء ملفات الفيديوهات (للأسئلة والإجابات المحلية والأونلاين)
+         */
+        public function sanitizeQuestionVideosAjax(Request $request)
+        {
+            $categoryId = (string) $request->input('category_id', '');
+
+            $qQuery = Question::where('questions_type', 'video')
+                ->whereNotNull('qu_video')
+                ->where('qu_video', '!=', '');
+
+            $aLocalQuery = Answer::where('answer_type', 'video')
+                ->whereNotNull('answer_video')
+                ->where('answer_video', '!=', '');
+
+            $aOnlineQuery = AnswerQuestionOnline::where('answer_type', 'video')
+                ->whereNotNull('answer_video')
+                ->where('answer_video', '!=', '');
+
+            if ($categoryId !== '') {
+                $qQuery->where('category_id', $categoryId);
+                $catQuestionIds = Question::where('category_id', $categoryId)->select('id');
+                $aLocalQuery->whereIn('question_id', clone $catQuestionIds);
+                $aOnlineQuery->whereIn('question_id', clone $catQuestionIds);
+            }
+
+            $qRenamed      = $this->sanitizeVideoGroup($qQuery->get()->groupBy('qu_video'), public_path('upload/questions/videos/'), Question::class, 'qu_video', 'qvid_');
+            $aLocalRenamed = $this->sanitizeVideoGroup($aLocalQuery->get()->groupBy('answer_video'), public_path('upload/answers/videos/'), Answer::class, 'answer_video', 'avid_');
+            $aOnlineRenamed = $this->sanitizeVideoGroup($aOnlineQuery->get()->groupBy('answer_video'), public_path('upload/answers/online/videos/'), AnswerQuestionOnline::class, 'answer_video', 'oavid_');
+
+            $totalRenamed = $qRenamed['renamed'] + $aLocalRenamed['renamed'] + $aOnlineRenamed['renamed'];
+            $totalSkipped = $qRenamed['skipped'] + $aLocalRenamed['skipped'] + $aOnlineRenamed['skipped'];
+
+            $msg = "تم ضبط وتصحيح {$totalRenamed} اسم ملف فيديو بنجاح (أسئلة: {$qRenamed['renamed']}، إجابات محلية: {$aLocalRenamed['renamed']}، إجابات أونلاين: {$aOnlineRenamed['renamed']}).";
+            if ($totalSkipped > 0) {
+                $msg .= " تم تخطي {$totalSkipped} مسار لعدم وجود الملف فعلياً على الخادم.";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'details' => [
+                    'total_renamed'         => $totalRenamed,
+                    'questions_renamed'     => $qRenamed['renamed'],
+                    'local_answers_renamed' => $aLocalRenamed['renamed'],
+                    'online_answers_renamed'=> $aOnlineRenamed['renamed'],
+                    'skipped_missing'       => $totalSkipped,
+                ],
+            ]);
+        }
+
+        /**
+         * معالجة مجموعة ملفات فيديو لتنظيف أسمائها بأمان على الخادم وفي قاعدة البيانات
+         */
+        protected function sanitizeVideoGroup($groupedRecords, string $dir, string $modelClass, string $column, string $prefix): array
+        {
+            $renamed = 0;
+            $skipped = 0;
+
+            if (!\Illuminate\Support\Facades\File::isDirectory($dir)) {
+                return ['renamed' => 0, 'skipped' => count($groupedRecords)];
+            }
+
+            foreach ($groupedRecords as $oldName => $group) {
+                $oldName = (string) $oldName;
+                $sanitized = $this->computeSanitizedVideoPath($oldName, $prefix);
+
+                if ($oldName === $sanitized) {
+                    continue;
+                }
+
+                $physicalPath = $this->findPhysicalFileForAjax($dir, $oldName);
+                if (!$physicalPath) {
+                    $skipped++;
+                    continue;
+                }
+
+                $decoded   = rawurldecode($oldName);
+                $dirname   = pathinfo($decoded, PATHINFO_DIRNAME);
+                $basename  = pathinfo($decoded, PATHINFO_FILENAME);
+                $extension = pathinfo($decoded, PATHINFO_EXTENSION);
+                $cleanBasename = \Illuminate\Support\Str::slug($basename) ?: ($prefix . substr(md5($oldName), 0, 10));
+
+                $parentDir = dirname($physicalPath);
+                if (!is_writable($parentDir)) {
+                    @chmod($parentDir, 0775);
+                }
+
+                $newName = $sanitized;
+                $counter = 1;
+                while (\Illuminate\Support\Facades\File::exists($dir . $newName) && realpath($dir . $newName) !== realpath($physicalPath)) {
+                    $candidate = $cleanBasename . '-' . $counter . ($extension ? '.' . strtolower($extension) : '');
+                    $newName = ($dirname && $dirname !== '.') ? ($dirname . '/' . $candidate) : $candidate;
+                    $counter++;
+                }
+
+                $targetParentDir = dirname($dir . $newName);
+                \Illuminate\Support\Facades\File::ensureDirectoryExists($targetParentDir);
+                if (!is_writable($targetParentDir)) {
+                    @chmod($targetParentDir, 0775);
+                }
+
+                if (\Illuminate\Support\Facades\File::move($physicalPath, $dir . $newName)) {
+                    $modelClass::where($column, $oldName)->update([$column => $newName]);
+                    $renamed++;
+                }
+            }
+
+            return ['renamed' => $renamed, 'skipped' => $skipped];
+        }
+
+        /**
+         * تصدير تقرير التحقق من فيديوهات الأسئلة والإجابات كملف CSV متوافق مع Excel العربي
+         */
+        public function exportVerifyQuestionVideosCsv(Request $request)
+        {
+            $search     = trim((string) $request->input('search', ''));
+            $categoryId = (string) $request->input('category_id', '');
+            $filter     = (string) $request->input('filter', 'has_issues');
+
+            $query = Question::with(['category', 'answers', 'answerQuestionOnlines'])
+                ->where(function ($q) {
+                    $q->where('questions_type', 'video')
+                      ->orWhereHas('answers', fn($aq) => $aq->where('answer_type', 'video'))
+                      ->orWhereHas('answerQuestionOnlines', fn($oq) => $oq->where('answer_type', 'video'));
+                })
+                ->orderBy('id', 'asc');
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('qu_title', 'like', "%{$search}%")
+                      ->orWhere('qu_title_en', 'like', "%{$search}%")
+                      ->orWhere('qu_video', 'like', "%{$search}%");
+                    if (ctype_digit($search)) {
+                        $q->orWhere('id', (int) $search);
+                    }
+                });
+            }
+
+            if ($categoryId !== '') {
+                $query->where('category_id', $categoryId);
+            }
+
+            $filename = 'verify_question_videos_' . date('Y-m-d_H-i') . '.csv';
+            $qDir  = public_path('upload/questions/videos/');
+            $alDir = public_path('upload/answers/videos/');
+            $aoDir = public_path('upload/answers/online/videos/');
+
+            $statusLabels = [
+                'found'     => 'موجود وسليم',
+                'missing'   => 'مفقود على الخادم',
+                'corrupted' => 'ملف تالف (0 بايت)',
+                'no_path'   => 'بلا مسار في قاعدة البيانات',
+            ];
+
+            return response()->streamDownload(function () use ($query, $filter, $qDir, $alDir, $aoDir, $statusLabels) {
+                $handle = fopen('php://output', 'w');
+                // UTF-8 BOM ليعمل العرض العربي بسلاسة داخل Excel
+                fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+                fputcsv($handle, [
+                    'رقم السؤال (ID)',
+                    'عنوان السؤال',
+                    'الفئة',
+                    'الموقع',
+                    'الحالة',
+                    'المسار في قاعدة البيانات',
+                    'الرابط المباشر',
+                    'حجم الملف',
+                    'الصيغة',
+                    'ملاحظات فنية',
+                    'رابط التعديل',
+                ]);
+
+                $query->chunk(200, function ($questions) use ($handle, $filter, $qDir, $alDir, $aoDir, $statusLabels) {
+                    foreach ($questions as $question) {
+                        $catName = optional($question->category)->category_name ?? '—';
+                        $editUrl = route('edit.question', $question->id);
+                        $entries = [];
+
+                        if ($question->questions_type === 'video') {
+                            $info = $this->inspectVideoFile($qDir, $question->qu_video, 'qvid_');
+                            $entries[] = [
+                                'location' => 'فيديو السؤال',
+                                'path'     => $question->qu_video ?? '',
+                                'url'      => $question->qu_video ? url('upload/questions/videos/' . $question->qu_video) : '',
+                                'info'     => $info,
+                                'is_q'     => true,
+                            ];
+                        }
+
+                        foreach ($question->answers as $idx => $ans) {
+                            if ($ans->answer_type === 'video') {
+                                $info = $this->inspectVideoFile($alDir, $ans->answer_video, 'avid_');
+                                $entries[] = [
+                                    'location' => 'إجابة محلية #' . ($idx + 1),
+                                    'path'     => $ans->answer_video ?? '',
+                                    'url'      => $ans->answer_video ? url('upload/answers/videos/' . $ans->answer_video) : '',
+                                    'info'     => $info,
+                                    'is_q'     => false,
+                                ];
+                            }
+                        }
+
+                        foreach ($question->answerQuestionOnlines as $idx => $oAns) {
+                            if ($oAns->answer_type === 'video') {
+                                $info = $this->inspectVideoFile($aoDir, $oAns->answer_video, 'oavid_');
+                                $entries[] = [
+                                    'location' => 'إجابة أونلاين #' . ($idx + 1),
+                                    'path'     => $oAns->answer_video ?? '',
+                                    'url'      => $oAns->answer_video ? url('upload/answers/online/videos/' . $oAns->answer_video) : '',
+                                    'info'     => $info,
+                                    'is_q'     => false,
+                                ];
+                            }
+                        }
+
+                        foreach ($entries as $entry) {
+                            $st = $entry['info']['status'];
+                            $isIssue = in_array($st, ['missing', 'no_path', 'corrupted'], true);
+                            $hasWarn = $entry['info']['needs_sanitize'] || $entry['info']['is_large'] || ($st === 'found' && !$entry['info']['is_web_compatible']);
+
+                            $include = match ($filter) {
+                                'has_issues'       => $isIssue,
+                                'question_missing' => $entry['is_q'] && $st === 'missing',
+                                'question_no_path' => $entry['is_q'] && $st === 'no_path',
+                                'corrupted'        => $st === 'corrupted',
+                                'answer_missing'   => !$entry['is_q'] && $isIssue,
+                                'warnings'         => $hasWarn,
+                                'all_ok'           => $st === 'found' && !$hasWarn,
+                                default            => true,
+                            };
+
+                            if (!$include) continue;
+
+                            $notes = [];
+                            if ($entry['info']['encoding_mismatch']) $notes[] = 'موجود بترميز مختلف (قابل للإصلاح بضبط الأسماء)';
+                            if ($entry['info']['needs_sanitize']) $notes[] = 'الاسم يحتاج ضبط';
+                            if ($entry['info']['is_large']) $notes[] = 'حجم كبير (> 15MB)';
+                            if ($st === 'found' && !$entry['info']['is_web_compatible']) $notes[] = 'صيغة قد لا تعمل على جميع الأجهزة';
+
+                            fputcsv($handle, [
+                                $question->id,
+                                $question->qu_title,
+                                $catName,
+                                $entry['location'],
+                                $statusLabels[$st] ?? $st,
+                                $entry['path'] ?: '—',
+                                $entry['url'] ?: '—',
+                                $entry['info']['size_formatted'],
+                                $entry['info']['extension'] ? strtoupper($entry['info']['extension']) : '—',
+                                empty($notes) ? 'سليم' : implode(' | ', $notes),
+                                $editUrl,
+                            ]);
+                        }
+                    }
+                });
+
+                fclose($handle);
+            }, $filename, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+            ]);
+        }
+
 
         public function allQuestion(Request $request)
         {

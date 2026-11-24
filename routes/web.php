@@ -456,6 +456,10 @@ Route::controller(QuestionController::class)->middleware(['checkUserRole','auth'
     Route::get('/admin/verify/question/images', 'verifyQuestionImages')->name('verify.question.images');
     Route::post('/admin/verify/question/images/sanitize', 'sanitizeQuestionImagesAjax')->name('verify.question.images.sanitize');
 
+    Route::get('/admin/verify/question/videos', 'verifyQuestionVideos')->name('verify.question.videos');
+    Route::post('/admin/verify/question/videos/sanitize', 'sanitizeQuestionVideosAjax')->name('verify.question.videos.sanitize');
+    Route::get('/admin/verify/question/videos/export', 'exportVerifyQuestionVideosCsv')->name('verify.question.videos.export');
+
 
 
 

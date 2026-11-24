@@ -219,6 +219,13 @@
                     </a>
                 </li>
 
+                <li>
+                    <a href="{{route('verify.question.videos')}}" style="display:flex; align-items:center; gap:6px;">
+                        <i class='bx bx-movie-play' style="color:#8b5cf6; font-size:1rem;"></i>
+                        <span>التحقق من فيديوهات الأسئلة والإجابات</span>
+                    </a>
+                </li>
+
 
 
 
