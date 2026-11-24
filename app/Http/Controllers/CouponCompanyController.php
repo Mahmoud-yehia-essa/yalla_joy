@@ -231,6 +231,7 @@ class CouponCompanyController extends Controller
                 'sponsor' => [
                     'id' => $coupon->sponsor->id ?? null,
                     'title' => $coupon->sponsor->title ?? null,
+                    'title_en' => $coupon->sponsor->title_en ?? null,
                     'image' => $coupon->sponsor->photo ?? null,
                 ],
                 'is_scratch_coupon' => (bool)$coupon->is_scratch_coupon,
@@ -239,6 +240,7 @@ class CouponCompanyController extends Controller
                 'cost' => [
                     'coin_id' => $coupon->game_coin_id,
                     'coin_name' => $coupon->gameCoin->name ?? null,
+                    'coin_name_en' => $coupon->gameCoin->name_en ?? null,
                     'coin_photo' => $coupon->gameCoin->photo ?? null,
                     'count' => $coupon->game_coins_count,
                 ],
