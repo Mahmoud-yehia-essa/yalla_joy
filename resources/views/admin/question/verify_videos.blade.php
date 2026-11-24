@@ -512,13 +512,6 @@
         <div class="stat-sub" id="sub-a-issue-split">مفقودة: — | تالفة: — | بلا مسار: —</div>
     </div>
 
-    <div class="stat-card stat-info" id="card-tech-alerts">
-        <div class="stat-icon"><i class="bx bx-shield-quarter"></i></div>
-        <div class="stat-value" id="val-tech-alerts"><span class="stat-skeleton"></span></div>
-        <div class="stat-label">تنبيهات فنية (أسماء/حجم/صيغة)</div>
-        <div class="stat-sub" id="sub-tech-alerts">أسماء: — | حجم كبير: — | صيغ: —</div>
-    </div>
-
     {{-- بطاقات تحليل الفئات الديناميكية --}}
     <div class="stat-card stat-violet" id="card-best-q-cat" style="display:none;">
         <div class="stat-icon"><i class="bx bx-crown"></i></div>
@@ -603,7 +596,6 @@
                 </button>
                 <button type="button" class="btn btn-vid-sanitize" id="btnSanitizeVideos">
                     <i class="bx bx-magic-wand me-1"></i> ضبط أسماء الفيديوهات
-                    <span class="badge bg-white text-success rounded-pill ms-1" id="sanitizeCountBadge" style="display:none;">0</span>
                 </button>
                 <button type="button" class="btn btn-vid-export" id="btnExportCsv">
                     <i class="bx bx-download me-1"></i> تصدير تقرير Excel
@@ -634,10 +626,6 @@
     <a href="javascript:;" class="filter-tab tab-missing" data-filter="answer_missing">
         <i class="bx bx-film"></i> مشاكل فيديوهات الإجابات
         <span class="tab-pill" id="tab-count-a-missing">0</span>
-    </a>
-    <a href="javascript:;" class="filter-tab tab-warnings" data-filter="warnings">
-        <i class="bx bx-shield-quarter"></i> تنبيهات فنية
-        <span class="tab-pill" id="tab-count-warnings">0</span>
     </a>
     <a href="javascript:;" class="filter-tab tab-found" data-filter="all_ok">
         <i class="bx bx-check-circle"></i> سليمة تماماً
@@ -925,8 +913,6 @@
         // اختيار ذكي لأفضل تبويب افتراضي حتى لا يظهر جدول فارغ بلا داعي
         if (counts.issues > 0) {
             activeFilter = 'has_issues';
-        } else if (counts.warnings > 0) {
-            activeFilter = 'warnings';
         } else {
             activeFilter = 'all';
         }
@@ -970,29 +956,15 @@
         setText('val-a-issue', aIssueTotal);
         setText('sub-a-issue-split', `مفقودة: ${cStats.a_missing} | تالفة: ${cStats.a_corrupted} | بلا مسار: ${cStats.a_no_path}`);
 
-        const techAlerts = cStats.needs_sanitize_count + cStats.large_videos_count + cStats.incompatible_format_count;
-        setText('val-tech-alerts', techAlerts);
-        setText('sub-tech-alerts', `أسماء: ${cStats.needs_sanitize_count} | حجم>15MB: ${cStats.large_videos_count} | صيغ: ${cStats.incompatible_format_count}`);
-
         const formattedSize = formatBytes(cStats.total_size_bytes);
         setText('heroHealthScore', totalAllVideos > 0 ? (healthPct + '%') : '100%');
         setText('heroTotalSize', formattedSize);
         setText('footer-size', formattedSize);
-
-        const sanBadge = document.getElementById('sanitizeCountBadge');
-        if (sanBadge) {
-            if (cStats.needs_sanitize_count > 0) {
-                sanBadge.textContent = cStats.needs_sanitize_count;
-                sanBadge.style.display = 'inline-block';
-            } else {
-                sanBadge.style.display = 'none';
-            }
-        }
     }
 
     function updateTabCounts() {
         const rows = tbody.querySelectorAll('.verify-row');
-        let issues = 0, qMissing = 0, qNopath = 0, corrupted = 0, aMissing = 0, warnings = 0, ok = 0;
+        let issues = 0, qMissing = 0, qNopath = 0, corrupted = 0, aMissing = 0, ok = 0;
 
         rows.forEach(r => {
             if (r.dataset.hasIssue === '1')          issues++;
@@ -1000,7 +972,6 @@
             if (r.dataset.questionStatus === 'no_path') qNopath++;
             if (r.dataset.hasCorrupted === '1')      corrupted++;
             if (r.dataset.hasAnswerMissing === '1')  aMissing++;
-            if (r.dataset.hasWarning === '1')        warnings++;
             if (r.dataset.allFound === '1')          ok++;
         });
 
@@ -1009,11 +980,10 @@
         setText('tab-count-q-nopath',  qNopath);
         setText('tab-count-corrupted', corrupted);
         setText('tab-count-a-missing', aMissing);
-        setText('tab-count-warnings',  warnings);
         setText('tab-count-ok',        ok);
         setText('tab-count-all',       rows.length);
 
-        return { issues, qMissing, qNopath, corrupted, aMissing, warnings, ok, all: rows.length };
+        return { issues, qMissing, qNopath, corrupted, aMissing, ok, all: rows.length };
     }
 
     function updateLegend() {
@@ -1044,7 +1014,6 @@
                 const af  = row.dataset.allFound === '1';
                 const ham = row.dataset.hasAnswerMissing === '1';
                 const hc  = row.dataset.hasCorrupted === '1';
-                const hw  = row.dataset.hasWarning === '1';
 
                 let show;
                 switch (filter) {
@@ -1053,7 +1022,6 @@
                     case 'question_no_path': show = qs === 'no_path'; break;
                     case 'corrupted':        show = hc; break;
                     case 'answer_missing':   show = ham; break;
-                    case 'warnings':         show = hw; break;
                     case 'all_ok':           show = af; break;
                     default:                 show = true;
                 }
@@ -1170,7 +1138,7 @@
         document.getElementById('card-worst-q-cat').style.display = 'none';
 
         Object.keys(cStats).forEach(k => cStats[k] = 0);
-        ['val-q-found','val-q-missing','val-q-nopath','val-a-found','val-a-issue','val-tech-alerts'].forEach(id => {
+        ['val-q-found','val-q-missing','val-q-nopath','val-a-found','val-a-issue'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '<span class="stat-skeleton"></span>';
         });
