@@ -443,7 +443,7 @@
             </div>
             <div>
                 <h1>التحقق من فيديوهات الأسئلة والإجابات</h1>
-                <p>فحص ذكي ومتكامل لمسارات ملفات الفيديو في قاعدة البيانات ومطابقتها مع الخادم (الأسئلة + الإجابات المحلية + إجابات الأونلاين) مع تحليل الحجم والصيغة والترميز</p>
+                <p>فحص ذكي ومتكامل لمسارات ملفات الفيديو في قاعدة البيانات ومطابقتها مع الخادم (الأسئلة + الإجابات المحلية) مع تحليل الحجم والصيغة والترميز</p>
             </div>
         </div>
         <div class="hero-health-box">
@@ -495,22 +495,21 @@
     <div class="stat-card stat-teal">
         <div class="stat-icon"><i class="bx bx-film"></i></div>
         <div class="stat-value">{{ number_format($stats['total_answer_videos']) }}</div>
-        <div class="stat-label">فيديوهات الإجابات</div>
-        <div class="stat-sub">محلي: {{ $stats['total_local_answer_videos'] }} | أونلاين: {{ $stats['total_online_answer_videos'] }}</div>
+        <div class="stat-label">إجابات من نوع فيديو</div>
+        <div class="stat-sub">upload/answers/videos/</div>
     </div>
 
     <div class="stat-card stat-success">
         <div class="stat-icon"><i class="bx bx-check-double"></i></div>
         <div class="stat-value" id="val-a-found"><span class="stat-skeleton"></span></div>
         <div class="stat-label">فيديوهات إجابات سليمة ✓</div>
-        <div class="stat-sub" id="sub-a-found-split">محلي: — | أونلاين: —</div>
     </div>
 
     <div class="stat-card stat-rose">
         <div class="stat-icon"><i class="bx bx-error"></i></div>
         <div class="stat-value" id="val-a-issue"><span class="stat-skeleton"></span></div>
         <div class="stat-label">فيديوهات إجابات بها مشاكل ✗</div>
-        <div class="stat-sub" id="sub-a-issue-split">محلي: — | أونلاين: —</div>
+        <div class="stat-sub" id="sub-a-issue-split">مفقودة: — | تالفة: — | بلا مسار: —</div>
     </div>
 
     <div class="stat-card stat-info" id="card-tech-alerts">
@@ -676,8 +675,8 @@
                     </th>
                     <th style="width:125px;">حالة فيديو السؤال</th>
                     <th>
-                        فيديوهات الإجابات (محلي + أونلاين)
-                        <small class="d-block" style="font-size:.66rem; opacity:.75;">upload/answers/videos/ &amp; online/videos/</small>
+                        الإجابات وحالة فيديوهاتها
+                        <small class="d-block" style="font-size:.66rem; opacity:.75;">upload/answers/videos/</small>
                     </th>
                     <th style="width:90px;" class="text-center">إجراء</th>
                 </tr>
@@ -801,8 +800,7 @@
 
     const cStats = {
         q_found: 0, q_missing: 0, q_no_path: 0, q_corrupted: 0,
-        a_local_found: 0, a_local_missing: 0, a_local_no_path: 0, a_local_corrupted: 0,
-        a_online_found: 0, a_online_missing: 0, a_online_no_path: 0, a_online_corrupted: 0,
+        a_found: 0, a_missing: 0, a_no_path: 0, a_corrupted: 0,
         total_size_bytes: 0,
         needs_sanitize_count: 0,
         large_videos_count: 0,
@@ -954,11 +952,9 @@
 
     // ─── Update Stat Cards & Health Score ────────────────────
     function updateStatCards() {
-        const aFoundTotal   = cStats.a_local_found + cStats.a_online_found;
-        const aLocalIssues  = cStats.a_local_missing + cStats.a_local_no_path + cStats.a_local_corrupted;
-        const aOnlineIssues = cStats.a_online_missing + cStats.a_online_no_path + cStats.a_online_corrupted;
-        const aIssueTotal   = aLocalIssues + aOnlineIssues;
-        const qBrokenTotal  = cStats.q_missing + cStats.q_corrupted;
+        const aFoundTotal  = cStats.a_found;
+        const aIssueTotal  = cStats.a_missing + cStats.a_no_path + cStats.a_corrupted;
+        const qBrokenTotal = cStats.q_missing + cStats.q_corrupted;
 
         const totalAllVideos = cStats.q_found + cStats.q_missing + cStats.q_no_path + cStats.q_corrupted
                              + aFoundTotal + aIssueTotal;
@@ -971,9 +967,8 @@
         setText('val-q-nopath',  cStats.q_no_path);
 
         setText('val-a-found', aFoundTotal);
-        setText('sub-a-found-split', `محلي: ${cStats.a_local_found} | أونلاين: ${cStats.a_online_found}`);
         setText('val-a-issue', aIssueTotal);
-        setText('sub-a-issue-split', `محلي: ${aLocalIssues} | أونلاين: ${aOnlineIssues}`);
+        setText('sub-a-issue-split', `مفقودة: ${cStats.a_missing} | تالفة: ${cStats.a_corrupted} | بلا مسار: ${cStats.a_no_path}`);
 
         const techAlerts = cStats.needs_sanitize_count + cStats.large_videos_count + cStats.incompatible_format_count;
         setText('val-tech-alerts', techAlerts);
@@ -1022,10 +1017,10 @@
     }
 
     function updateLegend() {
-        const totalFound   = cStats.q_found + cStats.a_local_found + cStats.a_online_found;
-        const totalMissing = cStats.q_missing + cStats.a_local_missing + cStats.a_online_missing;
-        const totalCorrupt = cStats.q_corrupted + cStats.a_local_corrupted + cStats.a_online_corrupted;
-        const totalNoPath  = cStats.q_no_path + cStats.a_local_no_path + cStats.a_online_no_path;
+        const totalFound   = cStats.q_found + cStats.a_found;
+        const totalMissing = cStats.q_missing + cStats.a_missing;
+        const totalCorrupt = cStats.q_corrupted + cStats.a_corrupted;
+        const totalNoPath  = cStats.q_no_path + cStats.a_no_path;
 
         setText('leg-found',     totalFound);
         setText('leg-missing',   totalMissing);
@@ -1234,7 +1229,7 @@
         const categoryId = document.getElementById('categoryFilter').value;
         const confirmMsg = categoryId
             ? 'هل أنت متأكد من ضبط وتصحيح أسماء ملفات الفيديو للفئة المحددة فقط؟ (سيتم إعادة تسمية الملفات الموجودة فعلياً وتحديث قاعدة البيانات تلقائياً)'
-            : 'هل أنت متأكد من ضبط وتصحيح أسماء ملفات الفيديو لجميع الفئات؟ (الأسئلة + الإجابات المحلية + إجابات الأونلاين)';
+            : 'هل أنت متأكد من ضبط وتصحيح أسماء ملفات الفيديو لجميع الفئات؟ (الأسئلة + الإجابات المحلية)';
 
         if (!confirm(confirmMsg)) return;
 

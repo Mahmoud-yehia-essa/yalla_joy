@@ -13,9 +13,6 @@
     $hasCorrupt  = $row['has_corrupted'] ? '1' : '0';
     $hasWarning  = $row['has_warning'] ? '1' : '0';
     $editUrl     = route('edit.question', $row['id']);
-
-    $onlineVideoAnswers = array_values(array_filter($row['online_answers'], fn($a) => $a['answer_type'] === 'video'));
-    $onlineNonVideoCount = count($row['online_answers']) - count($onlineVideoAnswers);
 @endphp
 <tr class="verify-row"
     data-category-name="{{ $row['category_name'] ?? '—' }}"
@@ -170,145 +167,82 @@
         @endif
     </td>
 
-    {{-- فيديوهات الإجابات (المحلية والأونلاين) --}}
+    {{-- فيديوهات الإجابات (المحلية فقط) --}}
     <td>
-        <ul class="answers-list">
-            {{-- الإجابات المحلية (Local) --}}
-            @foreach($row['local_answers'] as $aIdx => $answer)
-                <li class="answer-item">
-                    <span class="scope-tag scope-local">محلي</span>
-                    <div style="flex:1; min-width:0;">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="type-badge {{ $answer['answer_type'] }}" style="font-size:0.68rem; padding:2px 8px;">
-                                @if($answer['answer_type'] === 'video') فيديو
-                                @elseif($answer['answer_type'] === 'image') صورة
-                                @elseif($answer['answer_type'] === 'sound') صوت
-                                @elseif($answer['answer_type'] === 'text') نصي
-                                @else {{ $answer['answer_type'] }}
-                                @endif
-                            </span>
-
-                            @if($answer['answer_type'] === 'video' && $answer['video_info'])
-                                @php $aInfo = $answer['video_info']; $aSt = $aInfo['status']; @endphp
-                                @if($aSt === 'found')
-                                    <span class="status-badge found" style="font-size:0.68rem; padding:2px 8px;">
-                                        <i class="bx bx-check"></i> موجود ({{ $aInfo['size_formatted'] }})
-                                    </span>
-                                    <button type="button"
-                                            class="btn-play-inline btn-play-video"
-                                            data-video-src="{{ $answer['url'] }}"
-                                            data-video-title="إجابة محلية — {{ $row['qu_title'] }}"
-                                            data-video-path="{{ $answer['answer_video'] }}"
-                                            data-video-size="{{ $aInfo['size_formatted'] }}"
-                                            data-video-ext="{{ strtoupper($aInfo['extension']) }}"
-                                            data-video-scope="إجابة محلية (Local)"
-                                            data-edit-url="{{ $editUrl }}">
-                                        <i class="bx bx-play"></i> تشغيل
-                                    </button>
-                                @elseif($aSt === 'corrupted')
-                                    <span class="status-badge corrupted" style="font-size:0.68rem; padding:2px 8px;">
-                                        <i class="bx bx-bug"></i> تالف (0B)
-                                    </span>
-                                @elseif($aSt === 'missing')
-                                    <span class="status-badge missing" style="font-size:0.68rem; padding:2px 8px;">
-                                        <i class="bx bx-x"></i> مفقود
-                                    </span>
-                                @elseif($aSt === 'no_path')
-                                    <span class="status-badge no-path" style="font-size:0.68rem; padding:2px 8px;">
-                                        <i class="bx bx-error"></i> بلا مسار
-                                    </span>
-                                @endif
-
-                                @if(!empty($answer['answer_video']))
-                                    <code class="video-path-code" style="max-width:140px;" title="{{ $answer['answer_video'] }}">{{ $answer['answer_video'] }}</code>
-                                    <button type="button" class="btn-micro-icon btn-copy-path" data-copy-text="{{ $answer['answer_video'] }}" title="نسخ المسار">
-                                        <i class="bx bx-copy"></i>
-                                    </button>
-                                @endif
-
-                                @if($aInfo['encoding_mismatch'])
-                                    <span class="meta-pill pill-info"><i class="bx bx-magic-wand"></i> قابل للإصلاح</span>
-                                @elseif($aInfo['needs_sanitize'])
-                                    <span class="meta-pill pill-warn"><i class="bx bx-rename"></i> اسم غير قياسي</span>
-                                @endif
-                                @if($aInfo['is_large'])
-                                    <span class="meta-pill pill-warn"><i class="bx bx-hdd"></i> حجم كبير</span>
-                                @endif
-                            @else
-                                <span class="text-muted" style="font-size:0.73rem;">
-                                    {{ \Illuminate\Support\Str::limit($answer['answer_title'] ?: '—', 32) }}
+        @if(count($row['local_answers']) > 0)
+            <ul class="answers-list">
+                @foreach($row['local_answers'] as $aIdx => $answer)
+                    <li class="answer-item">
+                        <div style="flex:1; min-width:0;">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="type-badge {{ $answer['answer_type'] }}" style="font-size:0.68rem; padding:2px 8px;">
+                                    @if($answer['answer_type'] === 'video') فيديو
+                                    @elseif($answer['answer_type'] === 'image') صورة
+                                    @elseif($answer['answer_type'] === 'sound') صوت
+                                    @elseif($answer['answer_type'] === 'text') نصي
+                                    @else {{ $answer['answer_type'] }}
+                                    @endif
                                 </span>
-                            @endif
+
+                                @if($answer['answer_type'] === 'video' && $answer['video_info'])
+                                    @php $aInfo = $answer['video_info']; $aSt = $aInfo['status']; @endphp
+                                    @if($aSt === 'found')
+                                        <span class="status-badge found" style="font-size:0.68rem; padding:2px 8px;">
+                                            <i class="bx bx-check"></i> موجود ({{ $aInfo['size_formatted'] }})
+                                        </span>
+                                        <button type="button"
+                                                class="btn-play-inline btn-play-video"
+                                                data-video-src="{{ $answer['url'] }}"
+                                                data-video-title="إجابة — {{ $row['qu_title'] }}"
+                                                data-video-path="{{ $answer['answer_video'] }}"
+                                                data-video-size="{{ $aInfo['size_formatted'] }}"
+                                                data-video-ext="{{ strtoupper($aInfo['extension']) }}"
+                                                data-video-scope="فيديو الإجابة"
+                                                data-edit-url="{{ $editUrl }}">
+                                            <i class="bx bx-play"></i> تشغيل
+                                        </button>
+                                    @elseif($aSt === 'corrupted')
+                                        <span class="status-badge corrupted" style="font-size:0.68rem; padding:2px 8px;">
+                                            <i class="bx bx-bug"></i> تالف (0B)
+                                        </span>
+                                    @elseif($aSt === 'missing')
+                                        <span class="status-badge missing" style="font-size:0.68rem; padding:2px 8px;">
+                                            <i class="bx bx-x"></i> مفقود
+                                        </span>
+                                    @elseif($aSt === 'no_path')
+                                        <span class="status-badge no-path" style="font-size:0.68rem; padding:2px 8px;">
+                                            <i class="bx bx-error"></i> بلا مسار
+                                        </span>
+                                    @endif
+
+                                    @if(!empty($answer['answer_video']))
+                                        <code class="video-path-code" style="max-width:150px;" title="{{ $answer['answer_video'] }}">{{ $answer['answer_video'] }}</code>
+                                        <button type="button" class="btn-micro-icon btn-copy-path" data-copy-text="{{ $answer['answer_video'] }}" title="نسخ المسار">
+                                            <i class="bx bx-copy"></i>
+                                        </button>
+                                    @endif
+
+                                    @if($aInfo['encoding_mismatch'])
+                                        <span class="meta-pill pill-info"><i class="bx bx-magic-wand"></i> قابل للإصلاح</span>
+                                    @elseif($aInfo['needs_sanitize'])
+                                        <span class="meta-pill pill-warn"><i class="bx bx-rename"></i> اسم غير قياسي</span>
+                                    @endif
+                                    @if($aInfo['is_large'])
+                                        <span class="meta-pill pill-warn"><i class="bx bx-hdd"></i> حجم كبير</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted" style="font-size:0.73rem;">
+                                        {{ \Illuminate\Support\Str::limit($answer['answer_title'] ?: '—', 32) }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                </li>
-            @endforeach
-
-            {{-- إجابات الأونلاين التي تحتوي على فيديو --}}
-            @foreach($onlineVideoAnswers as $oAns)
-                @php $oaInfo = $oAns['video_info']; $oaSt = $oaInfo['status'] ?? 'no_path'; @endphp
-                <li class="answer-item">
-                    <span class="scope-tag scope-online">أونلاين #{{ $oAns['index'] }}</span>
-                    <div style="flex:1; min-width:0;">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            @if($oaSt === 'found')
-                                <span class="status-badge found" style="font-size:0.68rem; padding:2px 8px;">
-                                    <i class="bx bx-check"></i> موجود ({{ $oaInfo['size_formatted'] }})
-                                </span>
-                                <button type="button"
-                                        class="btn-play-inline btn-play-video"
-                                        data-video-src="{{ $oAns['url'] }}"
-                                        data-video-title="إجابة أونلاين #{{ $oAns['index'] }} — {{ $row['qu_title'] }}"
-                                        data-video-path="{{ $oAns['answer_video'] }}"
-                                        data-video-size="{{ $oaInfo['size_formatted'] }}"
-                                        data-video-ext="{{ strtoupper($oaInfo['extension']) }}"
-                                        data-video-scope="إجابة أونلاين #{{ $oAns['index'] }} (Online)"
-                                        data-edit-url="{{ $editUrl }}">
-                                    <i class="bx bx-play"></i> تشغيل
-                                </button>
-                            @elseif($oaSt === 'corrupted')
-                                <span class="status-badge corrupted" style="font-size:0.68rem; padding:2px 8px;">
-                                    <i class="bx bx-bug"></i> تالف (0B)
-                                </span>
-                            @elseif($oaSt === 'missing')
-                                <span class="status-badge missing" style="font-size:0.68rem; padding:2px 8px;">
-                                    <i class="bx bx-x"></i> مفقود
-                                </span>
-                            @elseif($oaSt === 'no_path')
-                                <span class="status-badge no-path" style="font-size:0.68rem; padding:2px 8px;">
-                                    <i class="bx bx-error"></i> بلا مسار
-                                </span>
-                            @endif
-
-                            @if(!empty($oAns['answer_video']))
-                                <code class="video-path-code" style="max-width:140px;" title="{{ $oAns['answer_video'] }}">{{ $oAns['answer_video'] }}</code>
-                                <button type="button" class="btn-micro-icon btn-copy-path" data-copy-text="{{ $oAns['answer_video'] }}" title="نسخ المسار">
-                                    <i class="bx bx-copy"></i>
-                                </button>
-                            @endif
-
-                            @if($oaInfo && $oaInfo['encoding_mismatch'])
-                                <span class="meta-pill pill-info"><i class="bx bx-magic-wand"></i> قابل للإصلاح</span>
-                            @elseif($oaInfo && $oaInfo['needs_sanitize'])
-                                <span class="meta-pill pill-warn"><i class="bx bx-rename"></i> اسم غير قياسي</span>
-                            @endif
-                        </div>
-                    </div>
-                </li>
-            @endforeach
-
-            @if(count($row['local_answers']) === 0 && count($onlineVideoAnswers) === 0)
-                <li class="answer-item">
-                    <span class="text-muted" style="font-size:0.76rem;"><i class="bx bx-info-circle me-1"></i>لا توجد إجابات</span>
-                </li>
-            @elseif($onlineNonVideoCount > 0 && count($onlineVideoAnswers) === 0)
-                <li class="answer-item" style="border-bottom:none; padding-top:2px;">
-                    <span class="text-muted" style="font-size:0.71rem;">
-                        <i class="bx bx-globe me-1"></i>إجابات أونلاين: {{ $onlineNonVideoCount }} (بدون فيديو)
-                    </span>
-                </li>
-            @endif
-        </ul>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <span class="text-muted" style="font-size:0.76rem;"><i class="bx bx-info-circle me-1"></i>لا توجد إجابات</span>
+        @endif
     </td>
 
     {{-- إجراء سريع --}}

@@ -1132,7 +1132,7 @@ foreach ($answersData as $ans) {
         }
 
         // =========================================================================
-        // نظام التحقق المتقدم من فيديوهات الأسئلة والإجابات (المحلية والأونلاين)
+        // نظام التحقق المتقدم من فيديوهات الأسئلة والإجابات (المحلية فقط)
         // =========================================================================
 
         /**
@@ -1173,9 +1173,6 @@ foreach ($answersData as $ans) {
                 $q->where('questions_type', 'video')
                   ->orWhereHas('answers', function ($aq) {
                       $aq->where('answer_type', 'video');
-                  })
-                  ->orWhereHas('answerQuestionOnlines', function ($oq) {
-                      $oq->where('answer_type', 'video');
                   });
             })->count();
 
@@ -1183,21 +1180,13 @@ foreach ($answersData as $ans) {
             if ($categoryId !== '' || $search !== '') {
                 $localAnswerVideosQuery->whereIn('question_id', (clone $baseQuery)->select('id'));
             }
-            $totalLocalAnswerVideos = $localAnswerVideosQuery->count();
-
-            $onlineAnswerVideosQuery = AnswerQuestionOnline::where('answer_type', 'video');
-            if ($categoryId !== '' || $search !== '') {
-                $onlineAnswerVideosQuery->whereIn('question_id', (clone $baseQuery)->select('id'));
-            }
-            $totalOnlineAnswerVideos = $onlineAnswerVideosQuery->count();
+            $totalAnswerVideos = $localAnswerVideosQuery->count();
 
             $stats = [
-                'total_questions'            => $totalQuestions,
-                'video_related_questions'    => $videoRelatedQuestions,
-                'video_questions'            => $videoQuestions,
-                'total_local_answer_videos'  => $totalLocalAnswerVideos,
-                'total_online_answer_videos' => $totalOnlineAnswerVideos,
-                'total_answer_videos'        => $totalLocalAnswerVideos + $totalOnlineAnswerVideos,
+                'total_questions'         => $totalQuestions,
+                'video_related_questions' => $videoRelatedQuestions,
+                'video_questions'         => $videoQuestions,
+                'total_answer_videos'     => $totalAnswerVideos,
             ];
 
             $categories = Category::orderBy('category_name', 'asc')->get();
@@ -1206,7 +1195,7 @@ foreach ($answersData as $ans) {
         }
 
         /**
-         * AJAX endpoint: يجلب دفعة من الأسئلة ويفحص فيديوهات السؤال والإجابات المحلية والأونلاين
+         * AJAX endpoint: يجلب دفعة من الأسئلة ويفحص فيديوهات السؤال والإجابات المحلية فقط
          */
         public function verifyQuestionVideosAjax(Request $request)
         {
@@ -1216,7 +1205,7 @@ foreach ($answersData as $ans) {
             $categoryId = (string) $request->input('category_id', '');
             $scope      = (string) $request->input('scope', 'video_only');
 
-            $query = Question::with(['category', 'answers', 'answerQuestionOnlines'])
+            $query = Question::with(['category', 'answers'])
                 ->orderBy('id', 'asc');
 
             if ($search !== '') {
@@ -1239,9 +1228,6 @@ foreach ($answersData as $ans) {
                     $q->where('questions_type', 'video')
                       ->orWhereHas('answers', function ($aq) {
                           $aq->where('answer_type', 'video');
-                      })
-                      ->orWhereHas('answerQuestionOnlines', function ($oq) {
-                          $oq->where('answer_type', 'video');
                       });
                 });
             }
@@ -1249,9 +1235,8 @@ foreach ($answersData as $ans) {
             $paginator = $query->paginate($perPage, ['*'], 'page', $page);
             $questions = $paginator->items();
 
-            $qVideoDir       = public_path('upload/questions/videos/');
-            $aLocalVideoDir  = public_path('upload/answers/videos/');
-            $aOnlineVideoDir = public_path('upload/answers/online/videos/');
+            $qVideoDir      = public_path('upload/questions/videos/');
+            $aLocalVideoDir = public_path('upload/answers/videos/');
 
             $rows = [];
             $batchStats = [
@@ -1259,14 +1244,10 @@ foreach ($answersData as $ans) {
                 'q_missing'                 => 0,
                 'q_no_path'                 => 0,
                 'q_corrupted'               => 0,
-                'a_local_found'             => 0,
-                'a_local_missing'           => 0,
-                'a_local_no_path'           => 0,
-                'a_local_corrupted'         => 0,
-                'a_online_found'            => 0,
-                'a_online_missing'          => 0,
-                'a_online_no_path'          => 0,
-                'a_online_corrupted'        => 0,
+                'a_found'                   => 0,
+                'a_missing'                 => 0,
+                'a_no_path'                 => 0,
+                'a_corrupted'               => 0,
                 'total_size_bytes'          => 0,
                 'needs_sanitize_count'      => 0,
                 'large_videos_count'        => 0,
@@ -1289,13 +1270,13 @@ foreach ($answersData as $ans) {
                     }
                 }
 
-                // 2) فحص فيديوهات الإجابات المحلية (Local)
+                // 2) فحص فيديوهات الإجابات المحلية فقط (Local)
                 $localAnswersData = [];
                 foreach ($question->answers as $answer) {
                     $aInfo = null;
                     if ($answer->answer_type === 'video') {
                         $aInfo = $this->inspectVideoFile($aLocalVideoDir, $answer->answer_video, 'avid_');
-                        $batchStats['a_local_' . $aInfo['status']]++;
+                        $batchStats['a_' . $aInfo['status']]++;
                         if ($aInfo['status'] === 'found') {
                             $batchStats['total_size_bytes'] += $aInfo['size_bytes'];
                             if ($aInfo['is_large']) $batchStats['large_videos_count']++;
@@ -1308,7 +1289,6 @@ foreach ($answersData as $ans) {
 
                     $localAnswersData[] = [
                         'id'           => $answer->id,
-                        'scope'        => 'local',
                         'answer_type'  => $answer->answer_type,
                         'answer_title' => $answer->answer_title ?? '',
                         'answer_video' => $answer->answer_video,
@@ -1317,47 +1297,16 @@ foreach ($answersData as $ans) {
                     ];
                 }
 
-                // 3) فحص فيديوهات إجابات الأونلاين (Online)
-                $onlineAnswersData = [];
-                foreach ($question->answerQuestionOnlines as $idx => $onlineAnswer) {
-                    $oaInfo = null;
-                    if ($onlineAnswer->answer_type === 'video') {
-                        $oaInfo = $this->inspectVideoFile($aOnlineVideoDir, $onlineAnswer->answer_video, 'oavid_');
-                        $batchStats['a_online_' . $oaInfo['status']]++;
-                        if ($oaInfo['status'] === 'found') {
-                            $batchStats['total_size_bytes'] += $oaInfo['size_bytes'];
-                            if ($oaInfo['is_large']) $batchStats['large_videos_count']++;
-                            if (!$oaInfo['is_web_compatible']) $batchStats['incompatible_format_count']++;
-                        }
-                        if ($oaInfo['needs_sanitize']) {
-                            $batchStats['needs_sanitize_count']++;
-                        }
-                    }
-
-                    $onlineAnswersData[] = [
-                        'id'           => $onlineAnswer->id,
-                        'index'        => $idx + 1,
-                        'scope'        => 'online',
-                        'is_correct'   => (bool) $onlineAnswer->is_correct,
-                        'answer_type'  => $onlineAnswer->answer_type,
-                        'answer_title' => $onlineAnswer->answer_title ?? '',
-                        'answer_video' => $onlineAnswer->answer_video,
-                        'video_info'   => $oaInfo,
-                        'url'          => $onlineAnswer->answer_video ? url('upload/answers/online/videos/' . $onlineAnswer->answer_video) : null,
-                    ];
-                }
-
                 $qStatus = $qInfo['status'] ?? null;
                 $hasQuestionIssue = in_array($qStatus, ['missing', 'no_path', 'corrupted'], true);
                 $hasCorrupted = ($qStatus === 'corrupted');
 
-                $allAnswersCombined = array_merge($localAnswersData, $onlineAnswersData);
                 $hasAnswerIssue = false;
                 $ansOkCount = 0;
                 $ansBadCount = 0;
                 $hasWarning = ($qInfo && ($qInfo['needs_sanitize'] || $qInfo['is_large'] || ($qStatus === 'found' && !$qInfo['is_web_compatible'])));
 
-                foreach ($allAnswersCombined as $ans) {
+                foreach ($localAnswersData as $ans) {
                     if ($ans['answer_type'] === 'video' && $ans['video_info']) {
                         $st = $ans['video_info']['status'];
                         if ($st === 'found') {
@@ -1389,7 +1338,6 @@ foreach ($answersData as $ans) {
                     'question_video_info'    => $qInfo,
                     'question_video_status'  => $qStatus,
                     'local_answers'          => $localAnswersData,
-                    'online_answers'         => $onlineAnswersData,
                     'ans_ok_count'           => $ansOkCount,
                     'ans_bad_count'          => $ansBadCount,
                     'has_question_issue'     => $hasQuestionIssue,
@@ -1502,7 +1450,7 @@ foreach ($answersData as $ans) {
         }
 
         /**
-         * AJAX endpoint: ضبط وتصحيح أسماء ملفات الفيديوهات (للأسئلة والإجابات المحلية والأونلاين)
+         * AJAX endpoint: ضبط وتصحيح أسماء ملفات الفيديوهات (للأسئلة والإجابات المحلية فقط)
          */
         public function sanitizeQuestionVideosAjax(Request $request)
         {
@@ -1516,25 +1464,19 @@ foreach ($answersData as $ans) {
                 ->whereNotNull('answer_video')
                 ->where('answer_video', '!=', '');
 
-            $aOnlineQuery = AnswerQuestionOnline::where('answer_type', 'video')
-                ->whereNotNull('answer_video')
-                ->where('answer_video', '!=', '');
-
             if ($categoryId !== '') {
                 $qQuery->where('category_id', $categoryId);
                 $catQuestionIds = Question::where('category_id', $categoryId)->select('id');
-                $aLocalQuery->whereIn('question_id', clone $catQuestionIds);
-                $aOnlineQuery->whereIn('question_id', clone $catQuestionIds);
+                $aLocalQuery->whereIn('question_id', $catQuestionIds);
             }
 
             $qRenamed      = $this->sanitizeVideoGroup($qQuery->get()->groupBy('qu_video'), public_path('upload/questions/videos/'), Question::class, 'qu_video', 'qvid_');
             $aLocalRenamed = $this->sanitizeVideoGroup($aLocalQuery->get()->groupBy('answer_video'), public_path('upload/answers/videos/'), Answer::class, 'answer_video', 'avid_');
-            $aOnlineRenamed = $this->sanitizeVideoGroup($aOnlineQuery->get()->groupBy('answer_video'), public_path('upload/answers/online/videos/'), AnswerQuestionOnline::class, 'answer_video', 'oavid_');
 
-            $totalRenamed = $qRenamed['renamed'] + $aLocalRenamed['renamed'] + $aOnlineRenamed['renamed'];
-            $totalSkipped = $qRenamed['skipped'] + $aLocalRenamed['skipped'] + $aOnlineRenamed['skipped'];
+            $totalRenamed = $qRenamed['renamed'] + $aLocalRenamed['renamed'];
+            $totalSkipped = $qRenamed['skipped'] + $aLocalRenamed['skipped'];
 
-            $msg = "تم ضبط وتصحيح {$totalRenamed} اسم ملف فيديو بنجاح (أسئلة: {$qRenamed['renamed']}، إجابات محلية: {$aLocalRenamed['renamed']}، إجابات أونلاين: {$aOnlineRenamed['renamed']}).";
+            $msg = "تم ضبط وتصحيح {$totalRenamed} اسم ملف فيديو بنجاح (الأسئلة: {$qRenamed['renamed']}، الإجابات: {$aLocalRenamed['renamed']}).";
             if ($totalSkipped > 0) {
                 $msg .= " تم تخطي {$totalSkipped} مسار لعدم وجود الملف فعلياً على الخادم.";
             }
@@ -1546,7 +1488,6 @@ foreach ($answersData as $ans) {
                     'total_renamed'         => $totalRenamed,
                     'questions_renamed'     => $qRenamed['renamed'],
                     'local_answers_renamed' => $aLocalRenamed['renamed'],
-                    'online_answers_renamed'=> $aOnlineRenamed['renamed'],
                     'skipped_missing'       => $totalSkipped,
                 ],
             ]);
@@ -1621,11 +1562,10 @@ foreach ($answersData as $ans) {
             $categoryId = (string) $request->input('category_id', '');
             $filter     = (string) $request->input('filter', 'has_issues');
 
-            $query = Question::with(['category', 'answers', 'answerQuestionOnlines'])
+            $query = Question::with(['category', 'answers'])
                 ->where(function ($q) {
                     $q->where('questions_type', 'video')
-                      ->orWhereHas('answers', fn($aq) => $aq->where('answer_type', 'video'))
-                      ->orWhereHas('answerQuestionOnlines', fn($oq) => $oq->where('answer_type', 'video'));
+                      ->orWhereHas('answers', fn($aq) => $aq->where('answer_type', 'video'));
                 })
                 ->orderBy('id', 'asc');
 
@@ -1647,7 +1587,6 @@ foreach ($answersData as $ans) {
             $filename = 'verify_question_videos_' . date('Y-m-d_H-i') . '.csv';
             $qDir  = public_path('upload/questions/videos/');
             $alDir = public_path('upload/answers/videos/');
-            $aoDir = public_path('upload/answers/online/videos/');
 
             $statusLabels = [
                 'found'     => 'موجود وسليم',
@@ -1656,7 +1595,7 @@ foreach ($answersData as $ans) {
                 'no_path'   => 'بلا مسار في قاعدة البيانات',
             ];
 
-            return response()->streamDownload(function () use ($query, $filter, $qDir, $alDir, $aoDir, $statusLabels) {
+            return response()->streamDownload(function () use ($query, $filter, $qDir, $alDir, $statusLabels) {
                 $handle = fopen('php://output', 'w');
                 // UTF-8 BOM ليعمل العرض العربي بسلاسة داخل Excel
                 fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
@@ -1675,7 +1614,7 @@ foreach ($answersData as $ans) {
                     'رابط التعديل',
                 ]);
 
-                $query->chunk(200, function ($questions) use ($handle, $filter, $qDir, $alDir, $aoDir, $statusLabels) {
+                $query->chunk(200, function ($questions) use ($handle, $filter, $qDir, $alDir, $statusLabels) {
                     foreach ($questions as $question) {
                         $catName = optional($question->category)->category_name ?? '—';
                         $editUrl = route('edit.question', $question->id);
@@ -1696,22 +1635,9 @@ foreach ($answersData as $ans) {
                             if ($ans->answer_type === 'video') {
                                 $info = $this->inspectVideoFile($alDir, $ans->answer_video, 'avid_');
                                 $entries[] = [
-                                    'location' => 'إجابة محلية #' . ($idx + 1),
+                                    'location' => 'فيديو الإجابة #' . ($idx + 1),
                                     'path'     => $ans->answer_video ?? '',
                                     'url'      => $ans->answer_video ? url('upload/answers/videos/' . $ans->answer_video) : '',
-                                    'info'     => $info,
-                                    'is_q'     => false,
-                                ];
-                            }
-                        }
-
-                        foreach ($question->answerQuestionOnlines as $idx => $oAns) {
-                            if ($oAns->answer_type === 'video') {
-                                $info = $this->inspectVideoFile($aoDir, $oAns->answer_video, 'oavid_');
-                                $entries[] = [
-                                    'location' => 'إجابة أونلاين #' . ($idx + 1),
-                                    'path'     => $oAns->answer_video ?? '',
-                                    'url'      => $oAns->answer_video ? url('upload/answers/online/videos/' . $oAns->answer_video) : '',
                                     'info'     => $info,
                                     'is_q'     => false,
                                 ];
