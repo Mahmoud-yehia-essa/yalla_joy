@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GameCoin;
 use App\Models\GameCoupon;
+use App\Models\GameCouponUsage;
 use App\Models\GamePurchase;
 use App\Models\User;
+use App\Models\UserCoin;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Exports\GameCouponExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,24 +20,27 @@ class GameCouponController extends Controller
 {
     public function allGameCoupon()
     {
-        $coupons = GameCoupon::with('gamePurchase')->latest()->get();
+        $coupons = GameCoupon::with(['gamePurchase', 'gameCoin'])->latest()->get();
         return view('admin.game_coupon.all_game_coupon', compact('coupons'));
     }
 
     public function addGameCoupon()
     {
         $purchases = GamePurchase::latest()->get();
-        return view('admin.game_coupon.add_game_coupon', compact('purchases'));
+        $coins = GameCoin::orderBy('id', 'asc')->get();
+        return view('admin.game_coupon.add_game_coupon', compact('purchases', 'coins'));
     }
 
     public function storeGameCoupon(Request $request)
     {
         $request->validate([
             'code' => 'required|string|max:255|unique:game_coupons,code',
-            'type' => 'required|in:percentage,free_games,package_bonus',
+            'type' => 'required|in:percentage,free_games,package_bonus,coins',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'free_games_count' => 'nullable|integer|min:0',
             'game_purchases_id' => 'nullable|exists:game_purchases,id',
+            'coins_count' => 'required_if:type,coins|nullable|integer|min:1',
+            'game_coin_id' => 'required_if:type,coins|nullable|exists:game_coins,id',
             'usage_limit' => 'nullable|integer|min:1',
             'expires_at' => 'nullable|date',
         ], [
@@ -46,17 +54,24 @@ class GameCouponController extends Controller
             'free_games_count.integer' => '⚠️ عدد الألعاب يجب أن يكون رقمًا صحيحًا',
             'free_games_count.min' => '⚠️ عدد الألعاب لا يمكن أن يقل عن 0',
             'game_purchases_id.exists' => '⚠️ الباقة المحددة غير صالحة',
+            'coins_count.required_if' => '⚠️ الرجاء إدخال عدد العملات المراد إضافتها',
+            'coins_count.integer' => '⚠️ عدد العملات يجب أن يكون رقمًا صحيحًا',
+            'coins_count.min' => '⚠️ عدد العملات يجب أن يكون 1 على الأقل',
+            'game_coin_id.required_if' => '⚠️ الرجاء اختيار نوع العملة',
+            'game_coin_id.exists' => '⚠️ نوع العملة المحدد غير صالح',
             'usage_limit.integer' => '⚠️ الحد الأقصى للاستخدام يجب أن يكون رقمًا صحيحًا',
             'usage_limit.min' => '⚠️ الحد الأقصى للاستخدام يجب أن يكون 1 على الأقل',
             'expires_at.date' => '⚠️ تاريخ انتهاء الصلاحية غير صالح',
         ]);
 
         GameCoupon::create([
-            'code' => strtoupper($request->code),
+            'code' => strtoupper(trim($request->code)),
             'type' => $request->type,
             'discount_percentage' => $request->type == 'percentage' ? $request->discount_percentage : null,
             'free_games_count' => ($request->type == 'free_games' || $request->type == 'package_bonus') ? $request->free_games_count : null,
             'game_purchases_id' => $request->type == 'package_bonus' ? $request->game_purchases_id : null,
+            'coins_count' => $request->type == 'coins' ? $request->coins_count : null,
+            'game_coin_id' => $request->type == 'coins' ? $request->game_coin_id : null,
             'usage_limit' => $request->usage_limit,
             'expires_at' => $request->expires_at,
             'is_active' => true,
@@ -74,7 +89,8 @@ class GameCouponController extends Controller
     {
         $coupon = GameCoupon::findOrFail($id);
         $purchases = GamePurchase::latest()->get();
-        return view('admin.game_coupon.edit_game_coupon', compact('coupon', 'purchases'));
+        $coins = GameCoin::orderBy('id', 'asc')->get();
+        return view('admin.game_coupon.edit_game_coupon', compact('coupon', 'purchases', 'coins'));
     }
 
     public function updateGameCoupon(Request $request)
@@ -82,10 +98,12 @@ class GameCouponController extends Controller
         $id = $request->id;
         $request->validate([
             'code' => 'required|string|max:255|unique:game_coupons,code,' . $id,
-            'type' => 'required|in:percentage,free_games,package_bonus',
+            'type' => 'required|in:percentage,free_games,package_bonus,coins',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'free_games_count' => 'nullable|integer|min:0',
             'game_purchases_id' => 'nullable|exists:game_purchases,id',
+            'coins_count' => 'required_if:type,coins|nullable|integer|min:1',
+            'game_coin_id' => 'required_if:type,coins|nullable|exists:game_coins,id',
             'usage_limit' => 'nullable|integer|min:1',
             'expires_at' => 'nullable|date',
         ], [
@@ -99,17 +117,24 @@ class GameCouponController extends Controller
             'free_games_count.integer' => '⚠️ عدد الألعاب يجب أن يكون رقمًا صحيحًا',
             'free_games_count.min' => '⚠️ عدد الألعاب لا يمكن أن يقل عن 0',
             'game_purchases_id.exists' => '⚠️ الباقة المحددة غير صالحة',
+            'coins_count.required_if' => '⚠️ الرجاء إدخال عدد العملات المراد إضافتها',
+            'coins_count.integer' => '⚠️ عدد العملات يجب أن يكون رقمًا صحيحًا',
+            'coins_count.min' => '⚠️ عدد العملات يجب أن يكون 1 على الأقل',
+            'game_coin_id.required_if' => '⚠️ الرجاء اختيار نوع العملة',
+            'game_coin_id.exists' => '⚠️ نوع العملة المحدد غير صالح',
             'usage_limit.integer' => '⚠️ الحد الأقصى للاستخدام يجب أن يكون رقمًا صحيحًا',
             'usage_limit.min' => '⚠️ الحد الأقصى للاستخدام يجب أن يكون 1 على الأقل',
             'expires_at.date' => '⚠️ تاريخ انتهاء الصلاحية غير صالح',
         ]);
 
         GameCoupon::findOrFail($id)->update([
-            'code' => strtoupper($request->code),
+            'code' => strtoupper(trim($request->code)),
             'type' => $request->type,
             'discount_percentage' => $request->type == 'percentage' ? $request->discount_percentage : null,
             'free_games_count' => ($request->type == 'free_games' || $request->type == 'package_bonus') ? $request->free_games_count : null,
             'game_purchases_id' => $request->type == 'package_bonus' ? $request->game_purchases_id : null,
+            'coins_count' => $request->type == 'coins' ? $request->coins_count : null,
+            'game_coin_id' => $request->type == 'coins' ? $request->game_coin_id : null,
             'usage_limit' => $request->usage_limit,
             'expires_at' => $request->expires_at,
         ]);
@@ -186,7 +211,8 @@ class GameCouponController extends Controller
         if (!$coupon) {
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ كود الكوبون غير صحيح أو غير موجود'
+                'message' => '⚠️ كود الكوبون غير صحيح أو غير موجود',
+                'message_en' => 'Invalid or non-existent coupon code.'
             ], 200);
         }
 
@@ -194,7 +220,8 @@ class GameCouponController extends Controller
         if (!$coupon->is_active) {
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ هذا الكوبون غير نشط حالياً'
+                'message' => '⚠️ هذا الكوبون غير نشط حالياً',
+                'message_en' => 'This coupon is currently inactive.'
             ], 200);
         }
 
@@ -202,7 +229,8 @@ class GameCouponController extends Controller
         if ($coupon->expires_at && Carbon::parse($coupon->expires_at)->isPast()) {
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ هذا الكوبون منتهي الصلاحية'
+                'message' => '⚠️ هذا الكوبون منتهي الصلاحية',
+                'message_en' => 'This coupon has expired.'
             ], 200);
         }
 
@@ -210,7 +238,8 @@ class GameCouponController extends Controller
         if ($coupon->usage_limit !== null && $coupon->used_count >= $coupon->usage_limit) {
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ تم استنفاد الحد الأقصى لاستخدام هذا الكوبون'
+                'message' => '⚠️ تم استنفاد الحد الأقصى لاستخدام هذا الكوبون',
+                'message_en' => 'This coupon has reached its maximum usage limit.'
             ], 200);
         }
 
@@ -219,7 +248,8 @@ class GameCouponController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ هذا المستخدم غير موجود في النظام'
+                'message' => '⚠️ هذا المستخدم غير موجود في النظام',
+                'message_en' => 'This user does not exist.'
             ], 200);
         }
 
@@ -282,6 +312,115 @@ class GameCouponController extends Controller
                 'current_games' => (int)($user->number_of_games ?? 0),
                 'coupon' => $coupon
             ], 200);
+
+        } elseif ($coupon->type === 'coins') {
+            $coins_amount = (int)($coupon->coins_count ?? 0);
+            $gameCoin = $coupon->gameCoin;
+
+            if ($coins_amount <= 0 || !$gameCoin) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ هذا الكوبون غير مرتبط بنوع عملة أو عدد عملات صالح',
+                    'message_en' => 'This coupon is not linked to a valid coin type or coin amount.'
+                ], 200);
+            }
+
+            try {
+                $result = DB::transaction(function () use ($coupon, $user, $gameCoin, $coins_amount) {
+                    // قفل صف الكوبون لمنع السباق (Race Condition) عند الطلبات المتزامنة
+                    $lockedCoupon = GameCoupon::where('id', $coupon->id)->lockForUpdate()->first();
+
+                    if (!$lockedCoupon || !$lockedCoupon->is_active) {
+                        return [
+                            'success' => false,
+                            'message' => '⚠️ هذا الكوبون غير نشط حالياً',
+                            'message_en' => 'This coupon is currently inactive.',
+                        ];
+                    }
+
+                    if ($lockedCoupon->expires_at && Carbon::parse($lockedCoupon->expires_at)->isPast()) {
+                        return [
+                            'success' => false,
+                            'message' => '⚠️ هذا الكوبون منتهي الصلاحية',
+                            'message_en' => 'This coupon has expired.',
+                        ];
+                    }
+
+                    if ($lockedCoupon->usage_limit !== null && $lockedCoupon->used_count >= $lockedCoupon->usage_limit) {
+                        return [
+                            'success' => false,
+                            'message' => '⚠️ تم استنفاد الحد الأقصى لاستخدام هذا الكوبون',
+                            'message_en' => 'This coupon has reached its maximum usage limit.',
+                        ];
+                    }
+
+                    // التحقق الصارم: منع المستخدم من استخدام نفس الكوبون أكثر من مرة أبداً
+                    $alreadyUsed = GameCouponUsage::where('game_coupon_id', $lockedCoupon->id)
+                        ->where('user_id', $user->id)
+                        ->exists();
+
+                    if ($alreadyUsed) {
+                        return [
+                            'success' => false,
+                            'already_used' => true,
+                            'message' => '⚠️ لقد قمت باستخدام هذا الكوبون من قبل ولا يمكن استخدامه مرة أخرى',
+                            'message_en' => 'You have already used this coupon and cannot use it again.',
+                        ];
+                    }
+
+                    // تسجيل الاستخدام (محمي أيضاً بـ UNIQUE(game_coupon_id, user_id) في قاعدة البيانات)
+                    GameCouponUsage::create([
+                        'game_coupon_id' => $lockedCoupon->id,
+                        'user_id' => $user->id,
+                    ]);
+
+                    // إضافة العملات لرصيد المستخدم في جدول user_coins
+                    UserCoin::create([
+                        'user_id' => $user->id,
+                        'game_coin_id' => $gameCoin->id,
+                        'coins_number' => $coins_amount,
+                        'type' => 'add',
+                        'des' => 'مكافأة كوبون العملات (' . $lockedCoupon->code . ')',
+                    ]);
+
+                    $lockedCoupon->increment('used_count');
+                    $lockedCoupon->refresh();
+                    $lockedCoupon->load('gameCoin');
+
+                    $currentCoins = (int) UserCoin::where('user_id', $user->id)
+                        ->where('game_coin_id', $gameCoin->id)
+                        ->sum('coins_number');
+
+                    $coinNameAr = $gameCoin->name;
+                    $coinNameEn = !empty($gameCoin->name_en) ? $gameCoin->name_en : $gameCoin->name;
+
+                    return [
+                        'success' => true,
+                        'message' => '🎉 تم تطبيق الكوبون بنجاح وتم إضافة ' . $coins_amount . ' من ' . $coinNameAr . ' إلى رصيدك.',
+                        'message_en' => '🎉 Coupon applied successfully! ' . $coins_amount . ' ' . $coinNameEn . ' have been added to your wallet.',
+                        'coupon_type' => 'coins',
+                        'added_coins' => $coins_amount,
+                        'game_coin_id' => (int) $gameCoin->id,
+                        'coin_name' => $coinNameAr,
+                        'coin_name_en' => $coinNameEn,
+                        'current_coins' => $currentCoins,
+                        'coupon' => $lockedCoupon,
+                    ];
+                });
+
+                return response()->json($result, 200);
+            } catch (QueryException $e) {
+                // التقاط أي محاولة تكرار متزامنة على مستوى قيد UNIQUE في MySQL
+                if (isset($e->errorInfo[1]) && (int)$e->errorInfo[1] === 1062) {
+                    return response()->json([
+                        'success' => false,
+                        'already_used' => true,
+                        'message' => '⚠️ لقد قمت باستخدام هذا الكوبون من قبل ولا يمكن استخدامه مرة أخرى',
+                        'message_en' => 'You have already used this coupon and cannot use it again.',
+                    ], 200);
+                }
+                throw $e;
+            }
         }
 
         return response()->json([

@@ -48,6 +48,8 @@
                                     <span class="badge bg-success">ألعاب مجانية</span>
                                 @elseif($item->type == 'package_bonus')
                                     <span class="badge bg-primary">مكافأة باقة</span>
+                                @elseif($item->type == 'coins')
+                                    <span class="badge bg-warning text-dark">كسب عملات</span>
                                 @endif
                             </td>
                             <td>
@@ -55,6 +57,8 @@
                                     {{ $item->discount_percentage }}%
                                 @elseif($item->type == 'free_games' || $item->type == 'package_bonus')
                                     {{ $item->free_games_count }} ألعاب
+                                @elseif($item->type == 'coins')
+                                    <strong>{{ $item->coins_count }}</strong> {{ $item->gameCoin ? $item->gameCoin->name : 'عملة' }}
                                 @endif
                             </td>
                             <td>

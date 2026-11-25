@@ -31,7 +31,7 @@ class GameCouponExport implements FromCollection, WithHeadings, WithMapping, Wit
     public function collection()
     {
         if ($this->items === null) {
-            $this->items = GameCoupon::with('gamePurchase')->latest()->get();
+            $this->items = GameCoupon::with(['gamePurchase', 'gameCoin'])->latest()->get();
         }
 
         return $this->items;
@@ -68,6 +68,8 @@ class GameCouponExport implements FromCollection, WithHeadings, WithMapping, Wit
             $type = 'ألعاب مجانية';
         } elseif ($item->type == 'package_bonus') {
             $type = 'مكافأة باقة';
+        } elseif ($item->type == 'coins') {
+            $type = 'كسب عملات';
         }
 
         $value = '---';
@@ -75,6 +77,9 @@ class GameCouponExport implements FromCollection, WithHeadings, WithMapping, Wit
             $value = ($item->discount_percentage ?? 0) . '%';
         } elseif ($item->type == 'free_games' || $item->type == 'package_bonus') {
             $value = ($item->free_games_count ?? 0) . ' ألعاب';
+        } elseif ($item->type == 'coins') {
+            $coinName = $item->gameCoin ? $item->gameCoin->name : 'عملة';
+            $value = ($item->coins_count ?? 0) . ' ' . $coinName;
         }
 
         $purchase = 'غير مرتبط';

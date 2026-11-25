@@ -51,6 +51,7 @@
                                             <option value="percentage" {{ $coupon->type == 'percentage' ? 'selected' : '' }}>نسبة مئوية من السعر (Percentage Discount)</option>
                                             <option value="free_games" {{ $coupon->type == 'free_games' ? 'selected' : '' }}>ألعاب مجانية مباشرة (Free Games Count)</option>
                                             <option value="package_bonus" {{ $coupon->type == 'package_bonus' ? 'selected' : '' }}>ألعاب إضافية مع باقة شراء (Package Bonus)</option>
+                                            <option value="coins" {{ $coupon->type == 'coins' ? 'selected' : '' }}>كسب عملات (Earn Coins)</option>
                                         </select>
                                         @error('type') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
@@ -93,6 +94,35 @@
                                             @endforeach
                                         </select>
                                         @error('game_purchases_id') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Coins Count Field -->
+                                <div class="row mb-3" id="coins_count_div" style="display: none;">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">عدد العملات المراد إضافتها</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="number" name="coins_count" class="form-control" placeholder="مثل: 50" value="{{ old('coins_count', $coupon->coins_count) }}" min="1" />
+                                        @error('coins_count') <span class="text-danger">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Coin Type Select Field -->
+                                <div class="row mb-3" id="game_coin_div" style="display: none;">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">نوع العملة</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <select name="game_coin_id" class="form-select">
+                                            <option value="">اختر نوع العملة</option>
+                                            @foreach($coins as $coin)
+                                                <option value="{{ $coin->id }}" {{ old('game_coin_id', $coupon->game_coin_id) == $coin->id ? 'selected' : '' }}>
+                                                    {{ $coin->name }} @if(!empty($coin->name_en) && $coin->name_en !== $coin->name) ({{ $coin->name_en }}) @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('game_coin_id') <span class="text-danger">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
 
@@ -142,18 +172,32 @@
                 $('#discount_percentage_div').show().find('input').prop('required', true);
                 $('#free_games_count_div').hide().find('input').prop('required', false);
                 $('#game_purchases_div').hide().find('select').prop('required', false);
+                $('#coins_count_div').hide().find('input').prop('required', false);
+                $('#game_coin_div').hide().find('select').prop('required', false);
             } else if (selectedType === 'free_games') {
                 $('#discount_percentage_div').hide().find('input').prop('required', false);
                 $('#free_games_count_div').show().find('input').prop('required', true);
                 $('#game_purchases_div').hide().find('select').prop('required', false);
+                $('#coins_count_div').hide().find('input').prop('required', false);
+                $('#game_coin_div').hide().find('select').prop('required', false);
             } else if (selectedType === 'package_bonus') {
                 $('#discount_percentage_div').hide().find('input').prop('required', false);
                 $('#free_games_count_div').show().find('input').prop('required', true);
                 $('#game_purchases_div').show().find('select').prop('required', true);
+                $('#coins_count_div').hide().find('input').prop('required', false);
+                $('#game_coin_div').hide().find('select').prop('required', false);
+            } else if (selectedType === 'coins') {
+                $('#discount_percentage_div').hide().find('input').prop('required', false);
+                $('#free_games_count_div').hide().find('input').prop('required', false);
+                $('#game_purchases_div').hide().find('select').prop('required', false);
+                $('#coins_count_div').show().find('input').prop('required', true);
+                $('#game_coin_div').show().find('select').prop('required', true);
             } else {
                 $('#discount_percentage_div').hide().find('input').prop('required', false);
                 $('#free_games_count_div').hide().find('input').prop('required', false);
                 $('#game_purchases_div').hide().find('select').prop('required', false);
+                $('#coins_count_div').hide().find('input').prop('required', false);
+                $('#game_coin_div').hide().find('select').prop('required', false);
             }
         }
 
